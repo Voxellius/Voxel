@@ -1,24 +1,3 @@
-#ifndef LIBVOXEL_H_
-#define LIBVOXEL_H_
-
-// src/context.h
-
-typedef struct voxel_Context {
-    struct voxel_Thing* firstTrackedThing;
-    struct voxel_Thing* lastTrackedThing;
-} voxel_Context;
-
-voxel_Context* voxel_newContext() {
-    voxel_Context* context = VOXEL_MALLOC(sizeof(voxel_Context));
-
-    context->firstTrackedThing = NULL;
-    context->lastTrackedThing = NULL;
-
-    return context;
-}
-
-// src/things.h
-
 typedef enum {
     VOXEL_TYPE_NULL,
     VOXEL_TYPE_POSITION,
@@ -103,11 +82,3 @@ voxel_Thing* voxel_newThing(voxel_Context* context) {
 voxel_Thing* voxel_newNull(voxel_Context* context) {
     return voxel_newThing(context);
 }
-
-// src/voxel.h
-
-void voxel_test() {
-    VOXEL_LOG("Hello from Voxel!\n");
-}
-
-#endif

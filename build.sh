@@ -2,22 +2,36 @@
 
 mkdir -p dist
 
-echo -n > dist/libvoxel.c
+echo -n > dist/libvoxel.h
 
 function include {
-    cat $1 >> dist/libvoxel.c
-    echo >> dist/libvoxel.c
+    (
+        echo "// $1"
+        echo
+        cat $1
+        echo
+        echo
+    ) >> dist/libvoxel.h
 }
 
-include src/config.c
-include src/voxel.c
+cp src/config.h dist/libvoxel-config.h
 
-cp src/exports.h dist/libvoxel.h
+tee -a dist/libvoxel.h > /dev/null << EOF
+#ifndef LIBVOXEL_H_
+#define LIBVOXEL_H_
 
-gcc -Wall -Wextra -g -c dist/libvoxel.c -o dist/libvoxel.o
+EOF
+
+include src/context.h
+include src/things.h
+include src/voxel.h
+
+tee -a dist/libvoxel.h > /dev/null << EOF
+#endif
+EOF
 
 if [ "$1" == "--examples" ]; then
     mkdir -p examples/build
 
-    gcc -Idist/ examples/hello.c -g dist/libvoxel.o -o examples/build/hello
+    gcc -Idist/ examples/hello.c -o examples/build/hello
 fi
