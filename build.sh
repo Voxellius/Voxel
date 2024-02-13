@@ -22,8 +22,11 @@ tee -a dist/libvoxel.h > /dev/null << EOF
 
 EOF
 
+include src/common.h
+include src/errors.h
 include src/context.h
 include src/things.h
+include src/parser.h
 include src/voxel.h
 
 tee -a dist/libvoxel.h > /dev/null << EOF

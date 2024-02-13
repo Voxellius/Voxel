@@ -1,8 +1,8 @@
 typedef enum {
-    VOXEL_TYPE_NULL,
-    VOXEL_TYPE_POSITION,
-    VOXEL_TYPE_BYTE,
-    VOXEL_TYPE_NATIVE_FUNCTION
+    VOXEL_TYPE_NULL = 0,
+    VOXEL_TYPE_POSITION = 1,
+    VOXEL_TYPE_BYTE = 2,
+    VOXEL_TYPE_NATIVE_FUNCTION = 3
 } voxel_DataType;
 
 typedef struct voxel_Thing {
