@@ -1,6 +1,7 @@
 #ifndef LIBVOXEL_CONFIG_H_
 #define LIBVOXEL_CONFIG_H_
 
+#define VOXEL_BOOL int
 #define VOXEL_COUNT unsigned int
 
 #define VOXEL_USE_STDLIB

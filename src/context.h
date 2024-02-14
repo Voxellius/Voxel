@@ -1,8 +1,8 @@
 typedef struct voxel_Context {
     char* code;
     struct voxel_Token* tokens;
-    VOXEL_COUNT tokenCount;
-    VOXEL_COUNT currentPosition;
+    voxel_Count tokenCount;
+    voxel_Count currentPosition;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
 } voxel_Context;

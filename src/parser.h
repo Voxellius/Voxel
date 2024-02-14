@@ -25,8 +25,8 @@ VOXEL_ERRORABLE voxel_tokenise(voxel_Context* context) {
     voxel_TokenItem* firstTokenItem = NULL;
     voxel_TokenItem* currentTokenItem = NULL;
     voxel_Token tokenToAdd;
-    VOXEL_COUNT tokenCount = 0;
-    VOXEL_COUNT bytePosition = 0;
+    voxel_Count tokenCount = 0;
+    voxel_Count bytePosition = 0;
 
     while (VOXEL_TRUE) {
         voxel_Bool shouldCreateToken = VOXEL_TRUE;
@@ -72,7 +72,7 @@ VOXEL_ERRORABLE voxel_tokenise(voxel_Context* context) {
     context->tokens = VOXEL_MALLOC(sizeof(voxel_Token) * tokenCount);
     currentTokenItem = firstTokenItem;
 
-    for (VOXEL_COUNT i = 0; i < tokenCount; i++) {
+    for (voxel_Count i = 0; i < tokenCount; i++) {
         context->tokens[i] = currentTokenItem->token;
         nextTokenItem = currentTokenItem->nextTokenItem;
 

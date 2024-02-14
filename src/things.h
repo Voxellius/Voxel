@@ -8,7 +8,7 @@ typedef enum {
 typedef struct voxel_Thing {
     voxel_DataType type;
     void* valuePtr;
-    VOXEL_COUNT referenceCount;
+    voxel_Count referenceCount;
     struct voxel_Thing* previousTrackedThing;
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;

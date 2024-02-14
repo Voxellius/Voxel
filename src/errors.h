@@ -12,10 +12,13 @@
         return (error); \
     } while (0)
 
-#define VOXEL_MUST(result) int resultValue = (result); if (resultValue) { \
-        VOXEL_ERROR_MESSAGE("   ", "", __func__, __FILE__, __LINE__); \
-        return resultValue; \
-    }
+#define VOXEL_MUST(result) do { \
+        int resultValue = (result); \
+        if (resultValue) { \
+            VOXEL_ERROR_MESSAGE("   ", "", __func__, __FILE__, __LINE__); \
+            return resultValue; \
+        } \
+    } while (0)
 
 #define VOXEL_OK 0
 #define VOXEL_ERROR_NO_CODE -1

@@ -3,7 +3,8 @@
 
 // src/common.h
 
-typedef int voxel_Bool;
+typedef VOXEL_BOOL voxel_Bool;
+typedef VOXEL_COUNT voxel_Count;
 
 #define VOXEL_TRUE 1
 #define VOXEL_FALSE 0
@@ -24,10 +25,13 @@ typedef int voxel_Bool;
         return (error); \
     } while (0)
 
-#define VOXEL_MUST(result) int resultValue = (result); if (resultValue) { \
-        VOXEL_ERROR_MESSAGE("   ", "", __func__, __FILE__, __LINE__); \
-        return resultValue; \
-    }
+#define VOXEL_MUST(result) do { \
+        int resultValue = (result); \
+        if (resultValue) { \
+            VOXEL_ERROR_MESSAGE("   ", "", __func__, __FILE__, __LINE__); \
+            return resultValue; \
+        } \
+    } while (0)
 
 #define VOXEL_OK 0
 #define VOXEL_ERROR_NO_CODE -1
@@ -51,8 +55,8 @@ const char* voxel_lookupError(VOXEL_ERROR_CODE error) {
 typedef struct voxel_Context {
     char* code;
     struct voxel_Token* tokens;
-    VOXEL_COUNT tokenCount;
-    VOXEL_COUNT currentPosition;
+    voxel_Count tokenCount;
+    voxel_Count currentPosition;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
 } voxel_Context;
@@ -82,7 +86,7 @@ typedef enum {
 typedef struct voxel_Thing {
     voxel_DataType type;
     void* valuePtr;
-    VOXEL_COUNT referenceCount;
+    voxel_Count referenceCount;
     struct voxel_Thing* previousTrackedThing;
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
@@ -186,8 +190,8 @@ VOXEL_ERRORABLE voxel_tokenise(voxel_Context* context) {
     voxel_TokenItem* firstTokenItem = NULL;
     voxel_TokenItem* currentTokenItem = NULL;
     voxel_Token tokenToAdd;
-    VOXEL_COUNT tokenCount = 0;
-    VOXEL_COUNT bytePosition = 0;
+    voxel_Count tokenCount = 0;
+    voxel_Count bytePosition = 0;
 
     while (VOXEL_TRUE) {
         voxel_Bool shouldCreateToken = VOXEL_TRUE;
@@ -233,7 +237,7 @@ VOXEL_ERRORABLE voxel_tokenise(voxel_Context* context) {
     context->tokens = VOXEL_MALLOC(sizeof(voxel_Token) * tokenCount);
     currentTokenItem = firstTokenItem;
 
-    for (VOXEL_COUNT i = 0; i < tokenCount; i++) {
+    for (voxel_Count i = 0; i < tokenCount; i++) {
         context->tokens[i] = currentTokenItem->token;
         nextTokenItem = currentTokenItem->nextTokenItem;
 
