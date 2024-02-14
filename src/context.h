@@ -1,5 +1,6 @@
 typedef struct voxel_Context {
     char* code;
+    voxel_Count codeLength;
     struct voxel_Token* tokens;
     voxel_Count tokenCount;
     voxel_Count currentPosition;

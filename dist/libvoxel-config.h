@@ -3,6 +3,12 @@
 
 #define VOXEL_BOOL int
 #define VOXEL_COUNT unsigned int
+#define VOXEL_INT_8 int8_t
+#define VOXEL_INT_16 int16_t
+#define VOXEL_INT_32 int32_t
+#define VOXEL_FLOAT _Float32
+
+#define VOXEL_DEBUG
 
 #define VOXEL_USE_STDLIB
 
