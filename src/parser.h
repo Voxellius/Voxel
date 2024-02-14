@@ -91,7 +91,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             token.data = voxel_newNumberInt(context, numberIntValue);
 
             #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: number (int)]\n");
+                VOXEL_LOG("[Token: num (int)]\n");
             #endif
 
             break;
@@ -107,7 +107,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             token.data = voxel_newNumberFloat(context, numberFloatValue);
 
             #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: number (float)]\n");
+                VOXEL_LOG("[Token: num (float)]\n");
             #endif
 
             break;
