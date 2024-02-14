@@ -40,8 +40,6 @@ voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value) {
 }
 
 voxel_Int voxel_getNumberInt(voxel_Thing* thing) {
-    VOXEL_ASSERT(thing->type == VOXEL_TYPE_NUMBER, VOXEL_ERROR_TYPE_MISMATCH);
-
     voxel_Number* number = thing->value;
 
     switch (number->type) {
@@ -51,13 +49,9 @@ voxel_Int voxel_getNumberInt(voxel_Thing* thing) {
         case VOXEL_NUMBER_TYPE_FLOAT:
             return (voxel_Int)number->value.asFloat;
     }
-
-    VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
 }
 
 voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
-    VOXEL_ASSERT(thing->type == VOXEL_TYPE_NUMBER, VOXEL_ERROR_TYPE_MISMATCH);
-
     voxel_Number* number = thing->value;
 
     switch (number->type) {
@@ -67,6 +61,4 @@ voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
         case VOXEL_NUMBER_TYPE_FLOAT:
             return number->value.asFloat;
     }
-
-    VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
 }

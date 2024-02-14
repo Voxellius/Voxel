@@ -1,33 +1,51 @@
-#define VOXEL_ERROR_CODE int
+typedef int voxel_ErrorCode;
 
-#define VOXEL_ERRORABLE VOXEL_ERROR_CODE
+#define VOXEL_ERRORABLE voxel_Result
 
 #define VOXEL_ASSERT(condition, error) if (!(condition)) { \
         VOXEL_ERROR_MESSAGE("Voxel error: Assertion failed - ", voxel_lookupError(error), __func__, __FILE__, __LINE__); \
-        return (error); \
+        return (voxel_Result) {.errorCode = (error), .value = VOXEL_NULL}; \
     }
 
 #define VOXEL_THROW(error) do { \
         VOXEL_ERROR_MESSAGE("Voxel error: ", voxel_lookupError(error), __func__, __FILE__, __LINE__); \
-        return (error); \
+        return (voxel_Result) {.errorCode = (error), .value = VOXEL_NULL}; \
     } while (0)
 
 #define VOXEL_MUST(result) do { \
-        int resultValue = (result); \
-        if (resultValue) { \
+        voxel_Result storedResult = (result); \
+        if (storedResult.errorCode != VOXEL_OK_CODE) { \
             VOXEL_ERROR_MESSAGE("   ", "", __func__, __FILE__, __LINE__); \
-            return resultValue; \
+            return storedResult; \
         } \
     } while (0)
 
-#define VOXEL_OK 0
+#define VOXEL_MUST_CODE(result) do { \
+        voxel_Result storedResult = (result); \
+        if (storedResult.errorCode != VOXEL_OK_CODE) { \
+            VOXEL_ERROR_MESSAGE("   ", "", __func__, __FILE__, __LINE__); \
+            return storedResult.errorCode; \
+        } \
+    } while (0)
+
+#define VOXEL_IS_ERROR(result) ((result).errorCode != VOXEL_OK_CODE)
+
+#define VOXEL_OK_CODE 0
 #define VOXEL_ERROR_NO_CODE -1
 #define VOXEL_ERROR_TOKENISATION_BYTE -2
 #define VOXEL_ERROR_TOKENISATION_END -3
 #define VOXEL_ERROR_TYPE_MISMATCH -4
 #define VOXEL_ERROR_NOT_IMPLEMENTED -5
 
-const char* voxel_lookupError(VOXEL_ERROR_CODE error) {
+#define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
+#define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
+
+typedef struct voxel_Result {
+    voxel_ErrorCode errorCode;
+    void* value;
+} voxel_Result;
+
+const char* voxel_lookupError(voxel_ErrorCode error) {
     switch (error) {
         case VOXEL_ERROR_NO_CODE:
             return "No code loaded";

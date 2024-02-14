@@ -9,6 +9,9 @@ typedef VOXEL_FLOAT voxel_Float;
 
 #define VOXEL_TRUE 1
 #define VOXEL_FALSE 0
+#define VOXEL_NULL 0
+
+#define VOXEL_INTO_PTR(data, pointer) voxel_copy((voxel_Byte*)&(data), (voxel_Byte*)pointer, sizeof(data))
 
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size) {
     for (voxel_Count i = 0; i < size; i++) {

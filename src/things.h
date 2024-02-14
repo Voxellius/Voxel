@@ -50,7 +50,7 @@ void voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thing) {
 void voxel_removeUnusedThings(voxel_Context* context) {
     voxel_Thing* currentThing = context->firstTrackedThing;
 
-    while (currentThing != NULL) {
+    while (currentThing != VOXEL_NULL) {
         voxel_Thing* nextThing = currentThing->nextTrackedThing;
 
         if (currentThing->referenceCount == 0) {
@@ -65,10 +65,10 @@ voxel_Thing* voxel_newThing(voxel_Context* context) {
     voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
 
     thing->type = VOXEL_TYPE_NULL;
-    thing->value = NULL;
+    thing->value = VOXEL_NULL;
     thing->referenceCount = 1;
     thing->previousTrackedThing = context->lastTrackedThing;
-    thing->nextTrackedThing = NULL;
+    thing->nextTrackedThing = VOXEL_NULL;
 
     if (context->lastTrackedThing) {
         context->lastTrackedThing->nextTrackedThing = thing;

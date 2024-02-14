@@ -28,9 +28,13 @@ int main(int argc, char* argv[]) {
     context->code = code;
     context->codeLength = 25;
 
-    VOXEL_MUST(voxel_tokenise(context));
+    while (VOXEL_TRUE) {
+        VOXEL_ERRORABLE nextToken = voxel_nextToken(context); VOXEL_MUST_CODE(nextToken);
 
-    printf("Token count: %d\n", context->tokenCount);
+        if (nextToken.value == VOXEL_NULL) {
+            break;
+        }
+    }
 
     printf("New null\n");
 
