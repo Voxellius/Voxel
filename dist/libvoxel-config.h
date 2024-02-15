@@ -19,6 +19,8 @@
 
 #define VOXEL_DEBUG
 
+#define VOXEL_STRING_BLOCK_SIZE 8
+
 #define VOXEL_USE_STDLIB
 
 #ifdef VOXEL_USE_STDLIB
@@ -38,6 +40,10 @@ void* _voxel_malloc(VOXEL_COUNT size) {
     return malloc(size);
 }
 
+void* _voxel_realloc(void* ptr, VOXEL_COUNT size) {
+    return realloc(ptr, size);
+}
+
 void _voxel_free(void* ptr) {
     free(ptr);
 }
@@ -45,6 +51,7 @@ void _voxel_free(void* ptr) {
 #define VOXEL_LOG _voxel_log_stdlib
 #define VOXEL_ERROR_MESSAGE _voxel_errorMessage_stdlib
 #define VOXEL_MALLOC _voxel_malloc
+#define VOXEL_REALLOC _voxel_realloc
 #define VOXEL_FREE _voxel_free
 
 #endif

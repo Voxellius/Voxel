@@ -145,6 +145,41 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
             break;
 
+        case VOXEL_TOKEN_TYPE_STRING:
+            voxel_Byte currentByte = '\0';
+            voxel_Byte* currentString = NULL;
+            voxel_Count length = 0;
+
+            while (VOXEL_TRUE) {
+                VOXEL_MUST(voxel_safeToRead(context, 1));
+
+                currentByte = context->code[context->currentPosition++];
+
+                if (currentByte == '\0') {
+                    break;
+                }
+
+                voxel_Count neededSize = (((length / VOXEL_STRING_BLOCK_SIZE) + 1) * VOXEL_STRING_BLOCK_SIZE);
+
+                if (currentString == NULL) {
+                    currentString = VOXEL_MALLOC(neededSize);
+                } else {
+                    currentString = VOXEL_REALLOC(currentString, neededSize);
+                }
+
+                currentString[length++] = currentByte;
+            }
+
+            token.data = voxel_newString(context, length, currentString);
+
+            VOXEL_FREE(currentString);
+
+            #ifdef VOXEL_DEBUG
+                VOXEL_LOG("[Token: string]\n");
+            #endif
+
+            break;
+
         case '\0':
             #ifdef VOXEL_DEBUG
                 VOXEL_LOG("[Last byte]\n");

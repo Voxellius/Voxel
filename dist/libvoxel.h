@@ -301,7 +301,7 @@ typedef struct voxel_Buffer {
     voxel_Byte* value;
 } voxel_Buffer;
 
-voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, void* data) {
+voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data) {
     voxel_Buffer* buffer = VOXEL_MALLOC(sizeof(voxel_Buffer));
 
     buffer->size = size;
@@ -317,6 +317,30 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, void* dat
         for (voxel_Count i = 0; i < size; i++) {
             buffer->value[i] = 0;
         }
+    }
+
+    return thing;
+}
+
+// src/strings.h
+
+typedef struct voxel_String {
+    voxel_Count length;
+    voxel_Byte* value;
+} voxel_String;
+
+voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data) {
+    voxel_String* string = VOXEL_MALLOC(sizeof(voxel_String));
+
+    string->length = length;
+    string->value = VOXEL_MALLOC(length);
+
+    voxel_Thing* thing = voxel_newThing(context);
+
+    thing->type = VOXEL_TYPE_STRING;
+
+    if (length > 0) {
+        voxel_copy(data, string->value, length);
     }
 
     return thing;
@@ -467,6 +491,41 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
             #ifdef VOXEL_DEBUG
                 VOXEL_LOG("[Token: buffer (declared)]\n");
+            #endif
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_STRING:
+            voxel_Byte currentByte = '\0';
+            voxel_Byte* currentString = NULL;
+            voxel_Count length = 0;
+
+            while (VOXEL_TRUE) {
+                VOXEL_MUST(voxel_safeToRead(context, 1));
+
+                currentByte = context->code[context->currentPosition++];
+
+                if (currentByte == '\0') {
+                    break;
+                }
+
+                voxel_Count neededSize = (((length / VOXEL_STRING_BLOCK_SIZE) + 1) * VOXEL_STRING_BLOCK_SIZE);
+
+                if (currentString == NULL) {
+                    currentString = VOXEL_MALLOC(neededSize);
+                } else {
+                    currentString = VOXEL_REALLOC(currentString, neededSize);
+                }
+
+                currentString[length++] = currentByte;
+            }
+
+            token.data = voxel_newString(context, length, currentString);
+
+            VOXEL_FREE(currentString);
+
+            #ifdef VOXEL_DEBUG
+                VOXEL_LOG("[Token: string]\n");
             #endif
 
             break;
