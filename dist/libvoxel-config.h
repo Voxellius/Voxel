@@ -1,12 +1,21 @@
 #ifndef LIBVOXEL_CONFIG_H_
 #define LIBVOXEL_CONFIG_H_
 
+#ifndef VOXEL_USE_CUSTOM_TYPES
+
+#include <stdint.h>
+
 #define VOXEL_BOOL int
 #define VOXEL_COUNT unsigned int
 #define VOXEL_INT_8 int8_t
 #define VOXEL_INT_16 int16_t
 #define VOXEL_INT_32 int32_t
+#define VOXEL_UINT_8 uint8_t
+#define VOXEL_UINT_16 uint16_t
+#define VOXEL_UINT_32 uint32_t
 #define VOXEL_FLOAT _Float32
+
+#endif
 
 #define VOXEL_DEBUG
 

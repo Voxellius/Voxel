@@ -10,6 +10,10 @@ typedef VOXEL_INT_8 voxel_Int8;
 typedef VOXEL_INT_16 voxel_Int16;
 typedef VOXEL_INT_32 voxel_Int32;
 typedef voxel_Int32 voxel_Int;
+typedef VOXEL_UINT_8 voxel_UInt8;
+typedef VOXEL_UINT_16 voxel_UInt16;
+typedef VOXEL_UINT_32 voxel_UInt32;
+typedef voxel_UInt32 voxel_UInt;
 typedef VOXEL_FLOAT voxel_Float;
 
 #define VOXEL_TRUE 1
@@ -290,20 +294,49 @@ voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
     }
 }
 
+// src/buffers.h
+
+typedef struct voxel_Buffer {
+    voxel_Count size;
+    voxel_Byte* value;
+} voxel_Buffer;
+
+voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, void* data) {
+    voxel_Buffer* buffer = VOXEL_MALLOC(sizeof(voxel_Buffer));
+
+    buffer->size = size;
+    buffer->value = VOXEL_MALLOC(size);
+
+    voxel_Thing* thing = voxel_newThing(context);
+
+    thing->type = VOXEL_TYPE_BUFFER;
+
+    if (data != VOXEL_NULL) {
+        voxel_copy(data, buffer->value, size);
+    } else {
+        for (voxel_Count i = 0; i < size; i++) {
+            buffer->value[i] = 0;
+        }
+    }
+
+    return thing;
+}
+
 // src/parser.h
 
 typedef enum voxel_TokenType {
-    VOXEL_TOKEN_TYPE_NULL = 0x01,
-    VOXEL_TOKEN_TYPE_FALSE = 0x02,
-    VOXEL_TOKEN_TYPE_TRUE = 0x03,
-    VOXEL_TOKEN_TYPE_BYTE = 0x04,
-    VOXEL_TOKEN_TYPE_NUMBER_INT_8 = 0x05,
-    VOXEL_TOKEN_TYPE_NUMBER_INT_16 = 0x06,
-    VOXEL_TOKEN_TYPE_NUMBER_INT_32 = 0x07,
-    VOXEL_TOKEN_TYPE_NUMBER_FLOAT = 0x0F,
-    VOXEL_TOKEN_TYPE_BUFFER = 0x10,
-    VOXEL_TOKEN_TYPE_STRING = 0x11,
-    VOXEL_TOKEN_TYPE_CALL = 0xFF
+    VOXEL_TOKEN_TYPE_NULL = 'n',
+    VOXEL_TOKEN_TYPE_FALSE = 'f',
+    VOXEL_TOKEN_TYPE_TRUE = 't',
+    VOXEL_TOKEN_TYPE_BYTE = 'b',
+    VOXEL_TOKEN_TYPE_NUMBER_INT_8 = '3',
+    VOXEL_TOKEN_TYPE_NUMBER_INT_16 = '4',
+    VOXEL_TOKEN_TYPE_NUMBER_INT_32 = '5',
+    VOXEL_TOKEN_TYPE_NUMBER_FLOAT = '%',
+    VOXEL_TOKEN_TYPE_BUFFER = 'B',
+    VOXEL_TOKEN_TYPE_BUFFER_EMPTY = 'E',
+    VOXEL_TOKEN_TYPE_STRING = 's',
+    VOXEL_TOKEN_TYPE_CALL = '!'
 } voxel_TokenType;
 
 typedef struct voxel_Token {
@@ -402,6 +435,38 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
             #ifdef VOXEL_DEBUG
                 VOXEL_LOG("[Token: num (float)]\n");
+            #endif
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_BUFFER:
+        case VOXEL_TOKEN_TYPE_BUFFER_EMPTY:
+            VOXEL_MUST(voxel_safeToRead(context, 4));
+
+            voxel_UInt32 size = 0;
+
+            for (voxel_Count i = 0; i < 4; i++) {
+                size <<= 8;
+                size |= context->code[context->currentPosition++];
+            }
+
+            if (tokenType == VOXEL_TOKEN_TYPE_BUFFER_EMPTY) {
+                token.data = voxel_newBuffer(context, size, VOXEL_NULL);
+
+                #ifdef VOXEL_DEBUG
+                    VOXEL_LOG("[Token: buffer (empty)]\n");
+                #endif
+
+                break;
+            }
+
+            VOXEL_MUST(voxel_safeToRead(context, size));
+
+            token.data = voxel_newBuffer(context, size, &(context->code[context->currentPosition]));
+            context->currentPosition += size;
+
+            #ifdef VOXEL_DEBUG
+                VOXEL_LOG("[Token: buffer (declared)]\n");
             #endif
 
             break;

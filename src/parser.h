@@ -1,15 +1,16 @@
 typedef enum voxel_TokenType {
-    VOXEL_TOKEN_TYPE_NULL = 0x01,
-    VOXEL_TOKEN_TYPE_FALSE = 0x02,
-    VOXEL_TOKEN_TYPE_TRUE = 0x03,
-    VOXEL_TOKEN_TYPE_BYTE = 0x04,
-    VOXEL_TOKEN_TYPE_NUMBER_INT_8 = 0x05,
-    VOXEL_TOKEN_TYPE_NUMBER_INT_16 = 0x06,
-    VOXEL_TOKEN_TYPE_NUMBER_INT_32 = 0x07,
-    VOXEL_TOKEN_TYPE_NUMBER_FLOAT = 0x0F,
-    VOXEL_TOKEN_TYPE_BUFFER = 0x10,
-    VOXEL_TOKEN_TYPE_STRING = 0x11,
-    VOXEL_TOKEN_TYPE_CALL = 0xFF
+    VOXEL_TOKEN_TYPE_NULL = 'n',
+    VOXEL_TOKEN_TYPE_FALSE = 'f',
+    VOXEL_TOKEN_TYPE_TRUE = 't',
+    VOXEL_TOKEN_TYPE_BYTE = 'b',
+    VOXEL_TOKEN_TYPE_NUMBER_INT_8 = '3',
+    VOXEL_TOKEN_TYPE_NUMBER_INT_16 = '4',
+    VOXEL_TOKEN_TYPE_NUMBER_INT_32 = '5',
+    VOXEL_TOKEN_TYPE_NUMBER_FLOAT = '%',
+    VOXEL_TOKEN_TYPE_BUFFER = 'B',
+    VOXEL_TOKEN_TYPE_BUFFER_EMPTY = 'E',
+    VOXEL_TOKEN_TYPE_STRING = 's',
+    VOXEL_TOKEN_TYPE_CALL = '!'
 } voxel_TokenType;
 
 typedef struct voxel_Token {
@@ -108,6 +109,38 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
             #ifdef VOXEL_DEBUG
                 VOXEL_LOG("[Token: num (float)]\n");
+            #endif
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_BUFFER:
+        case VOXEL_TOKEN_TYPE_BUFFER_EMPTY:
+            VOXEL_MUST(voxel_safeToRead(context, 4));
+
+            voxel_UInt32 size = 0;
+
+            for (voxel_Count i = 0; i < 4; i++) {
+                size <<= 8;
+                size |= context->code[context->currentPosition++];
+            }
+
+            if (tokenType == VOXEL_TOKEN_TYPE_BUFFER_EMPTY) {
+                token.data = voxel_newBuffer(context, size, VOXEL_NULL);
+
+                #ifdef VOXEL_DEBUG
+                    VOXEL_LOG("[Token: buffer (empty)]\n");
+                #endif
+
+                break;
+            }
+
+            VOXEL_MUST(voxel_safeToRead(context, size));
+
+            token.data = voxel_newBuffer(context, size, &(context->code[context->currentPosition]));
+            context->currentPosition += size;
+
+            #ifdef VOXEL_DEBUG
+                VOXEL_LOG("[Token: buffer (declared)]\n");
             #endif
 
             break;

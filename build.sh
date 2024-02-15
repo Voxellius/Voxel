@@ -27,6 +27,7 @@ include src/errors.h
 include src/context.h
 include src/things.h
 include src/numbers.h
+include src/buffers.h
 include src/parser.h
 include src/voxel.h
 

@@ -5,6 +5,10 @@ typedef VOXEL_INT_8 voxel_Int8;
 typedef VOXEL_INT_16 voxel_Int16;
 typedef VOXEL_INT_32 voxel_Int32;
 typedef voxel_Int32 voxel_Int;
+typedef VOXEL_UINT_8 voxel_UInt8;
+typedef VOXEL_UINT_16 voxel_UInt16;
+typedef VOXEL_UINT_32 voxel_UInt32;
+typedef voxel_UInt32 voxel_UInt;
 typedef VOXEL_FLOAT voxel_Float;
 
 #define VOXEL_TRUE 1
