@@ -543,6 +543,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
         case VOXEL_TOKEN_TYPE_STRING:
             voxel_Byte currentByte = '\0';
             voxel_Byte* currentString = NULL;
+            voxel_Count currentSize = 0;
             voxel_Count length = 0;
 
             while (VOXEL_TRUE) {
@@ -558,8 +559,10 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
                 if (currentString == NULL) {
                     currentString = VOXEL_MALLOC(neededSize);
-                } else {
+                    currentSize = neededSize;
+                } else if (neededSize > currentSize) {
                     currentString = VOXEL_REALLOC(currentString, neededSize);
+                    currentSize = neededSize;
                 }
 
                 currentString[length++] = currentByte;
