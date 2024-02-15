@@ -23,3 +23,11 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byt
 
     return thing;
 }
+
+void voxel_destroyBuffer(voxel_Thing* thing) {
+    voxel_Buffer* buffer = thing->value;
+
+    VOXEL_FREE(buffer->value);
+    VOXEL_FREE(buffer);
+    VOXEL_FREE(thing);
+}

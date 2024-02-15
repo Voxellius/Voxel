@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     printf("Unref\n");
 
-    voxel_unreferenceThing(context, null);
+    VOXEL_MUST_CODE(voxel_unreferenceThing(context, null));
 
     printf("It works!\n");
 

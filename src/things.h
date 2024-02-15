@@ -4,9 +4,7 @@ typedef enum {
     VOXEL_TYPE_BYTE,
     VOXEL_TYPE_NUMBER,
     VOXEL_TYPE_BUFFER,
-    VOXEL_TYPE_STRING,
-    VOXEL_TYPE_NATIVE_FUNCTION,
-    VOXEL_TYPE_DEFINED_FUNCTION
+    VOXEL_TYPE_STRING
 } voxel_DataType;
 
 typedef struct voxel_Thing {
@@ -17,49 +15,12 @@ typedef struct voxel_Thing {
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
 
-void voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thing) {
-    if (thing->referenceCount > 0) {
-        thing->referenceCount--;
-
-        return;
-    }
-
-    if (thing == context->firstTrackedThing) {
-        context->firstTrackedThing = thing->nextTrackedThing;
-    }
-
-    if (thing == context->lastTrackedThing) {
-        context->lastTrackedThing = thing->previousTrackedThing;
-    }
-
-    if (thing->previousTrackedThing) {
-        thing->previousTrackedThing->nextTrackedThing = thing->nextTrackedThing;
-    }
-
-    switch (thing->type) {
-        case VOXEL_TYPE_NULL:
-            break;
-
-        default:
-            VOXEL_FREE(thing->value);
-    }
-
-    VOXEL_FREE(thing);
-}
-
-void voxel_removeUnusedThings(voxel_Context* context) {
-    voxel_Thing* currentThing = context->firstTrackedThing;
-
-    while (currentThing != VOXEL_NULL) {
-        voxel_Thing* nextThing = currentThing->nextTrackedThing;
-
-        if (currentThing->referenceCount == 0) {
-            voxel_unreferenceThing(context, currentThing);
-        }
-
-        currentThing = nextThing;
-    }
-}
+void voxel_destroyNull(voxel_Thing* thing);
+void voxel_destroyBoolean(voxel_Thing* thing);
+void voxel_destroyByte(voxel_Thing* thing);
+void voxel_destroyNumber(voxel_Thing* thing);
+void voxel_destroyBuffer(voxel_Thing* thing);
+void voxel_destroyString(voxel_Thing* thing);
 
 voxel_Thing* voxel_newThing(voxel_Context* context) {
     voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
@@ -87,6 +48,10 @@ voxel_Thing* voxel_newNull(voxel_Context* context) {
     return voxel_newThing(context);
 }
 
+void voxel_destroyNull(voxel_Thing* thing) {
+    VOXEL_FREE(thing);
+}
+
 voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
     voxel_Thing* thing = voxel_newThing(context);
 
@@ -96,9 +61,68 @@ voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
     return thing;
 }
 
+void voxel_destroyBoolean(voxel_Thing* thing) {
+    VOXEL_FREE(thing);
+}
+
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
     voxel_Thing* thing = voxel_newThing(context);
 
     thing->type = VOXEL_TYPE_BYTE;
     thing->value = (void*)(long)value;
+}
+
+void voxel_destroyByte(voxel_Thing* thing) {
+    VOXEL_FREE(thing);
+}
+
+VOXEL_ERRORABLE voxel_destroyThing(voxel_Thing* thing) {
+    switch (thing->type) {
+        case VOXEL_TYPE_NULL: voxel_destroyNull(thing); return VOXEL_OK;
+        case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing); return VOXEL_OK;
+        case VOXEL_TYPE_BYTE: voxel_destroyByte(thing); return VOXEL_OK;
+        case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing); return VOXEL_OK;
+        case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing); return VOXEL_OK;
+        case VOXEL_TYPE_STRING: voxel_destroyString(thing); return VOXEL_OK;
+    }
+
+    VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
+}
+
+VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thing) {
+    if (thing->referenceCount > 0) {
+        thing->referenceCount--;
+
+        return VOXEL_OK;
+    }
+
+    if (thing == context->firstTrackedThing) {
+        context->firstTrackedThing = thing->nextTrackedThing;
+    }
+
+    if (thing == context->lastTrackedThing) {
+        context->lastTrackedThing = thing->previousTrackedThing;
+    }
+
+    if (thing->previousTrackedThing) {
+        thing->previousTrackedThing->nextTrackedThing = thing->nextTrackedThing;
+    }
+
+    VOXEL_MUST(voxel_destroyThing(thing));
+}
+
+VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context) {
+    voxel_Thing* currentThing = context->firstTrackedThing;
+
+    while (currentThing != VOXEL_NULL) {
+        voxel_Thing* nextThing = currentThing->nextTrackedThing;
+
+        if (currentThing->referenceCount == 0) {
+            VOXEL_MUST(voxel_unreferenceThing(context, currentThing));
+        }
+
+        currentThing = nextThing;
+    }
+
+    return VOXEL_OK;
 }

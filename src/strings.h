@@ -19,3 +19,11 @@ voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_B
 
     return thing;
 }
+
+void voxel_destroyString(voxel_Thing* thing) {
+    voxel_String* string = thing->value;
+
+    VOXEL_FREE(string->value);
+    VOXEL_FREE(string);
+    VOXEL_FREE(thing);
+}

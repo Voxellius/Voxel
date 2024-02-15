@@ -62,3 +62,8 @@ voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
             return number->value.asFloat;
     }
 }
+
+void voxel_destroyNumber(voxel_Thing* thing) {
+    VOXEL_FREE(thing->value);
+    VOXEL_FREE(thing);
+}
