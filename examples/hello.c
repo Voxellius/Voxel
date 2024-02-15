@@ -16,6 +16,7 @@ char* code = (char[]) {
     VOXEL_TOKEN_TYPE_BUFFER_EMPTY, 0x00, 0x00, 0x01, 0x00,
     VOXEL_TOKEN_TYPE_BUFFER, 0x00, 0x00, 0x00, 0x04, 0x01, 0x02, 0x03, 0x04,
     VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', '!', '\0',
+    VOXEL_TOKEN_TYPE_CALL,
     0x00
 };
 
@@ -29,7 +30,7 @@ int main(int argc, char* argv[]) {
     voxel_Context* context = voxel_newContext();
 
     context->code = code;
-    context->codeLength = 47;
+    context->codeLength = 48;
 
     while (VOXEL_TRUE) {
         VOXEL_ERRORABLE nextToken = voxel_nextToken(context); VOXEL_MUST_CODE(nextToken);

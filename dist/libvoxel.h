@@ -359,7 +359,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_NUMBER_FLOAT = '%',
     VOXEL_TOKEN_TYPE_BUFFER = 'B',
     VOXEL_TOKEN_TYPE_BUFFER_EMPTY = 'E',
-    VOXEL_TOKEN_TYPE_STRING = 's',
+    VOXEL_TOKEN_TYPE_STRING = '$',
     VOXEL_TOKEN_TYPE_CALL = '!'
 } voxel_TokenType;
 
@@ -528,6 +528,9 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
                 VOXEL_LOG("[Token: string]\n");
             #endif
 
+            break;
+
+        case VOXEL_TOKEN_TYPE_CALL:
             break;
 
         case '\0':
