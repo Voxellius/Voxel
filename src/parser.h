@@ -1,7 +1,7 @@
 typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_NULL = 'n',
-    VOXEL_TOKEN_TYPE_FALSE = 'f',
     VOXEL_TOKEN_TYPE_TRUE = 't',
+    VOXEL_TOKEN_TYPE_FALSE = 'f',
     VOXEL_TOKEN_TYPE_BYTE = 'b',
     VOXEL_TOKEN_TYPE_NUMBER_INT_8 = '3',
     VOXEL_TOKEN_TYPE_NUMBER_INT_16 = '4',
