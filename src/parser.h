@@ -1,7 +1,7 @@
 typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_NULL = 'n',
-    VOXEL_TOKEN_TYPE_TRUE = 't',
-    VOXEL_TOKEN_TYPE_FALSE = 'f',
+    VOXEL_TOKEN_TYPE_BOOLEAN_TRUE = 't',
+    VOXEL_TOKEN_TYPE_BOOLEAN_FALSE = 'f',
     VOXEL_TOKEN_TYPE_BYTE = 'b',
     VOXEL_TOKEN_TYPE_NUMBER_INT_8 = '3',
     VOXEL_TOKEN_TYPE_NUMBER_INT_16 = '4',
@@ -46,13 +46,13 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
             break;
 
-        case VOXEL_TOKEN_TYPE_TRUE:
-        case VOXEL_TOKEN_TYPE_FALSE:
-            token.data = voxel_newBoolean(context, tokenType == VOXEL_TOKEN_TYPE_TRUE);
+        case VOXEL_TOKEN_TYPE_BOOLEAN_TRUE:
+        case VOXEL_TOKEN_TYPE_BOOLEAN_FALSE:
+            token.data = voxel_newBoolean(context, tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE);
 
             #ifdef VOXEL_DEBUG
                 VOXEL_LOG("[Token: bool (");
-                VOXEL_LOG(tokenType == VOXEL_TOKEN_TYPE_TRUE ? "true" : "false");
+                VOXEL_LOG(tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE ? "true" : "false");
                 VOXEL_LOG(")]\n");
             #endif
 
