@@ -17,6 +17,12 @@ typedef VOXEL_FLOAT voxel_Float;
 
 #define VOXEL_INTO_PTR(data, pointer) voxel_copy((voxel_Byte*)&(data), (voxel_Byte*)pointer, sizeof(data))
 
+#ifdef VOXEL_DEBUG
+    #define VOXEL_DEBUG_LOG VOXEL_LOG
+#else
+    void VOXEL_DEBUG_LOG(char* text) {}
+#endif
+
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size) {
     for (voxel_Count i = 0; i < size; i++) {
         destination[i] = source[i];

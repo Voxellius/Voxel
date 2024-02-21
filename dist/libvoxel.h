@@ -22,6 +22,12 @@ typedef VOXEL_FLOAT voxel_Float;
 
 #define VOXEL_INTO_PTR(data, pointer) voxel_copy((voxel_Byte*)&(data), (voxel_Byte*)pointer, sizeof(data))
 
+#ifdef VOXEL_DEBUG
+    #define VOXEL_DEBUG_LOG VOXEL_LOG
+#else
+    void VOXEL_DEBUG_LOG(char* text) {}
+#endif
+
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size) {
     for (voxel_Count i = 0; i < size; i++) {
         destination[i] = source[i];
@@ -435,9 +441,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
         case VOXEL_TOKEN_TYPE_NULL:
             token.data = voxel_newNull(context);
 
-            #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: null]\n");
-            #endif
+            VOXEL_DEBUG_LOG("[Token: null]\n");
 
             break;
 
@@ -445,11 +449,9 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
         case VOXEL_TOKEN_TYPE_BOOLEAN_FALSE:
             token.data = voxel_newBoolean(context, tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE);
 
-            #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: bool (");
-                VOXEL_LOG(tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE ? "true" : "false");
-                VOXEL_LOG(")]\n");
-            #endif
+            VOXEL_DEBUG_LOG("[Token: bool (");
+            VOXEL_DEBUG_LOG(tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE ? "true" : "false");
+            VOXEL_DEBUG_LOG(")]\n");
 
             break;
 
@@ -458,9 +460,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
             token.data = voxel_newByte(context, context->code[context->currentPosition++]);
 
-            #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: byte]\n");
-            #endif
+            VOXEL_DEBUG_LOG("[Token: byte]\n");
 
             break;
 
@@ -486,9 +486,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
             token.data = voxel_newNumberInt(context, numberIntValue);
 
-            #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: num (int)]\n");
-            #endif
+            VOXEL_DEBUG_LOG("[Token: num (int)]\n");
 
             break;
 
@@ -502,9 +500,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             context->currentPosition += 4;
             token.data = voxel_newNumberFloat(context, numberFloatValue);
 
-            #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: num (float)]\n");
-            #endif
+            VOXEL_DEBUG_LOG("[Token: num (float)]\n");
 
             break;
 
@@ -522,9 +518,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             if (tokenType == VOXEL_TOKEN_TYPE_BUFFER_EMPTY) {
                 token.data = voxel_newBuffer(context, size, VOXEL_NULL);
 
-                #ifdef VOXEL_DEBUG
-                    VOXEL_LOG("[Token: buffer (empty)]\n");
-                #endif
+                VOXEL_DEBUG_LOG("[Token: buffer (empty)]\n");
 
                 break;
             }
@@ -534,9 +528,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             token.data = voxel_newBuffer(context, size, &(context->code[context->currentPosition]));
             context->currentPosition += size;
 
-            #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: buffer (declared)]\n");
-            #endif
+            VOXEL_DEBUG_LOG("[Token: buffer (declared)]\n");
 
             break;
 
@@ -572,9 +564,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
             VOXEL_FREE(currentString);
 
-            #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Token: string]\n");
-            #endif
+            VOXEL_DEBUG_LOG("[Token: string]\n");
 
             break;
 
@@ -582,9 +572,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             break;
 
         case '\0':
-            #ifdef VOXEL_DEBUG
-                VOXEL_LOG("[Last byte]\n");
-            #endif
+            VOXEL_DEBUG_LOG("[Last byte]\n");
 
             return VOXEL_OK_RET(VOXEL_NULL);
 
