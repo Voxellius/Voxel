@@ -31,3 +31,10 @@ void voxel_destroyBuffer(voxel_Thing* thing) {
     VOXEL_FREE(buffer);
     VOXEL_FREE(thing);
 }
+
+voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b) {
+    voxel_Buffer* aBuffer = a->value;
+    voxel_Buffer* bBuffer = b->value;
+
+    return voxel_compare(aBuffer->value, bBuffer->value, aBuffer->size, bBuffer->size);
+}

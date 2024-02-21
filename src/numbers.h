@@ -67,3 +67,14 @@ void voxel_destroyNumber(voxel_Thing* thing) {
     VOXEL_FREE(thing->value);
     VOXEL_FREE(thing);
 }
+
+voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
+    voxel_Number* aNumber = a->value;
+    voxel_Number* bNumber = b->value;
+
+    if (aNumber->type == VOXEL_NUMBER_TYPE_INT && bNumber->type == VOXEL_NUMBER_TYPE_INT) {
+        return aNumber->value.asInt == bNumber->value.asInt;
+    }
+
+    return voxel_getNumberFloat(a) == voxel_getNumberFloat(b);
+}

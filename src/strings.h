@@ -27,3 +27,10 @@ void voxel_destroyString(voxel_Thing* thing) {
     VOXEL_FREE(string);
     VOXEL_FREE(thing);
 }
+
+voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
+    voxel_String* aString = a->value;
+    voxel_String* bString = b->value;
+
+    return voxel_compare(aString->value, bString->value, aString->length, bString->length);
+}

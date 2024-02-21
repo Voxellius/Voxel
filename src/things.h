@@ -22,6 +22,13 @@ void voxel_destroyNumber(voxel_Thing* thing);
 void voxel_destroyBuffer(voxel_Thing* thing);
 void voxel_destroyString(voxel_Thing* thing);
 
+voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b);
+voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b);
+voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b);
+voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b);
+voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b);
+voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
+
 voxel_Thing* voxel_newThing(voxel_Context* context) {
     voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
 
@@ -52,6 +59,10 @@ void voxel_destroyNull(voxel_Thing* thing) {
     VOXEL_FREE(thing);
 }
 
+voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b) {
+    return VOXEL_TRUE;
+}
+
 voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
     voxel_Thing* thing = voxel_newThing(context);
 
@@ -65,6 +76,10 @@ void voxel_destroyBoolean(voxel_Thing* thing) {
     VOXEL_FREE(thing);
 }
 
+voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b) {
+    return a->value == b->value;
+}
+
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
     voxel_Thing* thing = voxel_newThing(context);
 
@@ -74,6 +89,10 @@ voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
 
 void voxel_destroyByte(voxel_Thing* thing) {
     VOXEL_FREE(thing);
+}
+
+voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b) {
+    return a->value == b->value;
 }
 
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Thing* thing) {
@@ -125,4 +144,27 @@ VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context) {
     }
 
     return VOXEL_OK;
+}
+
+voxel_Bool voxel_compareThingTypes(voxel_Thing* a, voxel_Thing* b) {
+    return a->type == b->type;
+}
+
+voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
+    if (!voxel_compareThingTypes(a, b)) {
+        return VOXEL_FALSE;
+    }
+
+    switch (a->type) {
+        case VOXEL_TYPE_NULL: return voxel_compareNulls(a, b);
+        case VOXEL_TYPE_BOOLEAN: return voxel_compareBooleans(a, b);
+        case VOXEL_TYPE_BYTE: return voxel_compareBytes(a, b);
+        case VOXEL_TYPE_NUMBER: return voxel_compareNumbers(a, b);
+        case VOXEL_TYPE_BUFFER: return voxel_compareBuffers(a, b);
+        case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
+    }
+
+    VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now");
+
+    return VOXEL_FALSE;
 }

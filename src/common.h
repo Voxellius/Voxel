@@ -28,3 +28,17 @@ void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size) {
         destination[i] = source[i];
     }
 }
+
+voxel_Bool voxel_compare(voxel_Byte* a, voxel_Byte* b, voxel_Count aSize, voxel_Count bSize) {
+    if (aSize != bSize) {
+        return VOXEL_FALSE;
+    }
+
+    for (voxel_Count i = 0; i < aSize; i++) {
+        if (a[i] != b[i]) {
+            return VOXEL_FALSE;
+        }
+    }
+
+    return VOXEL_TRUE;
+}
