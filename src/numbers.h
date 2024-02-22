@@ -11,6 +11,12 @@ typedef struct voxel_Number {
     } value;
 } voxel_Number;
 
+voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data);
+voxel_Count voxel_getStringLength(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte);
+VOXEL_ERRORABLE voxel_cutString(voxel_Context* context, voxel_Thing* thing, voxel_Count length);
+VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing);
+
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
     voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number));
 
@@ -77,4 +83,69 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
     }
 
     return voxel_getNumberFloat(a) == voxel_getNumberFloat(b);
+}
+
+VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Float value = voxel_maths_roundToPrecision(voxel_getNumberFloat(thing), VOXEL_MAX_PRECISION);
+    voxel_Thing* string = voxel_newString(context, 0, VOXEL_NULL);
+    voxel_Bool isNegative = VOXEL_FALSE;
+    voxel_Count precisionLeft = VOXEL_MAX_PRECISION;
+
+    if (value < 0) {
+        isNegative = VOXEL_TRUE;
+        value *= -1;
+    }
+
+    voxel_UInt integralPart = value;
+
+    value += 0.1 * voxel_maths_power(10, -precisionLeft);
+    value -= integralPart; // Now fractional part
+
+    do {
+        VOXEL_MUST(voxel_appendByteToString(context, string, (voxel_Byte)(48 + integralPart % 10)));
+
+        integralPart /= 10;
+        precisionLeft--;
+    } while (integralPart > 0);
+
+    if (isNegative) {
+        VOXEL_MUST(voxel_appendByteToString(context, string, '-'));
+    }
+
+    voxel_reverseString(context, string);
+
+    voxel_Count trailingZeroes = 0;
+    voxel_Bool anyDigitsInFractionalPart = VOXEL_FALSE;
+
+    if (value > 0 && precisionLeft > 0) {
+        VOXEL_MUST(voxel_appendByteToString(context, string, '.'));
+
+        while (value > 0 && precisionLeft > 0) {
+            value *= 10;
+
+            voxel_Byte digit = value;
+
+            if (digit == 0) {
+                trailingZeroes++;
+            } else {
+                trailingZeroes = 0;
+                anyDigitsInFractionalPart = VOXEL_TRUE;
+            }
+
+            VOXEL_MUST(voxel_appendByteToString(context, string, (voxel_Byte)(48 + digit)));
+
+            value -= digit;
+            precisionLeft--;
+        }
+    }
+
+    if (trailingZeroes > 0) {
+        if (!anyDigitsInFractionalPart) {
+            trailingZeroes++;
+        }
+
+        voxel_cutString(context, string, voxel_getStringLength(string) - trailingZeroes);
+    }
+
+    return VOXEL_OK_RET(string);
 }

@@ -15,6 +15,8 @@
 #define VOXEL_UINT_32 uint32_t
 #define VOXEL_FLOAT _Float32
 
+#define VOXEL_MAX_PRECISION 6
+
 #endif
 
 #define VOXEL_DEBUG

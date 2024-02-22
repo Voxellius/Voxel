@@ -17,6 +17,8 @@ typedef struct voxel_Thing {
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
 
+struct voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
+
 void voxel_destroyNull(voxel_Thing* thing);
 void voxel_destroyBoolean(voxel_Thing* thing);
 void voxel_destroyByte(voxel_Thing* thing);
@@ -33,6 +35,14 @@ voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 
 void voxel_lockObject(voxel_Thing* objectThing);
+
+VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_nullToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_stringToString(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newThing(voxel_Context* context) {
     voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
@@ -69,6 +79,10 @@ voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b) {
     return VOXEL_TRUE;
 }
 
+VOXEL_ERRORABLE voxel_nullToString(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newStringTerminated(context, "null"));
+}
+
 voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
     voxel_Thing* thing = voxel_newThing(context);
 
@@ -84,6 +98,10 @@ void voxel_destroyBoolean(voxel_Thing* thing) {
 
 voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b) {
     return a->value == b->value;
+}
+
+VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? "true" : "false"));
 }
 
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
@@ -188,5 +206,13 @@ void voxel_lockThing(voxel_Thing* thing) {
         case VOXEL_TYPE_OBJECT:
             voxel_lockObject(thing);
             break;
+    }
+}
+
+VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) {
+    switch (thing->type) {
+        case VOXEL_TYPE_NULL: return voxel_nullToString(context, thing);
+        case VOXEL_TYPE_BOOLEAN: return voxel_booleanToString(context, thing);
+        // TODO: Implement others
     }
 }

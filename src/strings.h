@@ -46,6 +46,12 @@ voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
     return voxel_compare(aString->value, bString->value, aString->length, bString->length);
 }
 
+voxel_Count voxel_getStringLength(voxel_Thing* thing) {
+    voxel_String* string = thing->value;
+
+    return string->length;
+}
+
 void voxel_logString(voxel_Thing* thing) {
     voxel_String* string = thing->value;
 
@@ -96,6 +102,59 @@ VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, vox
     }
 
     aString->length = newLength;
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_appendToStringTerminatedBytes(voxel_Context* context, voxel_Thing* a, voxel_Byte* b) {
+    voxel_Thing* bThing = voxel_newStringTerminated(context, b);
+
+    VOXEL_MUST(voxel_appendToString(context, a, bThing));
+    VOXEL_MUST(voxel_unreferenceThing(context, bThing));
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+
+    voxel_String* string = thing->value;
+
+    string->length++;
+    string->value = VOXEL_REALLOC(string->value, string->length);
+
+    string->value[string->length - 1] = byte;
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_cutString(voxel_Context* context, voxel_Thing* thing, voxel_Count length) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+    VOXEL_ASSERT(length > 0, VOXEL_ERROR_INVALID_ARGUMENT);
+
+    voxel_String* string = thing->value;
+
+    if (string->length < length) {
+        return VOXEL_OK;
+    }
+
+    string->length = length;
+    string->value = VOXEL_REALLOC(string->value, string->length);
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+
+    voxel_String* string = thing->value;
+    voxel_Byte sourceString[string->length];
+
+    voxel_copy(string->value, sourceString, string->length);
+
+    for (voxel_Count i = 0; i < string->length; i++) {
+        string->value[string->length - 1 - i] = sourceString[i];
+    }
 
     return VOXEL_OK;
 }

@@ -48,6 +48,15 @@ int main(int argc, char* argv[]) {
 
     VOXEL_MUST_CODE(voxel_unreferenceThing(context, null));
 
+    printf("Log numbers\n");
+
+    voxel_Thing* number = voxel_newNumberFloat(context, -123.45678);
+    VOXEL_ERRORABLE numberString = voxel_numberToString(context, number); VOXEL_MUST_CODE(numberString);
+
+    voxel_logString(numberString.value);
+
+    printf("\n");
+
     printf("New strings\n");
 
     voxel_Thing* hello = voxel_newStringTerminated(context, "Hello!\n");
@@ -59,13 +68,13 @@ int main(int argc, char* argv[]) {
 
     voxel_logString(hello);
 
-    printf("Concatenate strings\n");
+    // printf("Concatenate strings\n");
 
     voxel_Thing* concat = voxel_newStringTerminated(context, "Testing! ");
 
     VOXEL_MUST_CODE(voxel_appendToString(context, concat, hello));
 
-    voxel_logString(concat);
+    // voxel_logString(concat);
 
     printf("New object\n");
 

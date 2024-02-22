@@ -90,6 +90,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_NOT_IMPLEMENTED -5
 #define VOXEL_ERROR_THING_LOCKED -6
 #define VOXEL_ERROR_NOT_A_MEMBER -7
+#define VOXEL_ERROR_INVALID_ARGUMENT -8
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
@@ -122,9 +123,67 @@ const char* voxel_lookupError(voxel_ErrorCode error) {
         case VOXEL_ERROR_NOT_A_MEMBER:
             return "Not a member of an object";
 
+        case VOXEL_ERROR_INVALID_ARGUMENT:
+            return "Invalid argument";
+
         default:
             return "Unknown error";
     }
+}
+
+// src/maths.h
+
+voxel_Float voxel_maths_power(voxel_Float base, voxel_Int power) {
+    if (power == 0) {
+        return 1;
+    }
+
+    if (power < 0) {
+        base = 1 / base;
+        power *= -1;
+    }
+
+    voxel_Float result = base;
+
+    while (power > 1) {
+        result *= base;
+        power--;
+    }
+
+    return result;
+}
+
+voxel_Float voxel_maths_roundToPrecision(voxel_Float number, voxel_Count precision) {
+    voxel_Bool isNegative = VOXEL_FALSE;
+
+    if (number < 0) {
+        isNegative = VOXEL_TRUE;
+        number *= -1;
+    }
+
+    voxel_UInt integralPart = number;
+    voxel_Count integralDigits = 0;
+
+    while (integralPart > 0) {
+        integralPart /= 10;
+        integralDigits++;
+    }
+
+    precision -= integralDigits;
+
+    if (precision < 0) {
+        precision = 0;
+    }
+
+    voxel_UInt multiplier = voxel_maths_power(10, precision);
+
+    number += 0.5 * voxel_maths_power(10, -precision);
+
+    if (isNegative) {
+        number *= -1;
+    }
+
+    return (voxel_Float)((voxel_Int)(number * multiplier)) / multiplier;
 }
 
 // src/context.h
@@ -169,6 +228,8 @@ typedef struct voxel_Thing {
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
 
+struct voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
+
 void voxel_destroyNull(voxel_Thing* thing);
 void voxel_destroyBoolean(voxel_Thing* thing);
 void voxel_destroyByte(voxel_Thing* thing);
@@ -185,6 +246,14 @@ voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 
 void voxel_lockObject(voxel_Thing* objectThing);
+
+VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_nullToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_stringToString(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newThing(voxel_Context* context) {
     voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
@@ -221,6 +290,10 @@ voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b) {
     return VOXEL_TRUE;
 }
 
+VOXEL_ERRORABLE voxel_nullToString(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newStringTerminated(context, "null"));
+}
+
 voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
     voxel_Thing* thing = voxel_newThing(context);
 
@@ -236,6 +309,10 @@ void voxel_destroyBoolean(voxel_Thing* thing) {
 
 voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b) {
     return a->value == b->value;
+}
+
+VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? "true" : "false"));
 }
 
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
@@ -343,6 +420,14 @@ void voxel_lockThing(voxel_Thing* thing) {
     }
 }
 
+VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) {
+    switch (thing->type) {
+        case VOXEL_TYPE_NULL: return voxel_nullToString(context, thing);
+        case VOXEL_TYPE_BOOLEAN: return voxel_booleanToString(context, thing);
+        // TODO: Implement others
+    }
+}
+
 // src/numbers.h
 
 typedef enum {
@@ -357,6 +442,12 @@ typedef struct voxel_Number {
         voxel_Float asFloat;
     } value;
 } voxel_Number;
+
+voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data);
+voxel_Count voxel_getStringLength(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte);
+VOXEL_ERRORABLE voxel_cutString(voxel_Context* context, voxel_Thing* thing, voxel_Count length);
+VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
     voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number));
@@ -424,6 +515,71 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
     }
 
     return voxel_getNumberFloat(a) == voxel_getNumberFloat(b);
+}
+
+VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Float value = voxel_maths_roundToPrecision(voxel_getNumberFloat(thing), VOXEL_MAX_PRECISION);
+    voxel_Thing* string = voxel_newString(context, 0, VOXEL_NULL);
+    voxel_Bool isNegative = VOXEL_FALSE;
+    voxel_Count precisionLeft = VOXEL_MAX_PRECISION;
+
+    if (value < 0) {
+        isNegative = VOXEL_TRUE;
+        value *= -1;
+    }
+
+    voxel_UInt integralPart = value;
+
+    value += 0.1 * voxel_maths_power(10, -precisionLeft);
+    value -= integralPart; // Now fractional part
+
+    do {
+        VOXEL_MUST(voxel_appendByteToString(context, string, (voxel_Byte)(48 + integralPart % 10)));
+
+        integralPart /= 10;
+        precisionLeft--;
+    } while (integralPart > 0);
+
+    if (isNegative) {
+        VOXEL_MUST(voxel_appendByteToString(context, string, '-'));
+    }
+
+    voxel_reverseString(context, string);
+
+    voxel_Count trailingZeroes = 0;
+    voxel_Bool anyDigitsInFractionalPart = VOXEL_FALSE;
+
+    if (value > 0 && precisionLeft > 0) {
+        VOXEL_MUST(voxel_appendByteToString(context, string, '.'));
+
+        while (value > 0 && precisionLeft > 0) {
+            value *= 10;
+
+            voxel_Byte digit = value;
+
+            if (digit == 0) {
+                trailingZeroes++;
+            } else {
+                trailingZeroes = 0;
+                anyDigitsInFractionalPart = VOXEL_TRUE;
+            }
+
+            VOXEL_MUST(voxel_appendByteToString(context, string, (voxel_Byte)(48 + digit)));
+
+            value -= digit;
+            precisionLeft--;
+        }
+    }
+
+    if (trailingZeroes > 0) {
+        if (!anyDigitsInFractionalPart) {
+            trailingZeroes++;
+        }
+
+        voxel_cutString(context, string, voxel_getStringLength(string) - trailingZeroes);
+    }
+
+    return VOXEL_OK_RET(string);
 }
 
 // src/buffers.h
@@ -519,6 +675,12 @@ voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
     return voxel_compare(aString->value, bString->value, aString->length, bString->length);
 }
 
+voxel_Count voxel_getStringLength(voxel_Thing* thing) {
+    voxel_String* string = thing->value;
+
+    return string->length;
+}
+
 void voxel_logString(voxel_Thing* thing) {
     voxel_String* string = thing->value;
 
@@ -569,6 +731,59 @@ VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, vox
     }
 
     aString->length = newLength;
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_appendToStringTerminatedBytes(voxel_Context* context, voxel_Thing* a, voxel_Byte* b) {
+    voxel_Thing* bThing = voxel_newStringTerminated(context, b);
+
+    VOXEL_MUST(voxel_appendToString(context, a, bThing));
+    VOXEL_MUST(voxel_unreferenceThing(context, bThing));
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+
+    voxel_String* string = thing->value;
+
+    string->length++;
+    string->value = VOXEL_REALLOC(string->value, string->length);
+
+    string->value[string->length - 1] = byte;
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_cutString(voxel_Context* context, voxel_Thing* thing, voxel_Count length) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+    VOXEL_ASSERT(length > 0, VOXEL_ERROR_INVALID_ARGUMENT);
+
+    voxel_String* string = thing->value;
+
+    if (string->length < length) {
+        return VOXEL_OK;
+    }
+
+    string->length = length;
+    string->value = VOXEL_REALLOC(string->value, string->length);
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+
+    voxel_String* string = thing->value;
+    voxel_Byte sourceString[string->length];
+
+    voxel_copy(string->value, sourceString, string->length);
+
+    for (voxel_Count i = 0; i < string->length; i++) {
+        string->value[string->length - 1 - i] = sourceString[i];
+    }
 
     return VOXEL_OK;
 }
