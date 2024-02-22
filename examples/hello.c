@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     printf("Log numbers\n");
 
-    voxel_Thing* number = voxel_newNumberFloat(context, -123.45678);
+    voxel_Thing* number = voxel_newNumberFloat(context, -123456.789012);
     VOXEL_ERRORABLE numberString = voxel_numberToString(context, number); VOXEL_MUST_CODE(numberString);
 
     voxel_logString(numberString.value);

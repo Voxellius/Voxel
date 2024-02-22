@@ -16,6 +16,8 @@
 #define VOXEL_FLOAT _Float32
 
 #define VOXEL_MAX_PRECISION 6
+#define VOXEL_NAN 0.0 / 0.0
+#define VOXEL_INFINITY 1.0 / 0.0
 
 #endif
 

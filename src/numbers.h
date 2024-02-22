@@ -13,6 +13,7 @@ typedef struct voxel_Number {
 
 voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data);
 voxel_Count voxel_getStringLength(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte);
 VOXEL_ERRORABLE voxel_cutString(voxel_Context* context, voxel_Thing* thing, voxel_Count length);
 VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing);
@@ -86,15 +87,47 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
 }
 
 VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Float value = voxel_maths_roundToPrecision(voxel_getNumberFloat(thing), VOXEL_MAX_PRECISION);
-    voxel_Thing* string = voxel_newString(context, 0, VOXEL_NULL);
+    voxel_Float value = voxel_getNumberFloat(thing);
     voxel_Bool isNegative = VOXEL_FALSE;
-    voxel_Count precisionLeft = VOXEL_MAX_PRECISION;
 
     if (value < 0) {
         isNegative = VOXEL_TRUE;
         value *= -1;
     }
+
+    #ifdef VOXEL_NAN
+        if (value == VOXEL_NAN) {
+            return VOXEL_OK_RET(voxel_newStringTerminated(context, "nan"));
+        }
+    #endif
+
+    #ifdef VOXEL_INFINITY
+        if (value == VOXEL_INFINITY) {
+            return VOXEL_OK_RET(voxel_newStringTerminated(context, isNegative ? "-infinity" : "infinity"));
+        }
+    #endif
+
+    voxel_Int exponent = 0;
+    voxel_Thing* string = voxel_newString(context, 0, VOXEL_NULL);
+    voxel_Count precisionLeft = VOXEL_MAX_PRECISION;
+
+    if (value > 0) {
+        if (value < voxel_maths_power(10, -VOXEL_MAX_PRECISION + 1)) {
+            while (value < 1 - voxel_maths_power(10, -VOXEL_MAX_PRECISION)) {
+                value *= 10;
+                exponent--;
+            }
+        }
+
+        if (value > voxel_maths_power(10, VOXEL_MAX_PRECISION - 1)) {
+            while (value > 9 + voxel_maths_power(10, -VOXEL_MAX_PRECISION)) {
+                value /= 10;
+                exponent++;
+            }
+        }
+    }
+
+    value = voxel_maths_roundToPrecision(value, VOXEL_MAX_PRECISION);
 
     voxel_UInt integralPart = value;
 
@@ -144,7 +177,23 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
             trailingZeroes++;
         }
 
-        voxel_cutString(context, string, voxel_getStringLength(string) - trailingZeroes);
+        VOXEL_MUST(voxel_cutString(context, string, voxel_getStringLength(string) - trailingZeroes));
+    }
+
+    if (exponent != 0) {
+        VOXEL_MUST(voxel_appendByteToString(context, string, 'E'));
+
+        if (exponent > 0) {
+            voxel_appendByteToString(context, string, '+');
+        }
+
+        voxel_Thing* exponentNumber = voxel_newNumberInt(context, exponent);
+        VOXEL_ERRORABLE exponentString = voxel_numberToString(context, exponentNumber); VOXEL_MUST(exponentString);
+
+        voxel_appendToString(context, string, exponentString.value);
+
+        voxel_unreferenceThing(context, exponentNumber);
+        voxel_unreferenceThing(context, exponentString.value);
     }
 
     return VOXEL_OK_RET(string);
