@@ -12,6 +12,7 @@ typedef struct voxel_Thing {
     voxel_DataType type;
     void* value;
     voxel_Count referenceCount;
+    voxel_Bool isLocked;
     struct voxel_Thing* previousTrackedThing;
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
@@ -22,6 +23,7 @@ void voxel_destroyByte(voxel_Thing* thing);
 void voxel_destroyNumber(voxel_Thing* thing);
 void voxel_destroyBuffer(voxel_Thing* thing);
 void voxel_destroyString(voxel_Thing* thing);
+void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b);
@@ -30,12 +32,15 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 
+void voxel_lockObject(voxel_Thing* objectThing);
+
 voxel_Thing* voxel_newThing(voxel_Context* context) {
     voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
 
     thing->type = VOXEL_TYPE_NULL;
     thing->value = VOXEL_NULL;
     thing->referenceCount = 1;
+    thing->isLocked = VOXEL_FALSE;
     thing->previousTrackedThing = context->lastTrackedThing;
     thing->nextTrackedThing = VOXEL_NULL;
 
@@ -96,7 +101,7 @@ voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b) {
     return a->value == b->value;
 }
 
-VOXEL_ERRORABLE voxel_destroyThing(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_NULL: voxel_destroyNull(thing); return VOXEL_OK;
         case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing); return VOXEL_OK;
@@ -104,6 +109,7 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Thing* thing) {
         case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing); return VOXEL_OK;
         case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing); return VOXEL_OK;
         case VOXEL_TYPE_STRING: voxel_destroyString(thing); return VOXEL_OK;
+        case VOXEL_TYPE_OBJECT: voxel_destroyObject(context, thing); return VOXEL_OK;
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -128,7 +134,7 @@ VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thin
         thing->previousTrackedThing->nextTrackedThing = thing->nextTrackedThing;
     }
 
-    VOXEL_MUST(voxel_destroyThing(thing));
+    VOXEL_MUST(voxel_destroyThing(context, thing));
 }
 
 VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context) {
@@ -163,9 +169,24 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_NUMBER: return voxel_compareNumbers(a, b);
         case VOXEL_TYPE_BUFFER: return voxel_compareBuffers(a, b);
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
+        // TODO: Compare objects
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now");
 
     return VOXEL_FALSE;
+}
+
+void voxel_lockThing(voxel_Thing* thing) {
+    if (thing->isLocked) {
+        return; // Prevents infinite recursive locking from happening for circular references
+    }
+
+    thing->isLocked = VOXEL_TRUE;
+
+    switch (thing->type) {
+        case VOXEL_TYPE_OBJECT:
+            voxel_lockObject(thing);
+            break;
+    }
 }

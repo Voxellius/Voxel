@@ -36,6 +36,8 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_TOKENISATION_END -3
 #define VOXEL_ERROR_TYPE_MISMATCH -4
 #define VOXEL_ERROR_NOT_IMPLEMENTED -5
+#define VOXEL_ERROR_THING_LOCKED -6
+#define VOXEL_ERROR_NOT_A_MEMBER -7
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
@@ -61,6 +63,12 @@ const char* voxel_lookupError(voxel_ErrorCode error) {
 
         case VOXEL_ERROR_NOT_IMPLEMENTED:
             return "Not implemented";
+
+        case VOXEL_ERROR_THING_LOCKED:
+            return "Thing is locked (possibly as it belongs to a constant)";
+
+        case VOXEL_ERROR_NOT_A_MEMBER:
+            return "Not a member of an object";
 
         default:
             return "Unknown error";

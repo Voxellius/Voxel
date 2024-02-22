@@ -88,6 +88,8 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_TOKENISATION_END -3
 #define VOXEL_ERROR_TYPE_MISMATCH -4
 #define VOXEL_ERROR_NOT_IMPLEMENTED -5
+#define VOXEL_ERROR_THING_LOCKED -6
+#define VOXEL_ERROR_NOT_A_MEMBER -7
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
@@ -113,6 +115,12 @@ const char* voxel_lookupError(voxel_ErrorCode error) {
 
         case VOXEL_ERROR_NOT_IMPLEMENTED:
             return "Not implemented";
+
+        case VOXEL_ERROR_THING_LOCKED:
+            return "Thing is locked (possibly as it belongs to a constant)";
+
+        case VOXEL_ERROR_NOT_A_MEMBER:
+            return "Not a member of an object";
 
         default:
             return "Unknown error";
@@ -156,6 +164,7 @@ typedef struct voxel_Thing {
     voxel_DataType type;
     void* value;
     voxel_Count referenceCount;
+    voxel_Bool isLocked;
     struct voxel_Thing* previousTrackedThing;
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
@@ -166,6 +175,7 @@ void voxel_destroyByte(voxel_Thing* thing);
 void voxel_destroyNumber(voxel_Thing* thing);
 void voxel_destroyBuffer(voxel_Thing* thing);
 void voxel_destroyString(voxel_Thing* thing);
+void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b);
@@ -174,12 +184,15 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 
+void voxel_lockObject(voxel_Thing* objectThing);
+
 voxel_Thing* voxel_newThing(voxel_Context* context) {
     voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
 
     thing->type = VOXEL_TYPE_NULL;
     thing->value = VOXEL_NULL;
     thing->referenceCount = 1;
+    thing->isLocked = VOXEL_FALSE;
     thing->previousTrackedThing = context->lastTrackedThing;
     thing->nextTrackedThing = VOXEL_NULL;
 
@@ -240,7 +253,7 @@ voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b) {
     return a->value == b->value;
 }
 
-VOXEL_ERRORABLE voxel_destroyThing(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_NULL: voxel_destroyNull(thing); return VOXEL_OK;
         case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing); return VOXEL_OK;
@@ -248,6 +261,7 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Thing* thing) {
         case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing); return VOXEL_OK;
         case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing); return VOXEL_OK;
         case VOXEL_TYPE_STRING: voxel_destroyString(thing); return VOXEL_OK;
+        case VOXEL_TYPE_OBJECT: voxel_destroyObject(context, thing); return VOXEL_OK;
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -272,7 +286,7 @@ VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thin
         thing->previousTrackedThing->nextTrackedThing = thing->nextTrackedThing;
     }
 
-    VOXEL_MUST(voxel_destroyThing(thing));
+    VOXEL_MUST(voxel_destroyThing(context, thing));
 }
 
 VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context) {
@@ -312,6 +326,20 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now");
 
     return VOXEL_FALSE;
+}
+
+void voxel_lockThing(voxel_Thing* thing) {
+    if (thing->isLocked) {
+        return; // Prevents infinite recursive locking from happening for circular references
+    }
+
+    thing->isLocked = VOXEL_TRUE;
+
+    switch (thing->type) {
+        case VOXEL_TYPE_OBJECT:
+            voxel_lockObject(thing);
+            break;
+    }
 }
 
 // src/numbers.h
@@ -456,6 +484,7 @@ voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_B
     voxel_Thing* thing = voxel_newThing(context);
 
     thing->type = VOXEL_TYPE_STRING;
+    thing->value = string;
 
     if (length > 0) {
         voxel_copy(data, string->value, length);
@@ -503,16 +532,17 @@ voxel_Thing* voxel_newObject(voxel_Context* context) {
     voxel_Thing* thing = voxel_newThing(context);
 
     thing->type = VOXEL_TYPE_OBJECT;
+    thing->value = object;
 
     return thing;
 }
 
-voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* objectThing, voxel_Thing* key) {
-    voxel_Object* object = objectThing->value;
+voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
+    voxel_Object* object = thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
     while (VOXEL_TRUE) {
-        if (currentItem == VOXEL_NULL) {
+        if (!currentItem) {
             return VOXEL_NULL;
         }
 
@@ -522,13 +552,13 @@ voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* objectThing, voxel_Thing* key
 
         currentItem = currentItem->nextItem;
     }
-
-    return VOXEL_NULL;
 }
 
-void voxel_setObjectItem(voxel_Context* context, voxel_Thing* objectThing, voxel_Thing* key, voxel_Thing* value) {
-    voxel_Object* object = objectThing->value;
-    voxel_ObjectItem* objectItem = voxel_getObjectItem(objectThing, key);
+VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+    
+    voxel_Object* object = thing->value;
+    voxel_ObjectItem* objectItem = voxel_getObjectItem(thing, key);
 
     if (objectItem) {
         voxel_unreferenceThing(context, objectItem->value);
@@ -536,8 +566,10 @@ void voxel_setObjectItem(voxel_Context* context, voxel_Thing* objectThing, voxel
         objectItem->value = value;
         value->referenceCount++;
 
-        return;
+        return VOXEL_OK;
     }
+
+    voxel_lockThing(key);
 
     objectItem = VOXEL_MALLOC(sizeof(voxel_ObjectItem));
 
@@ -549,16 +581,87 @@ void voxel_setObjectItem(voxel_Context* context, voxel_Thing* objectThing, voxel
 
     objectItem->nextItem = VOXEL_NULL;
 
-    if (object->firstItem == VOXEL_NULL) {
+    if (!object->firstItem) {
         object->firstItem = objectItem;
     }
 
-    if (object->lastItem != VOXEL_NULL) {
+    if (object->lastItem) {
         object->lastItem->nextItem = objectItem;
     }
 
     object->length++;
     object->lastItem = objectItem;
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+
+    voxel_Object* object = thing->value;
+    voxel_ObjectItem* currentItem = object->firstItem;
+    voxel_ObjectItem* previousItem = VOXEL_NULL;
+
+    while (VOXEL_TRUE) {
+        if (!currentItem) {
+            VOXEL_THROW(VOXEL_ERROR_THING_LOCKED);
+        }
+
+        if (voxel_compareThings(currentItem->key, key)) {
+            if (currentItem == object->firstItem) {
+                object->firstItem = currentItem->nextItem;
+            } else {
+                previousItem->nextItem = currentItem->nextItem;
+            }
+
+            if (currentItem == object->lastItem) {
+                object->lastItem = previousItem;
+            }
+
+            voxel_unreferenceThing(context, currentItem->key);
+            voxel_unreferenceThing(context, currentItem->value);
+
+            VOXEL_FREE(currentItem);
+
+            object->length--;
+
+            return VOXEL_OK;
+        }
+
+        previousItem = currentItem;
+        currentItem = currentItem->nextItem;
+    }
+}
+
+void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Object* object = thing->value;
+    voxel_ObjectItem* currentItem = object->firstItem;
+    voxel_ObjectItem* nextItem;
+
+    while (currentItem) {
+        voxel_unreferenceThing(context, currentItem->key);
+        voxel_unreferenceThing(context, currentItem->value);
+
+        nextItem = currentItem->nextItem;
+
+        VOXEL_FREE(currentItem);
+
+        currentItem = nextItem;
+    }
+
+    VOXEL_FREE(object);
+    VOXEL_FREE(thing);
+}
+
+void voxel_lockObject(voxel_Thing* thing) {
+    voxel_Object* object = thing->value;
+    voxel_ObjectItem* currentItem = object->firstItem;
+
+    while (currentItem) {
+        voxel_lockThing(currentItem->value);
+
+        currentItem = currentItem->nextItem;
+    }
 }
 
 // src/parser.h

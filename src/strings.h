@@ -12,6 +12,7 @@ voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_B
     voxel_Thing* thing = voxel_newThing(context);
 
     thing->type = VOXEL_TYPE_STRING;
+    thing->value = string;
 
     if (length > 0) {
         voxel_copy(data, string->value, length);

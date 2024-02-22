@@ -48,6 +48,24 @@ int main(int argc, char* argv[]) {
 
     VOXEL_MUST_CODE(voxel_unreferenceThing(context, null));
 
+    printf("New strings\n");
+
+    voxel_Thing* abc = voxel_newString(context, 3, "abc");
+    voxel_Thing* def = voxel_newString(context, 3, "def");
+    voxel_Thing* ghi = voxel_newString(context, 3, "ghi");
+    voxel_Thing* jkl = voxel_newString(context, 3, "jkl");
+
+    printf("New object\n");
+
+    voxel_Thing* object = voxel_newObject(context);
+
+    printf("Set object properties\n");
+
+    VOXEL_MUST_CODE(voxel_setObjectItem(context, object, abc, def));
+    VOXEL_MUST_CODE(voxel_setObjectItem(context, object, def, ghi));
+    VOXEL_MUST_CODE(voxel_setObjectItem(context, object, ghi, jkl));
+    VOXEL_MUST_CODE(voxel_setObjectItem(context, object, jkl, abc));
+
     printf("It works!\n");
 
     return 0;
