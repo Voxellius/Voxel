@@ -4,7 +4,8 @@ typedef enum {
     VOXEL_TYPE_BYTE,
     VOXEL_TYPE_NUMBER,
     VOXEL_TYPE_BUFFER,
-    VOXEL_TYPE_STRING
+    VOXEL_TYPE_STRING,
+    VOXEL_TYPE_OBJECT
 } voxel_DataType;
 
 typedef struct voxel_Thing {
