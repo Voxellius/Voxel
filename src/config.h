@@ -32,6 +32,10 @@ void _voxel_log_stdlib(char* text) {
     printf(text);
 }
 
+void _voxel_logByte_stdlib(char byte) {
+    printf("%c", byte);
+}
+
 void _voxel_errorMessage_stdlib(const char* message, const char* detail, const char* function, const char* file, const int line) {
     printf("%s%s (%s in %s:%d)\n", message, detail, function, file, line);
 }
@@ -49,6 +53,7 @@ void _voxel_free(void* ptr) {
 }
 
 #define VOXEL_LOG _voxel_log_stdlib
+#define VOXEL_LOG_BYTE _voxel_logByte_stdlib
 #define VOXEL_ERROR_MESSAGE _voxel_errorMessage_stdlib
 #define VOXEL_MALLOC _voxel_malloc
 #define VOXEL_REALLOC _voxel_realloc

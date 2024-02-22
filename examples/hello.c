@@ -50,10 +50,22 @@ int main(int argc, char* argv[]) {
 
     printf("New strings\n");
 
+    voxel_Thing* hello = voxel_newStringTerminated(context, "Hello!\n");
     voxel_Thing* abc = voxel_newString(context, 3, "abc");
     voxel_Thing* def = voxel_newString(context, 3, "def");
     voxel_Thing* ghi = voxel_newString(context, 3, "ghi");
     voxel_Thing* jkl = voxel_newString(context, 3, "jkl");
+    voxel_Thing* newline = voxel_newStringTerminated(context, "\n");
+
+    voxel_logString(hello);
+
+    printf("Concatenate strings\n");
+
+    voxel_Thing* concat = voxel_newStringTerminated(context, "Testing! ");
+
+    VOXEL_MUST_CODE(voxel_appendToString(context, concat, hello));
+
+    voxel_logString(concat);
 
     printf("New object\n");
 
