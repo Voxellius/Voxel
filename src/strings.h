@@ -128,7 +128,30 @@ VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* th
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_cutString(voxel_Context* context, voxel_Thing* thing, voxel_Count length) {
+VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+
+    voxel_String* string = thing->value;
+    voxel_Byte sourceString[string->length];
+
+    voxel_copy(string->value, sourceString, string->length);
+
+    for (voxel_Count i = 0; i < string->length; i++) {
+        string->value[string->length - 1 - i] = sourceString[i];
+    }
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_cutStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count length) {
+    VOXEL_MUST(voxel_reverseString(context, thing));
+    VOXEL_MUST(voxel_cutStringEnd(context, thing, length));
+    VOXEL_MUST(voxel_reverseString(context, thing));
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count length) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     VOXEL_ASSERT(length > 0, VOXEL_ERROR_INVALID_ARGUMENT);
 
@@ -144,17 +167,32 @@ VOXEL_ERRORABLE voxel_cutString(voxel_Context* context, voxel_Thing* thing, voxe
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minLength, voxel_Byte byte) {
+    VOXEL_MUST(voxel_reverseString(context, thing));
+    VOXEL_MUST(voxel_padStringEnd(context, thing, minLength, byte));
+    VOXEL_MUST(voxel_reverseString(context, thing));
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minLength, voxel_Byte byte) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_String* string = thing->value;
-    voxel_Byte sourceString[string->length];
+    voxel_Count padding = minLength - string->length;
+    voxel_Count newLength = string->length + padding;
 
-    voxel_copy(string->value, sourceString, string->length);
-
-    for (voxel_Count i = 0; i < string->length; i++) {
-        string->value[string->length - 1 - i] = sourceString[i];
+    if (minLength <= 0) {
+        return VOXEL_OK;
     }
+
+    string->value = VOXEL_REALLOC(string->value, newLength);
+
+    for (voxel_Count i = 0; i < padding; i++) {
+        string->value[string->length + i] = byte;
+    }
+
+    string->length = newLength;
 
     return VOXEL_OK;
 }

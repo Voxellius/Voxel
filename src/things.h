@@ -17,7 +17,10 @@ typedef struct voxel_Thing {
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
 
-struct voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
+voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
+
+voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data);
+voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
 
 void voxel_destroyNull(voxel_Thing* thing);
 void voxel_destroyBoolean(voxel_Thing* thing);
@@ -119,6 +122,18 @@ voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b) {
     return a->value == b->value;
 }
 
+voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing) {
+    return voxel_newNumberInt(context, (long)thing->value);
+}
+
+VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Byte byte = (long)thing->value;
+
+    voxel_Byte bytes[1] = {byte};
+
+    return VOXEL_OK_RET(voxel_newString(context, 1, bytes));
+}
+
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_NULL: voxel_destroyNull(thing); return VOXEL_OK;
@@ -213,6 +228,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
     switch (thing->type) {
         case VOXEL_TYPE_NULL: return voxel_nullToString(context, thing);
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToString(context, thing);
+        case VOXEL_TYPE_BYTE: return voxel_byteToString(context, thing);
         // TODO: Implement others
     }
 }

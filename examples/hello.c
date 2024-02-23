@@ -57,6 +57,15 @@ int main(int argc, char* argv[]) {
 
     printf("\n");
 
+    printf("Log byte\n");
+
+    voxel_Thing* byte = voxel_newByte(context, 'V');
+    VOXEL_ERRORABLE byteString = voxel_byteToString(context, byte); VOXEL_MUST_CODE(byteString);
+
+    voxel_logString(byteString.value);
+
+    printf("\n");
+
     printf("New strings\n");
 
     voxel_Thing* hello = voxel_newStringTerminated(context, "Hello!\n");
