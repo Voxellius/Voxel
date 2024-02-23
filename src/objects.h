@@ -1,15 +1,3 @@
-typedef struct voxel_Object {
-    voxel_Count length;
-    struct voxel_ObjectItem* firstItem;
-    struct voxel_ObjectItem* lastItem;
-} voxel_Object;
-
-typedef struct voxel_ObjectItem {
-    voxel_Thing* key;
-    voxel_Thing* value;
-    struct voxel_ObjectItem* nextItem;
-} voxel_ObjectItem;
-
 voxel_Thing* voxel_newObject(voxel_Context* context) {
     voxel_Object* object = VOXEL_MALLOC(sizeof(voxel_Object));
 

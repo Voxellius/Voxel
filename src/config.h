@@ -14,6 +14,7 @@
 #define VOXEL_UINT_16 uint16_t
 #define VOXEL_UINT_32 uint32_t
 #define VOXEL_FLOAT _Float32
+#define VOXEL_INTPTR long
 
 #define VOXEL_MAX_PRECISION 6
 #define VOXEL_NAN 0.0 / 0.0

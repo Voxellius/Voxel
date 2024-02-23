@@ -1,16 +1,3 @@
-typedef enum {
-    VOXEL_NUMBER_TYPE_INT,
-    VOXEL_NUMBER_TYPE_FLOAT
-} voxel_NumberType;
-
-typedef struct voxel_Number {
-    voxel_NumberType type;
-    union {
-        voxel_Int asInt;
-        voxel_Float asFloat;
-    } value;
-} voxel_Number;
-
 voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data);
 voxel_Count voxel_getStringLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);

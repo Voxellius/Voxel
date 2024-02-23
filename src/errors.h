@@ -43,12 +43,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
 
-typedef struct voxel_Result {
-    voxel_ErrorCode errorCode;
-    void* value;
-} voxel_Result;
-
-const char* voxel_lookupError(voxel_ErrorCode error) {
+const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
     switch (error) {
         case VOXEL_ERROR_NO_CODE:
             return "No code loaded";

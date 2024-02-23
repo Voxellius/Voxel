@@ -1,8 +1,3 @@
-typedef struct voxel_String {
-    voxel_Count length;
-    voxel_Byte* value;
-} voxel_String;
-
 voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data) {
     voxel_String* string = VOXEL_MALLOC(sizeof(voxel_String));
 

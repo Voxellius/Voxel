@@ -10,6 +10,7 @@ typedef VOXEL_UINT_16 voxel_UInt16;
 typedef VOXEL_UINT_32 voxel_UInt32;
 typedef voxel_UInt32 voxel_UInt;
 typedef VOXEL_FLOAT voxel_Float;
+typedef VOXEL_INTPTR voxel_IntPtr;
 
 #define VOXEL_TRUE 1
 #define VOXEL_FALSE 0

@@ -1,23 +1,3 @@
-typedef enum voxel_TokenType {
-    VOXEL_TOKEN_TYPE_NULL = 'n',
-    VOXEL_TOKEN_TYPE_BOOLEAN_TRUE = 't',
-    VOXEL_TOKEN_TYPE_BOOLEAN_FALSE = 'f',
-    VOXEL_TOKEN_TYPE_BYTE = 'b',
-    VOXEL_TOKEN_TYPE_NUMBER_INT_8 = '3',
-    VOXEL_TOKEN_TYPE_NUMBER_INT_16 = '4',
-    VOXEL_TOKEN_TYPE_NUMBER_INT_32 = '5',
-    VOXEL_TOKEN_TYPE_NUMBER_FLOAT = '%',
-    VOXEL_TOKEN_TYPE_BUFFER = 'B',
-    VOXEL_TOKEN_TYPE_BUFFER_EMPTY = 'E',
-    VOXEL_TOKEN_TYPE_STRING = '$',
-    VOXEL_TOKEN_TYPE_CALL = '!'
-} voxel_TokenType;
-
-typedef struct voxel_Token {
-    voxel_TokenType type;
-    void* data;
-} voxel_Token;
-
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count bytesToRead) {
     if (context->currentPosition + bytesToRead > context->codeLength) {
         VOXEL_THROW(VOXEL_ERROR_TOKENISATION_END);

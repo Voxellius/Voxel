@@ -24,6 +24,7 @@ EOF
 
 include src/common.h
 include src/errors.h
+include src/declarations.h
 include src/maths.h
 include src/context.h
 include src/things.h

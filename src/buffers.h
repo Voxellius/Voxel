@@ -1,8 +1,3 @@
-typedef struct voxel_Buffer {
-    voxel_Count size;
-    voxel_Byte* value;
-} voxel_Buffer;
-
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data) {
     voxel_Buffer* buffer = VOXEL_MALLOC(sizeof(voxel_Buffer));
 
