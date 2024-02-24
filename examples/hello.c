@@ -117,6 +117,55 @@ int main(int argc, char* argv[]) {
 
     printf("\n");
 
+    printf("New list\n");
+
+    voxel_Thing* list = voxel_newList(context);
+
+    printf("Push items onto list\n");
+
+    VOXEL_MUST_CODE(voxel_pushOntoList(context, list, abc));
+    VOXEL_MUST_CODE(voxel_pushOntoList(context, list, def));
+    VOXEL_MUST_CODE(voxel_pushOntoList(context, list, null));
+    VOXEL_MUST_CODE(voxel_pushOntoList(context, list, buffer));
+    VOXEL_MUST_CODE(voxel_pushOntoList(context, list, number));
+    VOXEL_MUST_CODE(voxel_pushOntoList(context, list, byte));
+    VOXEL_MUST_CODE(voxel_pushOntoList(context, list, object));
+
+    printf("Log list VxON\n");
+
+    VOXEL_ERRORABLE listVxon = voxel_thingToVxon(context, list); VOXEL_MUST_CODE(listVxon);
+
+    voxel_logString(listVxon.value);
+
+    printf("\n");
+
+    printf("Remove first item from list until it is empty\n");
+
+    while (voxel_getListLength(list) > 0) {
+        VOXEL_ERRORABLE item = voxel_popFromList(context, list); VOXEL_MUST_CODE(item);
+        VOXEL_ERRORABLE itemVxon = voxel_thingToVxon(context, item.value); VOXEL_MUST_CODE(itemVxon);
+
+        printf("Popped: ");
+        voxel_logString(itemVxon.value);
+        printf("\n");
+    }
+
+    printf("Log list VxON again\n");
+
+    listVxon = voxel_thingToVxon(context, list); VOXEL_MUST_CODE(listVxon);
+
+    voxel_logString(listVxon.value);
+
+    printf("\n");
+
+    printf("Unreference object\n");
+
+    VOXEL_MUST_CODE(voxel_unreferenceThing(context, object));
+
+    printf("Unreference list\n");
+
+    VOXEL_MUST_CODE(voxel_unreferenceThing(context, list));
+
     printf("It works!\n");
 
     return 0;

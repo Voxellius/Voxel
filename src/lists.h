@@ -96,6 +96,38 @@ voxel_Thing* voxel_copyList(voxel_Context* context, voxel_Thing* thing) {
     return newList;
 }
 
+VOXEL_ERRORABLE voxel_listToString(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Thing* delimeter = voxel_newStringTerminated(context, ",");
+    VOXEL_ERRORABLE string = voxel_joinList(context, thing, delimeter);
+
+    VOXEL_MUST(voxel_unreferenceThing(context, delimeter));
+
+    return string;
+}
+
+VOXEL_ERRORABLE voxel_listToVxon(voxel_Context* context, voxel_Thing* thing) {
+    voxel_List* list = thing->value;
+    voxel_Thing* string = voxel_newStringTerminated(context, "[");
+    voxel_ListItem* currentItem = list->firstItem;
+
+    while (currentItem) {
+        VOXEL_ERRORABLE itemString = voxel_thingToVxon(context, currentItem->value); VOXEL_MUST(itemString);
+
+        VOXEL_MUST(voxel_appendToString(context, string, itemString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, itemString.value));
+
+        currentItem = currentItem->nextItem;
+
+        if (currentItem) {
+            VOXEL_MUST(voxel_appendByteToString(context, string, ','));
+        }
+    }
+
+    VOXEL_MUST(voxel_appendByteToString(context, string, ']'));
+
+    return VOXEL_OK_RET(string);
+}
+
 VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index) {
     voxel_List* list = thing->value;
     voxel_ListItem* currentItem = list->firstItem;
@@ -251,4 +283,31 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
     list->length++;
 
     return VOXEL_OK;
+}
+
+voxel_Count voxel_getListLength(voxel_Thing* thing) {
+    voxel_List* list = thing->value;
+
+    return list->length;
+}
+
+VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter) {
+    voxel_List* list = thing->value;
+    voxel_Thing* string = voxel_newStringTerminated(context, "");
+    voxel_ListItem* currentItem = list->firstItem;
+
+    while (currentItem) {
+        VOXEL_ERRORABLE itemString = voxel_thingToString(context, currentItem->value); VOXEL_MUST(itemString);
+
+        VOXEL_MUST(voxel_appendToString(context, string, itemString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, itemString.value));
+
+        currentItem = currentItem->nextItem;
+
+        if (delimeter && currentItem) {
+            VOXEL_MUST(voxel_appendToString(context, string, delimeter));
+        }
+    }
+
+    return VOXEL_OK_RET(string);
 }

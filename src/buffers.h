@@ -77,3 +77,9 @@ VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
 
     return VOXEL_OK_RET(string);
 }
+
+voxel_Count voxel_getBufferSize(voxel_Thing* thing) {
+    voxel_Buffer* buffer = thing->value;
+
+    return buffer->size;
+}

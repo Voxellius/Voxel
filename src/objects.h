@@ -227,3 +227,9 @@ VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, vox
         currentItem = currentItem->nextItem;
     }
 }
+
+voxel_Count voxel_getObjectLength(voxel_Thing* thing) {
+    voxel_Object* object = thing->value;
+
+    return object->length;
+}

@@ -51,34 +51,34 @@ voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing) {
 
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_String* string = thing->value;
-    voxel_Thing* vxONString = voxel_newStringTerminated(context, "\"");
+    voxel_Thing* vxonString = voxel_newStringTerminated(context, "\"");
 
     for (voxel_Count i = 0; i < string->size; i++) {
         switch (string->value[i]) {
             case '"':
-                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '\\'));
-                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '"'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxonString, '\\'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxonString, '"'));
                 break;
 
             case '\0':
-                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '\\'));
-                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '0'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxonString, '\\'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxonString, '0'));
                 break;
 
             case '\n':
-                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '\\'));
-                VOXEL_MUST(voxel_appendByteToString(context, vxONString, 'n'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxonString, '\\'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxonString, 'n'));
                 break;
 
             default:
-                VOXEL_MUST(voxel_appendByteToString(context, vxONString, string->value[i]));
+                VOXEL_MUST(voxel_appendByteToString(context, vxonString, string->value[i]));
                 break;
         }
     }
 
-    VOXEL_MUST(voxel_appendByteToString(context, vxONString, '"'));
+    VOXEL_MUST(voxel_appendByteToString(context, vxonString, '"'));
 
-    return VOXEL_OK_RET(vxONString);
+    return VOXEL_OK_RET(vxonString);
 }
 
 voxel_Count voxel_getStringSize(voxel_Thing* thing) {
