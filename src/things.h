@@ -1,33 +1,3 @@
-voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
-
-voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data);
-voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
-
-void voxel_destroyNull(voxel_Thing* thing);
-void voxel_destroyBoolean(voxel_Thing* thing);
-void voxel_destroyByte(voxel_Thing* thing);
-void voxel_destroyNumber(voxel_Thing* thing);
-void voxel_destroyBuffer(voxel_Thing* thing);
-void voxel_destroyString(voxel_Thing* thing);
-void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
-
-voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b);
-voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b);
-voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b);
-voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b);
-voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b);
-voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
-
-void voxel_lockObject(voxel_Thing* objectThing);
-
-VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_nullToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_stringToString(voxel_Context* context, voxel_Thing* thing);
-
 voxel_Thing* voxel_newThing(voxel_Context* context) {
     voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
 
@@ -111,6 +81,20 @@ VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing) {
     voxel_Byte bytes[1] = {(voxel_IntPtr)thing->value};
 
     return VOXEL_OK_RET(voxel_newString(context, 1, bytes));
+}
+
+VOXEL_ERRORABLE voxel_byteToVxON(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Thing* string = voxel_newStringTerminated(context, "byte(0x");
+    voxel_Thing* number = voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
+    VOXEL_ERRORABLE hexString = voxel_numberToBaseString(context, number, 16, 2); VOXEL_MUST(hexString);
+
+    VOXEL_MUST(voxel_appendToString(context, string, hexString.value));
+    VOXEL_MUST(voxel_appendByteToString(context, string, ')'));
+
+    VOXEL_MUST(voxel_unreferenceThing(context, number));
+    VOXEL_MUST(voxel_unreferenceThing(context, hexString.value));
+
+    return VOXEL_OK_RET(string);
 }
 
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
@@ -209,6 +193,19 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToString(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToString(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_numberToString(context, thing);
+        case VOXEL_TYPE_BUFFER: return voxel_bufferToString(context, thing);
+        case VOXEL_TYPE_STRING: return VOXEL_OK_RET(thing); // TODO: Would be better to copy the thing
         // TODO: Implement others
+    }
+
+    VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
+}
+
+VOXEL_ERRORABLE voxel_thingToVxON(voxel_Context* context, voxel_Thing* thing) {
+    switch (thing->type) {
+        case VOXEL_TYPE_BYTE: return voxel_byteToVxON(context, thing);
+        case VOXEL_TYPE_BUFFER: return voxel_bufferToVxON(context, thing);
+        case VOXEL_TYPE_STRING: return voxel_stringToVxON(context, thing);
+        default: return voxel_thingToString(context, thing);
     }
 }

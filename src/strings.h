@@ -41,6 +41,38 @@ voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
     return voxel_compare(aString->value, bString->value, aString->size, bString->size);
 }
 
+VOXEL_ERRORABLE voxel_stringToVxON(voxel_Context* context, voxel_Thing* thing) {
+    voxel_String* string = thing->value;
+    voxel_Thing* vxONString = voxel_newStringTerminated(context, "\"");
+
+    for (voxel_Count i = 0; i < string->size; i++) {
+        switch (string->value[i]) {
+            case '"':
+                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '\\'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '"'));
+                break;
+
+            case '\0':
+                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '\\'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '0'));
+                break;
+
+            case '\n':
+                VOXEL_MUST(voxel_appendByteToString(context, vxONString, '\\'));
+                VOXEL_MUST(voxel_appendByteToString(context, vxONString, 'n'));
+                break;
+
+            default:
+                VOXEL_MUST(voxel_appendByteToString(context, vxONString, string->value[i]));
+                break;
+        }
+    }
+
+    VOXEL_MUST(voxel_appendByteToString(context, vxONString, '"'));
+
+    return VOXEL_OK_RET(vxONString);
+}
+
 voxel_Count voxel_getStringSize(voxel_Thing* thing) {
     voxel_String* string = thing->value;
 

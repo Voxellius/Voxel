@@ -7,6 +7,7 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byt
     voxel_Thing* thing = voxel_newThing(context);
 
     thing->type = VOXEL_TYPE_BUFFER;
+    thing->value = buffer;
 
     if (data != VOXEL_NULL) {
         voxel_copy(data, buffer->value, size);
@@ -32,4 +33,41 @@ voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b) {
     voxel_Buffer* bBuffer = b->value;
 
     return voxel_compare(aBuffer->value, bBuffer->value, aBuffer->size, bBuffer->size);
+}
+
+VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Buffer* buffer = thing->value;
+
+    return VOXEL_OK_RET(voxel_newString(context, buffer->size, buffer->value));
+}
+
+VOXEL_ERRORABLE voxel_bufferToVxON(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Buffer* buffer = thing->value;
+    voxel_Thing* string = voxel_newStringTerminated(context, "buffer([");
+    voxel_Thing* hexPrefix = voxel_newStringTerminated(context, "0x");
+    voxel_Thing* delimeter = voxel_newStringTerminated(context, ", ");
+    voxel_Thing* suffix = voxel_newStringTerminated(context, "])");
+
+    for (voxel_Count i = 0; i < buffer->size; i++) {
+        voxel_Thing* number = voxel_newNumberInt(context, buffer->value[i]);
+        VOXEL_ERRORABLE hexString = voxel_numberToBaseString(context, number, 16, 2); VOXEL_MUST(hexString);
+
+        VOXEL_MUST(voxel_appendToString(context, string, hexPrefix));
+        VOXEL_MUST(voxel_appendToString(context, string, hexString.value));
+
+        if (i < buffer->size - 1) {
+            VOXEL_MUST(voxel_appendToString(context, string, delimeter));
+        }
+
+        VOXEL_MUST(voxel_unreferenceThing(context, number));
+        VOXEL_MUST(voxel_unreferenceThing(context, hexString.value));
+    }
+
+    VOXEL_MUST(voxel_appendToString(context, string, suffix));
+
+    VOXEL_MUST(voxel_unreferenceThing(context, hexPrefix));
+    VOXEL_MUST(voxel_unreferenceThing(context, delimeter));
+    VOXEL_MUST(voxel_unreferenceThing(context, suffix));
+
+    return VOXEL_OK_RET(string);
 }

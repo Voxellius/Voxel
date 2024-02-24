@@ -48,6 +48,15 @@ int main(int argc, char* argv[]) {
 
     VOXEL_MUST_CODE(voxel_unreferenceThing(context, null));
 
+    printf("Log code VxON\n");
+
+    voxel_Thing* buffer = voxel_newBuffer(context, context->codeLength, context->code);
+    VOXEL_ERRORABLE bufferVxON = voxel_bufferToVxON(context, buffer); VOXEL_MUST_CODE(bufferVxON);
+
+    voxel_logString(bufferVxON.value);
+
+    printf("\n");
+
     printf("Log numbers\n");
 
     voxel_Thing* number = voxel_newNumberFloat(context, -123456.789012);

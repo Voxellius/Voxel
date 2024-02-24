@@ -1,11 +1,3 @@
-voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data);
-voxel_Count voxel_getStringSize(voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
-VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte);
-VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count size);
-VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte);
-
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
     voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number));
 
