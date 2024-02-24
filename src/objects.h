@@ -129,6 +129,47 @@ void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_FREE(thing);
 }
 
+voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b) {
+    voxel_Object* aObject = a->value;
+    voxel_Object* bObject = b->value;
+
+    // First check that `b` contains all values that `a` has
+
+    voxel_ObjectItem* currentItem = aObject->firstItem;
+
+    while (currentItem) {
+        voxel_ObjectItem* objectItem = voxel_getObjectItem(b, currentItem->key);
+        voxel_Bool bothAreImplicitlyNull = currentItem->value->type == VOXEL_TYPE_NULL && !objectItem;
+
+        if (!bothAreImplicitlyNull) {
+            if (!voxel_compareThings(currentItem->value, objectItem->value)) {
+                return VOXEL_FALSE;
+            }
+        }
+
+        currentItem = currentItem->nextItem;
+    }
+
+    // Now check in opposite direction to ensure that `b` doesn't have extra items that `a` doesn't have
+
+    currentItem = bObject->firstItem;
+
+    while (currentItem) {
+        voxel_ObjectItem* objectItem = voxel_getObjectItem(a, currentItem->key);
+        voxel_Bool bothAreImplicitlyNull = currentItem->value->type == VOXEL_TYPE_NULL && !objectItem;
+
+        if (!bothAreImplicitlyNull) {
+            if (!voxel_compareThings(currentItem->value, objectItem->value)) {
+                return VOXEL_FALSE;
+            }
+        }
+
+        currentItem = currentItem->nextItem;
+    }
+
+    return VOXEL_TRUE;
+}
+
 void voxel_lockObject(voxel_Thing* thing) {
     voxel_Object* object = thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
@@ -138,6 +179,22 @@ void voxel_lockObject(voxel_Thing* thing) {
 
         currentItem = currentItem->nextItem;
     }
+}
+
+voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing) {
+    // Shallow copy only; deep copying will be handled in the Voxel standard library
+
+    voxel_Object* object = thing->value;
+    voxel_Thing* newObject = voxel_newObject(context);
+    voxel_ObjectItem* currentItem = object->firstItem;
+
+    while (currentItem) {
+        voxel_setObjectItem(context, newObject, currentItem->key, currentItem->value);
+
+        currentItem = currentItem->nextItem;
+    }
+
+    return newObject;
 }
 
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {

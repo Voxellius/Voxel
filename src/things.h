@@ -78,6 +78,10 @@ voxel_Bool voxel_compareThingTypes(voxel_Thing* a, voxel_Thing* b) {
 }
 
 voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
+    if (a == b) {
+        return VOXEL_TRUE;
+    }
+
     if (!voxel_compareThingTypes(a, b)) {
         return VOXEL_FALSE;
     }
@@ -89,7 +93,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_NUMBER: return voxel_compareNumbers(a, b);
         case VOXEL_TYPE_BUFFER: return voxel_compareBuffers(a, b);
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
-        // TODO: Compare objects
+        case VOXEL_TYPE_OBJECT: return voxel_compareObjects(a, b);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now");
@@ -111,6 +115,22 @@ void voxel_lockThing(voxel_Thing* thing) {
     }
 }
 
+voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
+    switch (thing->type) {
+        case VOXEL_TYPE_NULL: return voxel_copyNull(context, thing);
+        case VOXEL_TYPE_BOOLEAN: return voxel_copyBoolean(context, thing);
+        case VOXEL_TYPE_BYTE: return voxel_copyByte(context, thing);
+        case VOXEL_TYPE_NUMBER: return voxel_copyNumber(context, thing);
+        case VOXEL_TYPE_BUFFER: return voxel_copyBuffer(context, thing);
+        case VOXEL_TYPE_STRING: return voxel_copyString(context, thing);
+        case VOXEL_TYPE_OBJECT: return voxel_copyObject(context, thing);
+    }
+
+    VOXEL_DEBUG_LOG("Thing comparison not implemented; returning null thing for now");
+
+    return voxel_newNull(context);
+}
+
 VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_NULL: return voxel_nullToString(context, thing);
@@ -118,7 +138,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_BYTE: return voxel_byteToString(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_numberToString(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToString(context, thing);
-        case VOXEL_TYPE_STRING: return VOXEL_OK_RET(thing); // TODO: Would be better to copy the thing
+        case VOXEL_TYPE_STRING: return VOXEL_OK_RET(voxel_copyString(context, thing));
         case VOXEL_TYPE_OBJECT: return voxel_objectToVxon(context, thing);
     }
 

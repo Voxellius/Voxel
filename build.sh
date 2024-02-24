@@ -28,6 +28,9 @@ include src/declarations.h
 include src/maths.h
 include src/context.h
 include src/things.h
+include src/null.h
+include src/booleans.h
+include src/bytes.h
 include src/numbers.h
 include src/buffers.h
 include src/strings.h

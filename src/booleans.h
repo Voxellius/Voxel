@@ -15,6 +15,10 @@ voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b) {
     return a->value == b->value;
 }
 
+voxel_Thing* voxel_copyBoolean(voxel_Context* context, voxel_Thing* thing) {
+    return voxel_newBoolean(context, (voxel_IntPtr)thing->value);
+}
+
 VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing) {
     return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? "true" : "false"));
 }

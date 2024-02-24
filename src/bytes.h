@@ -13,6 +13,10 @@ voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b) {
     return a->value == b->value;
 }
 
+voxel_Thing* voxel_copyByte(voxel_Context* context, voxel_Thing* thing) {
+    return voxel_newByte(context, (voxel_IntPtr)thing->value);
+}
+
 voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing) {
     return voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
 }

@@ -35,6 +35,12 @@ voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b) {
     return voxel_compare(aBuffer->value, bBuffer->value, aBuffer->size, bBuffer->size);
 }
 
+voxel_Thing* voxel_copyBuffer(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Buffer* buffer = thing->value;
+    
+    return voxel_newBuffer(context, buffer->size, buffer->value);
+}
+
 VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing) {
     voxel_Buffer* buffer = thing->value;
 

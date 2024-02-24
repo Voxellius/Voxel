@@ -66,6 +66,18 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
     return voxel_getNumberFloat(a) == voxel_getNumberFloat(b);
 }
 
+voxel_Thing* voxel_copyNumber(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Number* number = thing->value;
+
+    switch (number->type) {
+        case VOXEL_NUMBER_TYPE_INT:
+            return voxel_newNumberInt(context, number->value.asInt);
+
+        case VOXEL_NUMBER_TYPE_FLOAT:
+            return voxel_newNumberFloat(context, number->value.asFloat);
+    }
+}
+
 VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing) {
     voxel_Float value = voxel_getNumberFloat(thing);
     voxel_Bool isNegative = VOXEL_FALSE;
