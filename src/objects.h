@@ -37,7 +37,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
     voxel_ObjectItem* objectItem = voxel_getObjectItem(thing, key);
 
     if (objectItem) {
-        voxel_unreferenceThing(context, objectItem->value);
+        VOXEL_MUST(voxel_unreferenceThing(context, objectItem->value));
 
         objectItem->value = value;
         value->referenceCount++;
@@ -94,8 +94,8 @@ VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, vox
                 object->lastItem = previousItem;
             }
 
-            voxel_unreferenceThing(context, currentItem->key);
-            voxel_unreferenceThing(context, currentItem->value);
+            VOXEL_MUST(voxel_unreferenceThing(context, currentItem->key));
+            VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
 
             VOXEL_FREE(currentItem);
 

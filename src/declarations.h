@@ -18,7 +18,8 @@ typedef enum {
     VOXEL_TYPE_NUMBER,
     VOXEL_TYPE_BUFFER,
     VOXEL_TYPE_STRING,
-    VOXEL_TYPE_OBJECT
+    VOXEL_TYPE_OBJECT,
+    VOXEL_TYPE_LIST
 } voxel_DataType;
 
 typedef struct voxel_Thing {
@@ -69,6 +70,18 @@ typedef struct voxel_ObjectItem {
     voxel_Thing* value;
     struct voxel_ObjectItem* nextItem;
 } voxel_ObjectItem;
+
+typedef struct voxel_List {
+    voxel_Count length;
+    struct voxel_ListItem* firstItem;
+    struct voxel_ListItem* lastItem;
+} voxel_List;
+
+typedef struct voxel_ListItem {
+    voxel_Thing* value;
+    struct voxel_ListItem* previousItem;
+    struct voxel_ListItem* nextItem;
+} voxel_ListItem;
 
 typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_NULL = 'n',
@@ -184,6 +197,14 @@ void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b);
 void voxel_lockObject(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
+
+voxel_Thing* voxel_newList(voxel_Context* context);
+VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index);
+VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value);
+VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index);
+VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* value);
+VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value);
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count* position, voxel_Count bytesToRead);
 VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position);
