@@ -149,20 +149,20 @@ VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing,
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
     voxel_ListItem* listItem = listItemResult.value;
 
+    if (listItem == list->firstItem) {
+        list->firstItem = listItem->nextItem;
+    }
+
+    if (listItem == list->lastItem) {
+        list->lastItem = listItem->previousItem;
+    }
+
     if (listItem->previousItem) {
         listItem->previousItem->nextItem = listItem->nextItem;
     }
 
     if (listItem->nextItem) {
         listItem->nextItem->previousItem = listItem->previousItem;
-    }
-
-    if (listItem == list->firstItem) {
-        list->firstItem = VOXEL_NULL;
-    }
-
-    if (listItem == list->lastItem) {
-        list->lastItem = VOXEL_NULL;
     }
 
     list->length--;

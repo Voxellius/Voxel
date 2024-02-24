@@ -56,6 +56,10 @@ VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thin
         thing->previousTrackedThing->nextTrackedThing = thing->nextTrackedThing;
     }
 
+    if (thing->nextTrackedThing) {
+        thing->nextTrackedThing->previousTrackedThing = thing->previousTrackedThing;
+    }
+
     VOXEL_MUST(voxel_destroyThing(context, thing));
 }
 
