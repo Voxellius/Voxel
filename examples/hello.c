@@ -32,8 +32,10 @@ int main(int argc, char* argv[]) {
     context->code = code;
     context->codeLength = 55;
 
+    voxel_Count currentPosition = 0;
+
     while (VOXEL_TRUE) {
-        VOXEL_ERRORABLE nextToken = voxel_nextToken(context); VOXEL_MUST_CODE(nextToken);
+        VOXEL_ERRORABLE nextToken = voxel_nextToken(context, &currentPosition); VOXEL_MUST_CODE(nextToken);
 
         if (nextToken.value == VOXEL_NULL) {
             break;

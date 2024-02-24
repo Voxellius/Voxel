@@ -6,7 +6,6 @@ typedef struct voxel_Result {
 typedef struct voxel_Context {
     char* code;
     voxel_Count codeLength;
-    voxel_Count currentPosition;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
 } voxel_Context;
@@ -83,7 +82,8 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_BUFFER = 'B',
     VOXEL_TOKEN_TYPE_BUFFER_EMPTY = 'E',
     VOXEL_TOKEN_TYPE_STRING = '$',
-    VOXEL_TOKEN_TYPE_CALL = '!'
+    VOXEL_TOKEN_TYPE_CALL = '!',
+    VOXEL_TOKEN_TYPE_RESOLVE_BUILTIN = '/'
 } voxel_TokenType;
 
 typedef struct voxel_Token {
@@ -185,7 +185,7 @@ voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b);
 void voxel_lockObject(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 
-VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count bytesToRead);
-VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context);
+VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count* position, voxel_Count bytesToRead);
+VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position);
 
 void voxel_test();

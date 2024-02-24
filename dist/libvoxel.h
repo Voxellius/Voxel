@@ -141,7 +141,6 @@ typedef struct voxel_Result {
 typedef struct voxel_Context {
     char* code;
     voxel_Count codeLength;
-    voxel_Count currentPosition;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
 } voxel_Context;
@@ -218,7 +217,8 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_BUFFER = 'B',
     VOXEL_TOKEN_TYPE_BUFFER_EMPTY = 'E',
     VOXEL_TOKEN_TYPE_STRING = '$',
-    VOXEL_TOKEN_TYPE_CALL = '!'
+    VOXEL_TOKEN_TYPE_CALL = '!',
+    VOXEL_TOKEN_TYPE_RESOLVE_BUILTIN = '/'
 } voxel_TokenType;
 
 typedef struct voxel_Token {
@@ -320,8 +320,8 @@ voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b);
 void voxel_lockObject(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 
-VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count bytesToRead);
-VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context);
+VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count* position, voxel_Count bytesToRead);
+VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position);
 
 void voxel_test();
 
@@ -386,7 +386,6 @@ voxel_Context* voxel_newContext() {
     voxel_Context* context = VOXEL_MALLOC(sizeof(voxel_Context));
 
     context->code = VOXEL_NULL;
-    context->currentPosition = 0;
     context->firstTrackedThing = VOXEL_NULL;
     context->lastTrackedThing = VOXEL_NULL;
 
@@ -1483,23 +1482,23 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
 
 // src/parser.h
 
-VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count bytesToRead) {
-    if (context->currentPosition + bytesToRead > context->codeLength) {
+VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count* position, voxel_Count bytesToRead) {
+    if ((*position) + bytesToRead > context->codeLength) {
         VOXEL_THROW(VOXEL_ERROR_TOKENISATION_END);
     }
 
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
+VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position) {
     VOXEL_ASSERT(context->code, VOXEL_ERROR_NO_CODE);
     
     voxel_Token token;
 
-    VOXEL_MUST(voxel_safeToRead(context, 1));
+    VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
     voxel_Bool shouldCreateToken = VOXEL_TRUE;
-    voxel_Byte tokenType = context->code[context->currentPosition++];
+    voxel_Byte tokenType = context->code[(*position)++];
 
     switch (tokenType) {
         case VOXEL_TOKEN_TYPE_NULL:
@@ -1520,9 +1519,9 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             break;
 
         case VOXEL_TOKEN_TYPE_BYTE:
-            VOXEL_MUST(voxel_safeToRead(context, 1));
+            VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
-            token.data = voxel_newByte(context, context->code[context->currentPosition++]);
+            token.data = voxel_newByte(context, context->code[(*position)++]);
 
             VOXEL_DEBUG_LOG("[Token: byte]\n");
 
@@ -1531,21 +1530,21 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
         case VOXEL_TOKEN_TYPE_NUMBER_INT_8:
         case VOXEL_TOKEN_TYPE_NUMBER_INT_16:
         case VOXEL_TOKEN_TYPE_NUMBER_INT_32:
-            VOXEL_MUST(voxel_safeToRead(context, 1));
+            VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
-            voxel_Int numberIntValue = context->code[context->currentPosition++];
+            voxel_Int numberIntValue = context->code[(*position)++];
 
             if (tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_16 || tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_32) {
-                VOXEL_MUST(voxel_safeToRead(context, 1));
+                VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
-                numberIntValue <<= 8; numberIntValue |= context->code[context->currentPosition++];
+                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++];
             }
 
             if (tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_32) {
-                VOXEL_MUST(voxel_safeToRead(context, 2));
+                VOXEL_MUST(voxel_safeToRead(context, position, 2));
 
-                numberIntValue <<= 8; numberIntValue |= context->code[context->currentPosition++];
-                numberIntValue <<= 8; numberIntValue |= context->code[context->currentPosition++];
+                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++];
+                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++];
             }
 
             token.data = voxel_newNumberInt(context, numberIntValue);
@@ -1555,13 +1554,13 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             break;
 
         case VOXEL_TOKEN_TYPE_NUMBER_FLOAT:
-            VOXEL_MUST(voxel_safeToRead(context, 4));
+            VOXEL_MUST(voxel_safeToRead(context, position, 4));
 
             voxel_Float numberFloatValue;
 
-            voxel_copy(&(context->code[context->currentPosition]), (char*)&numberFloatValue, 4);
+            voxel_copy(&(context->code[(*position)]), (char*)&numberFloatValue, 4);
 
-            context->currentPosition += 4;
+            (*position) += 4;
             token.data = voxel_newNumberFloat(context, numberFloatValue);
 
             VOXEL_DEBUG_LOG("[Token: num (float)]\n");
@@ -1570,13 +1569,13 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
 
         case VOXEL_TOKEN_TYPE_BUFFER:
         case VOXEL_TOKEN_TYPE_BUFFER_EMPTY:
-            VOXEL_MUST(voxel_safeToRead(context, 4));
+            VOXEL_MUST(voxel_safeToRead(context, position, 4));
 
             voxel_UInt32 bufferSize = 0;
 
             for (voxel_Count i = 0; i < 4; i++) {
                 bufferSize <<= 8;
-                bufferSize |= context->code[context->currentPosition++];
+                bufferSize |= context->code[(*position)++];
             }
 
             if (tokenType == VOXEL_TOKEN_TYPE_BUFFER_EMPTY) {
@@ -1587,10 +1586,10 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
                 break;
             }
 
-            VOXEL_MUST(voxel_safeToRead(context, bufferSize));
+            VOXEL_MUST(voxel_safeToRead(context, position, bufferSize));
 
-            token.data = voxel_newBuffer(context, bufferSize, &(context->code[context->currentPosition]));
-            context->currentPosition += bufferSize;
+            token.data = voxel_newBuffer(context, bufferSize, &(context->code[(*position)]));
+            (*position) += bufferSize;
 
             VOXEL_DEBUG_LOG("[Token: buffer (declared)]\n");
 
@@ -1603,9 +1602,9 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             voxel_Count stringSize = 0;
 
             while (VOXEL_TRUE) {
-                VOXEL_MUST(voxel_safeToRead(context, 1));
+                VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
-                currentByte = context->code[context->currentPosition++];
+                currentByte = context->code[(*position)++];
 
                 if (currentByte == '\0') {
                     break;
