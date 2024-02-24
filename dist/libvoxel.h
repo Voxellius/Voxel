@@ -92,6 +92,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_THING_LOCKED -6
 #define VOXEL_ERROR_NOT_A_MEMBER -7
 #define VOXEL_ERROR_INVALID_ARGUMENT -8
+#define VOXEL_ERROR_CANNOT_CONVERT_THING -9
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
@@ -122,6 +123,9 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
         case VOXEL_ERROR_INVALID_ARGUMENT:
             return "Invalid argument";
 
+        case VOXEL_ERROR_CANNOT_CONVERT_THING:
+            return "Cannot convert thing into desired type or format";
+
         default:
             return "Unknown error";
     }
@@ -146,6 +150,7 @@ typedef enum {
     VOXEL_TYPE_NULL,
     VOXEL_TYPE_BOOLEAN,
     VOXEL_TYPE_BYTE,
+    VOXEL_TYPE_FUNCTION,
     VOXEL_TYPE_NUMBER,
     VOXEL_TYPE_BUFFER,
     VOXEL_TYPE_STRING,
@@ -160,6 +165,11 @@ typedef struct voxel_Thing {
     struct voxel_Thing* previousTrackedThing;
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
+
+typedef enum {
+    VOXEL_FUNCTION_TYPE_BUILTIN,
+    VOXEL_FUNCTION_TYPE_POS_REF
+} voxel_FunctionType;
 
 typedef enum {
     VOXEL_NUMBER_TYPE_INT,
@@ -256,6 +266,14 @@ voxel_Thing* voxel_copyByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing);
+
+voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builtinFunctionIndex);
+voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Count positionReference);
+void voxel_destroyFunction(voxel_Thing* thing);
+voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b);
+voxel_Thing* voxel_copyFunction(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thing);
+voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value);
@@ -405,6 +423,7 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_NULL: voxel_destroyNull(thing); return VOXEL_OK;
         case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing); return VOXEL_OK;
         case VOXEL_TYPE_BYTE: voxel_destroyByte(thing); return VOXEL_OK;
+        case VOXEL_TYPE_FUNCTION: voxel_destroyFunction(thing); return VOXEL_OK;
         case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing); return VOXEL_OK;
         case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing); return VOXEL_OK;
         case VOXEL_TYPE_STRING: voxel_destroyString(thing); return VOXEL_OK;
@@ -469,6 +488,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_NULL: return voxel_compareNulls(a, b);
         case VOXEL_TYPE_BOOLEAN: return voxel_compareBooleans(a, b);
         case VOXEL_TYPE_BYTE: return voxel_compareBytes(a, b);
+        case VOXEL_TYPE_FUNCTION: return voxel_compareFunctions(a, b);
         case VOXEL_TYPE_NUMBER: return voxel_compareNumbers(a, b);
         case VOXEL_TYPE_BUFFER: return voxel_compareBuffers(a, b);
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
@@ -499,6 +519,7 @@ voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_NULL: return voxel_copyNull(context, thing);
         case VOXEL_TYPE_BOOLEAN: return voxel_copyBoolean(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_copyByte(context, thing);
+        case VOXEL_TYPE_FUNCTION: return voxel_copyFunction(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_copyNumber(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_copyBuffer(context, thing);
         case VOXEL_TYPE_STRING: return voxel_copyString(context, thing);
@@ -515,6 +536,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_NULL: return voxel_nullToString(context, thing);
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToString(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToString(context, thing);
+        case VOXEL_TYPE_FUNCTION: return voxel_functionToString(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_numberToString(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToString(context, thing);
         case VOXEL_TYPE_STRING: return VOXEL_OK_RET(voxel_copyString(context, thing));
@@ -527,6 +549,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
 VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_BYTE: return voxel_byteToVxon(context, thing);
+        case VOXEL_TYPE_FUNCTION: VOXEL_THROW(VOXEL_ERROR_CANNOT_CONVERT_THING);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToVxon(context, thing);
         case VOXEL_TYPE_STRING: return voxel_stringToVxon(context, thing);
         case VOXEL_TYPE_OBJECT: return voxel_objectToVxon(context, thing);
@@ -627,6 +650,63 @@ VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_MUST(voxel_unreferenceThing(context, hexString.value));
 
     return VOXEL_OK_RET(string);
+}
+
+// src/functions.h
+
+voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builtinFunctionIndex) {
+    voxel_Thing* thing = voxel_newThing(context);
+
+    builtinFunctionIndex++;
+    builtinFunctionIndex *= -1;
+
+    thing->type = VOXEL_TYPE_FUNCTION;
+    thing->value = (void*)(voxel_IntPtr)builtinFunctionIndex;
+
+    return thing;
+}
+
+voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Count positionReference) {
+    voxel_Thing* thing = voxel_newThing(context);
+
+    thing->type = VOXEL_TYPE_FUNCTION;
+    thing->value = (void*)(voxel_IntPtr)positionReference;
+
+    return thing;
+}
+
+void voxel_destroyFunction(voxel_Thing* thing) {
+    VOXEL_FREE(thing);
+}
+
+voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b) {
+    return a->value == b->value;
+}
+
+voxel_Thing* voxel_copyFunction(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Thing* newThing = voxel_newThing(context);
+
+    newThing->type = VOXEL_TYPE_FUNCTION;
+    newThing->value = thing->value;
+
+    return newThing;
+}
+
+VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newStringTerminated(
+        context,
+        voxel_getFunctionType(context, thing) == VOXEL_FUNCTION_TYPE_BUILTIN ?
+        "(builtin function)" :
+        "(function)"
+    ));
+}
+
+voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* thing) {
+    if ((voxel_IntPtr)thing->value < 0) {
+        return VOXEL_FUNCTION_TYPE_BUILTIN;
+    }
+
+    return VOXEL_FUNCTION_TYPE_POS_REF;
 }
 
 // src/numbers.h

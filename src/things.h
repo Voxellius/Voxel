@@ -26,6 +26,7 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_NULL: voxel_destroyNull(thing); return VOXEL_OK;
         case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing); return VOXEL_OK;
         case VOXEL_TYPE_BYTE: voxel_destroyByte(thing); return VOXEL_OK;
+        case VOXEL_TYPE_FUNCTION: voxel_destroyFunction(thing); return VOXEL_OK;
         case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing); return VOXEL_OK;
         case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing); return VOXEL_OK;
         case VOXEL_TYPE_STRING: voxel_destroyString(thing); return VOXEL_OK;
@@ -90,6 +91,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_NULL: return voxel_compareNulls(a, b);
         case VOXEL_TYPE_BOOLEAN: return voxel_compareBooleans(a, b);
         case VOXEL_TYPE_BYTE: return voxel_compareBytes(a, b);
+        case VOXEL_TYPE_FUNCTION: return voxel_compareFunctions(a, b);
         case VOXEL_TYPE_NUMBER: return voxel_compareNumbers(a, b);
         case VOXEL_TYPE_BUFFER: return voxel_compareBuffers(a, b);
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
@@ -120,6 +122,7 @@ voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_NULL: return voxel_copyNull(context, thing);
         case VOXEL_TYPE_BOOLEAN: return voxel_copyBoolean(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_copyByte(context, thing);
+        case VOXEL_TYPE_FUNCTION: return voxel_copyFunction(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_copyNumber(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_copyBuffer(context, thing);
         case VOXEL_TYPE_STRING: return voxel_copyString(context, thing);
@@ -136,6 +139,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_NULL: return voxel_nullToString(context, thing);
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToString(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToString(context, thing);
+        case VOXEL_TYPE_FUNCTION: return voxel_functionToString(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_numberToString(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToString(context, thing);
         case VOXEL_TYPE_STRING: return VOXEL_OK_RET(voxel_copyString(context, thing));
@@ -148,6 +152,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
 VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_BYTE: return voxel_byteToVxon(context, thing);
+        case VOXEL_TYPE_FUNCTION: VOXEL_THROW(VOXEL_ERROR_CANNOT_CONVERT_THING);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToVxon(context, thing);
         case VOXEL_TYPE_STRING: return voxel_stringToVxon(context, thing);
         case VOXEL_TYPE_OBJECT: return voxel_objectToVxon(context, thing);

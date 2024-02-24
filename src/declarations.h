@@ -15,6 +15,7 @@ typedef enum {
     VOXEL_TYPE_NULL,
     VOXEL_TYPE_BOOLEAN,
     VOXEL_TYPE_BYTE,
+    VOXEL_TYPE_FUNCTION,
     VOXEL_TYPE_NUMBER,
     VOXEL_TYPE_BUFFER,
     VOXEL_TYPE_STRING,
@@ -29,6 +30,11 @@ typedef struct voxel_Thing {
     struct voxel_Thing* previousTrackedThing;
     struct voxel_Thing* nextTrackedThing;
 } voxel_Thing;
+
+typedef enum {
+    VOXEL_FUNCTION_TYPE_BUILTIN,
+    VOXEL_FUNCTION_TYPE_POS_REF
+} voxel_FunctionType;
 
 typedef enum {
     VOXEL_NUMBER_TYPE_INT,
@@ -125,6 +131,14 @@ voxel_Thing* voxel_copyByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing);
+
+voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builtinFunctionIndex);
+voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Count positionReference);
+void voxel_destroyFunction(voxel_Thing* thing);
+voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b);
+voxel_Thing* voxel_copyFunction(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thing);
+voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value);

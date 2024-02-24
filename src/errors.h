@@ -39,6 +39,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_THING_LOCKED -6
 #define VOXEL_ERROR_NOT_A_MEMBER -7
 #define VOXEL_ERROR_INVALID_ARGUMENT -8
+#define VOXEL_ERROR_CANNOT_CONVERT_THING -9
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
@@ -68,6 +69,9 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
 
         case VOXEL_ERROR_INVALID_ARGUMENT:
             return "Invalid argument";
+
+        case VOXEL_ERROR_CANNOT_CONVERT_THING:
+            return "Cannot convert thing into desired type or format";
 
         default:
             return "Unknown error";

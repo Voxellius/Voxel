@@ -31,6 +31,7 @@ include src/things.h
 include src/null.h
 include src/booleans.h
 include src/bytes.h
+include src/functions.h
 include src/numbers.h
 include src/buffers.h
 include src/strings.h
