@@ -139,3 +139,32 @@ void voxel_lockObject(voxel_Thing* thing) {
         currentItem = currentItem->nextItem;
     }
 }
+
+VOXEL_ERRORABLE voxel_objectToVxON(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Object* object = thing->value;
+    voxel_ObjectItem* currentItem = object->firstItem;
+    voxel_Thing* string = voxel_newStringTerminated(context, "{");
+
+    while (currentItem) {
+        // TODO: Prevent circular references from hanging
+        VOXEL_ERRORABLE keyString = voxel_thingToVxON(context, currentItem->key); VOXEL_MUST(keyString);
+        VOXEL_ERRORABLE valueString = voxel_thingToVxON(context, currentItem->value); VOXEL_MUST(valueString);
+
+        VOXEL_MUST(voxel_appendToString(context, string, keyString.value));
+        VOXEL_MUST(voxel_appendByteToString(context, string, ':'));
+        VOXEL_MUST(voxel_appendToString(context, string, valueString.value));
+
+        currentItem = currentItem->nextItem;
+
+        if (currentItem) {
+            VOXEL_MUST(voxel_appendByteToString(context, string, ','));
+        }
+
+        VOXEL_MUST(voxel_unreferenceThing(context, keyString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, valueString.value));
+    }
+
+    VOXEL_MUST(voxel_appendByteToString(context, string, '}'));
+
+    return VOXEL_OK_RET(string);
+}

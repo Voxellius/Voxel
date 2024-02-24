@@ -195,7 +195,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_NUMBER: return voxel_numberToString(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToString(context, thing);
         case VOXEL_TYPE_STRING: return VOXEL_OK_RET(thing); // TODO: Would be better to copy the thing
-        // TODO: Implement others
+        case VOXEL_TYPE_OBJECT: return voxel_objectToVxON(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -206,6 +206,8 @@ VOXEL_ERRORABLE voxel_thingToVxON(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_BYTE: return voxel_byteToVxON(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToVxON(context, thing);
         case VOXEL_TYPE_STRING: return voxel_stringToVxON(context, thing);
-        default: return voxel_thingToString(context, thing);
+        case VOXEL_TYPE_OBJECT: return voxel_objectToVxON(context, thing);
     }
+
+    return voxel_thingToString(context, thing);
 }

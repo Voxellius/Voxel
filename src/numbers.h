@@ -6,7 +6,7 @@ voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
 
     voxel_Thing* thing = voxel_newThing(context);
 
-    thing->type = VOXEL_TYPE_BYTE;
+    thing->type = VOXEL_TYPE_NUMBER;
     thing->value = number;
 
     return thing;
@@ -20,7 +20,7 @@ voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value) {
 
     voxel_Thing* thing = voxel_newThing(context);
 
-    thing->type = VOXEL_TYPE_BYTE;
+    thing->type = VOXEL_TYPE_NUMBER;
     thing->value = number;
 
     return thing;

@@ -45,7 +45,6 @@ VOXEL_ERRORABLE voxel_bufferToVxON(voxel_Context* context, voxel_Thing* thing) {
     voxel_Buffer* buffer = thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "buffer([");
     voxel_Thing* hexPrefix = voxel_newStringTerminated(context, "0x");
-    voxel_Thing* delimeter = voxel_newStringTerminated(context, ", ");
     voxel_Thing* suffix = voxel_newStringTerminated(context, "])");
 
     for (voxel_Count i = 0; i < buffer->size; i++) {
@@ -56,7 +55,7 @@ VOXEL_ERRORABLE voxel_bufferToVxON(voxel_Context* context, voxel_Thing* thing) {
         VOXEL_MUST(voxel_appendToString(context, string, hexString.value));
 
         if (i < buffer->size - 1) {
-            VOXEL_MUST(voxel_appendToString(context, string, delimeter));
+            VOXEL_MUST(voxel_appendByteToString(context, string, ','));
         }
 
         VOXEL_MUST(voxel_unreferenceThing(context, number));
@@ -66,7 +65,6 @@ VOXEL_ERRORABLE voxel_bufferToVxON(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_MUST(voxel_appendToString(context, string, suffix));
 
     VOXEL_MUST(voxel_unreferenceThing(context, hexPrefix));
-    VOXEL_MUST(voxel_unreferenceThing(context, delimeter));
     VOXEL_MUST(voxel_unreferenceThing(context, suffix));
 
     return VOXEL_OK_RET(string);

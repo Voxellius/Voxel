@@ -157,6 +157,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
 VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
 void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
 void voxel_lockObject(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_objectToVxON(voxel_Context* context, voxel_Thing* thing);
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count bytesToRead);
 VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context);
