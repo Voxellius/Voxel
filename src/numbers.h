@@ -1,10 +1,10 @@
-voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data);
-voxel_Count voxel_getStringLength(voxel_Thing* thing);
+voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data);
+voxel_Count voxel_getStringSize(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte);
 VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count length);
-VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minLength, voxel_Byte byte);
+VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count size);
+VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte);
 
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
     voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number));
@@ -165,7 +165,7 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
             trailingZeroes++;
         }
 
-        VOXEL_MUST(voxel_cutStringEnd(context, string, voxel_getStringLength(string) - trailingZeroes));
+        VOXEL_MUST(voxel_cutStringEnd(context, string, voxel_getStringSize(string) - trailingZeroes));
     }
 
     if (exponent != 0) {
@@ -187,7 +187,7 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
     return VOXEL_OK_RET(string);
 }
 
-VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* thing, voxel_Count base, voxel_Count minLength) {
+VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* thing, voxel_Count base, voxel_Count minSize) {
     const voxel_Byte* NUMERALS = "0123456789ABCDEF";
 
     voxel_Int value = voxel_getNumberInt(thing);
@@ -209,7 +209,7 @@ VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* th
         value /= base;
     } while (value > 0);
 
-    VOXEL_MUST(voxel_padStringEnd(context, string, minLength, '0'));
+    VOXEL_MUST(voxel_padStringEnd(context, string, minSize, '0'));
 
     if (isNegative) {
         VOXEL_MUST(voxel_appendByteToString(context, string, '-'));

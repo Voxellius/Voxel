@@ -87,25 +87,25 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
         case VOXEL_TOKEN_TYPE_BUFFER_EMPTY:
             VOXEL_MUST(voxel_safeToRead(context, 4));
 
-            voxel_UInt32 size = 0;
+            voxel_UInt32 bufferSize = 0;
 
             for (voxel_Count i = 0; i < 4; i++) {
-                size <<= 8;
-                size |= context->code[context->currentPosition++];
+                bufferSize <<= 8;
+                bufferSize |= context->code[context->currentPosition++];
             }
 
             if (tokenType == VOXEL_TOKEN_TYPE_BUFFER_EMPTY) {
-                token.data = voxel_newBuffer(context, size, VOXEL_NULL);
+                token.data = voxel_newBuffer(context, bufferSize, VOXEL_NULL);
 
                 VOXEL_DEBUG_LOG("[Token: buffer (empty)]\n");
 
                 break;
             }
 
-            VOXEL_MUST(voxel_safeToRead(context, size));
+            VOXEL_MUST(voxel_safeToRead(context, bufferSize));
 
-            token.data = voxel_newBuffer(context, size, &(context->code[context->currentPosition]));
-            context->currentPosition += size;
+            token.data = voxel_newBuffer(context, bufferSize, &(context->code[context->currentPosition]));
+            context->currentPosition += bufferSize;
 
             VOXEL_DEBUG_LOG("[Token: buffer (declared)]\n");
 
@@ -115,7 +115,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
             voxel_Byte currentByte = '\0';
             voxel_Byte* currentString = NULL;
             voxel_Count currentSize = 0;
-            voxel_Count length = 0;
+            voxel_Count stringSize = 0;
 
             while (VOXEL_TRUE) {
                 VOXEL_MUST(voxel_safeToRead(context, 1));
@@ -126,7 +126,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
                     break;
                 }
 
-                voxel_Count neededSize = (((length / VOXEL_STRING_BLOCK_SIZE) + 1) * VOXEL_STRING_BLOCK_SIZE);
+                voxel_Count neededSize = (((stringSize / VOXEL_STRING_BLOCK_SIZE) + 1) * VOXEL_STRING_BLOCK_SIZE);
 
                 if (currentString == NULL) {
                     currentString = VOXEL_MALLOC(neededSize);
@@ -136,10 +136,10 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context) {
                     currentSize = neededSize;
                 }
 
-                currentString[length++] = currentByte;
+                currentString[stringSize++] = currentByte;
             }
 
-            token.data = voxel_newString(context, length, currentString);
+            token.data = voxel_newString(context, stringSize, currentString);
 
             VOXEL_FREE(currentString);
 

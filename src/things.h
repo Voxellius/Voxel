@@ -1,6 +1,6 @@
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
 
-voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count length, voxel_Byte* data);
+voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data);
 voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
 
 void voxel_destroyNull(voxel_Thing* thing);
@@ -208,6 +208,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_NULL: return voxel_nullToString(context, thing);
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToString(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToString(context, thing);
+        case VOXEL_TYPE_NUMBER: return voxel_numberToString(context, thing);
         // TODO: Implement others
     }
 }
