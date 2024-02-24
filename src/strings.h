@@ -41,7 +41,7 @@ voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
     return voxel_compare(aString->value, bString->value, aString->size, bString->size);
 }
 
-VOXEL_ERRORABLE voxel_stringToVxON(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_String* string = thing->value;
     voxel_Thing* vxONString = voxel_newStringTerminated(context, "\"");
 

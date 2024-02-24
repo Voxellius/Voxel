@@ -240,7 +240,7 @@ void voxel_destroyByte(voxel_Thing* thing);
 voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_byteToVxON(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context);
@@ -248,7 +248,7 @@ voxel_Bool voxel_compareThingTypes(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b);
 void voxel_lockThing(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_thingToVxON(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value);
@@ -263,13 +263,13 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byt
 void voxel_destroyBuffer(voxel_Thing* thing);
 voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b);
 VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_bufferToVxON(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data);
 voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
 void voxel_destroyString(voxel_Thing* thing);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
-VOXEL_ERRORABLE voxel_stringToVxON(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Count voxel_getStringSize(voxel_Thing* thing);
 void voxel_logString(voxel_Thing* thing);
 voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
@@ -288,7 +288,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
 VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
 void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
 void voxel_lockObject(voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_objectToVxON(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count bytesToRead);
 VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context);
@@ -450,7 +450,7 @@ VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing) {
     return VOXEL_OK_RET(voxel_newString(context, 1, bytes));
 }
 
-VOXEL_ERRORABLE voxel_byteToVxON(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_Thing* string = voxel_newStringTerminated(context, "byte(0x");
     voxel_Thing* number = voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
     VOXEL_ERRORABLE hexString = voxel_numberToBaseString(context, number, 16, 2); VOXEL_MUST(hexString);
@@ -562,18 +562,18 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_NUMBER: return voxel_numberToString(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToString(context, thing);
         case VOXEL_TYPE_STRING: return VOXEL_OK_RET(thing); // TODO: Would be better to copy the thing
-        case VOXEL_TYPE_OBJECT: return voxel_objectToVxON(context, thing);
+        case VOXEL_TYPE_OBJECT: return voxel_objectToVxon(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
 }
 
-VOXEL_ERRORABLE voxel_thingToVxON(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_BYTE: return voxel_byteToVxON(context, thing);
-        case VOXEL_TYPE_BUFFER: return voxel_bufferToVxON(context, thing);
-        case VOXEL_TYPE_STRING: return voxel_stringToVxON(context, thing);
-        case VOXEL_TYPE_OBJECT: return voxel_objectToVxON(context, thing);
+        case VOXEL_TYPE_BYTE: return voxel_byteToVxon(context, thing);
+        case VOXEL_TYPE_BUFFER: return voxel_bufferToVxon(context, thing);
+        case VOXEL_TYPE_STRING: return voxel_stringToVxon(context, thing);
+        case VOXEL_TYPE_OBJECT: return voxel_objectToVxon(context, thing);
     }
 
     return voxel_thingToString(context, thing);
@@ -840,7 +840,7 @@ VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing)
     return VOXEL_OK_RET(voxel_newString(context, buffer->size, buffer->value));
 }
 
-VOXEL_ERRORABLE voxel_bufferToVxON(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_Buffer* buffer = thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "buffer([");
     voxel_Thing* hexPrefix = voxel_newStringTerminated(context, "0x");
@@ -914,7 +914,7 @@ voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
     return voxel_compare(aString->value, bString->value, aString->size, bString->size);
 }
 
-VOXEL_ERRORABLE voxel_stringToVxON(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_String* string = thing->value;
     voxel_Thing* vxONString = voxel_newStringTerminated(context, "\"");
 
@@ -1241,15 +1241,15 @@ void voxel_lockObject(voxel_Thing* thing) {
     }
 }
 
-VOXEL_ERRORABLE voxel_objectToVxON(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_Object* object = thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_Thing* string = voxel_newStringTerminated(context, "{");
 
     while (currentItem) {
         // TODO: Prevent circular references from hanging
-        VOXEL_ERRORABLE keyString = voxel_thingToVxON(context, currentItem->key); VOXEL_MUST(keyString);
-        VOXEL_ERRORABLE valueString = voxel_thingToVxON(context, currentItem->value); VOXEL_MUST(valueString);
+        VOXEL_ERRORABLE keyString = voxel_thingToVxon(context, currentItem->key); VOXEL_MUST(keyString);
+        VOXEL_ERRORABLE valueString = voxel_thingToVxon(context, currentItem->value); VOXEL_MUST(valueString);
 
         VOXEL_MUST(voxel_appendToString(context, string, keyString.value));
         VOXEL_MUST(voxel_appendByteToString(context, string, ':'));

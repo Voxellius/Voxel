@@ -41,7 +41,7 @@ VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing)
     return VOXEL_OK_RET(voxel_newString(context, buffer->size, buffer->value));
 }
 
-VOXEL_ERRORABLE voxel_bufferToVxON(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_Buffer* buffer = thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "buffer([");
     voxel_Thing* hexPrefix = voxel_newStringTerminated(context, "0x");

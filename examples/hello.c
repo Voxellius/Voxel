@@ -48,12 +48,12 @@ int main(int argc, char* argv[]) {
 
     VOXEL_MUST_CODE(voxel_unreferenceThing(context, null));
 
-    printf("Log code VxON\n");
+    printf("Log code Vxon\n");
 
     voxel_Thing* buffer = voxel_newBuffer(context, context->codeLength, context->code);
-    VOXEL_ERRORABLE bufferVxON = voxel_thingToVxON(context, buffer); VOXEL_MUST_CODE(bufferVxON);
+    VOXEL_ERRORABLE bufferVxon = voxel_thingToVxon(context, buffer); VOXEL_MUST_CODE(bufferVxon);
 
-    voxel_logString(bufferVxON.value);
+    voxel_logString(bufferVxon.value);
 
     printf("\n");
 
@@ -66,12 +66,12 @@ int main(int argc, char* argv[]) {
 
     printf("\n");
 
-    printf("Log byte VxON\n");
+    printf("Log byte Vxon\n");
 
     voxel_Thing* byte = voxel_newByte(context, 'V');
-    VOXEL_ERRORABLE byteVxON = voxel_thingToVxON(context, byte); VOXEL_MUST_CODE(byteVxON);
+    VOXEL_ERRORABLE byteVxon = voxel_thingToVxon(context, byte); VOXEL_MUST_CODE(byteVxon);
 
-    voxel_logString(byteVxON.value);
+    voxel_logString(byteVxon.value);
 
     printf("\n");
 
@@ -107,11 +107,11 @@ int main(int argc, char* argv[]) {
     VOXEL_MUST_CODE(voxel_setObjectItem(context, object, jkl, number));
     VOXEL_MUST_CODE(voxel_setObjectItem(context, object, mno, byte));
 
-    printf("Log object VxON\n");
+    printf("Log object Vxon\n");
 
-    VOXEL_ERRORABLE objectVxON = voxel_thingToVxON(context, object); VOXEL_MUST_CODE(objectVxON);
+    VOXEL_ERRORABLE objectVxon = voxel_thingToVxon(context, object); VOXEL_MUST_CODE(objectVxon);
 
-    voxel_logString(objectVxON.value);
+    voxel_logString(objectVxon.value);
 
     printf("\n");
 
