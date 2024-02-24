@@ -50,9 +50,11 @@ voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
     }
 }
 
-void voxel_destroyNumber(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyNumber(voxel_Thing* thing) {
     VOXEL_FREE(thing->value);
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {

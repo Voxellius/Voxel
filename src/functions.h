@@ -19,8 +19,10 @@ voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Count positio
     return thing;
 }
 
-void voxel_destroyFunction(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyFunction(voxel_Thing* thing) {
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b) {

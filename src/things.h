@@ -23,14 +23,15 @@ voxel_Thing* voxel_newThing(voxel_Context* context) {
 
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_NULL: voxel_destroyNull(thing); return VOXEL_OK;
-        case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing); return VOXEL_OK;
-        case VOXEL_TYPE_BYTE: voxel_destroyByte(thing); return VOXEL_OK;
-        case VOXEL_TYPE_FUNCTION: voxel_destroyFunction(thing); return VOXEL_OK;
-        case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing); return VOXEL_OK;
-        case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing); return VOXEL_OK;
-        case VOXEL_TYPE_STRING: voxel_destroyString(thing); return VOXEL_OK;
-        case VOXEL_TYPE_OBJECT: voxel_destroyObject(context, thing); return VOXEL_OK;
+        case VOXEL_TYPE_NULL: voxel_destroyNull(thing);
+        case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing);
+        case VOXEL_TYPE_BYTE: voxel_destroyByte(thing);
+        case VOXEL_TYPE_FUNCTION: voxel_destroyFunction(thing);
+        case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing);
+        case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing);
+        case VOXEL_TYPE_STRING: voxel_destroyString(thing);
+        case VOXEL_TYPE_OBJECT: voxel_destroyObject(context, thing);
+        case VOXEL_TYPE_LIST: voxel_destroyList(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -96,6 +97,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_BUFFER: return voxel_compareBuffers(a, b);
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
         case VOXEL_TYPE_OBJECT: return voxel_compareObjects(a, b);
+        case VOXEL_TYPE_LIST: return voxel_compareLists(a, b);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now");
@@ -127,6 +129,7 @@ voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_BUFFER: return voxel_copyBuffer(context, thing);
         case VOXEL_TYPE_STRING: return voxel_copyString(context, thing);
         case VOXEL_TYPE_OBJECT: return voxel_copyObject(context, thing);
+        case VOXEL_TYPE_LIST: return voxel_copyList(context, thing);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning null thing for now");

@@ -20,12 +20,14 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byt
     return thing;
 }
 
-void voxel_destroyBuffer(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing) {
     voxel_Buffer* buffer = thing->value;
 
     VOXEL_FREE(buffer->value);
     VOXEL_FREE(buffer);
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b) {

@@ -26,12 +26,14 @@ voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data)
     return voxel_newString(context, size, data);
 }
 
-void voxel_destroyString(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing) {
     voxel_String* string = thing->value;
 
     VOXEL_FREE(string->value);
     VOXEL_FREE(string);
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {

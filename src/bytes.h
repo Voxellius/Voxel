@@ -5,8 +5,10 @@ voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
     thing->value = (void*)(voxel_IntPtr)value;
 }
 
-void voxel_destroyByte(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing) {
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b) {

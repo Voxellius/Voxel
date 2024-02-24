@@ -2,8 +2,10 @@ voxel_Thing* voxel_newNull(voxel_Context* context) {
     return voxel_newThing(context);
 }
 
-void voxel_destroyNull(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyNull(voxel_Thing* thing) {
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b) {

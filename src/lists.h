@@ -13,6 +13,89 @@ voxel_Thing* voxel_newList(voxel_Context* context) {
     return thing;
 }
 
+VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing) {
+    voxel_List* list = thing->value;
+    voxel_ListItem* currentItem = list->firstItem;
+    voxel_ListItem* nextItem;
+
+    while (currentItem) {
+        VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
+
+        nextItem = currentItem->nextItem;
+
+        VOXEL_FREE(currentItem);
+
+        currentItem = nextItem;
+    }
+
+    VOXEL_FREE(list);
+    VOXEL_FREE(thing);
+
+    return VOXEL_OK;
+}
+
+voxel_Bool voxel_compareLists(voxel_Thing* a, voxel_Thing* b) {
+    voxel_List* aList = a->value;
+    voxel_List* bList = b->value;
+
+    if (aList->length != bList->length) {
+        return VOXEL_FALSE;
+    }
+
+    voxel_ListItem* aCurrentItem = aList->firstItem;
+    voxel_ListItem* bCurrentItem = bList->firstItem;
+
+    while (VOXEL_TRUE) {
+        if (!aCurrentItem && !bCurrentItem) {
+            break;
+        }
+
+        if (!voxel_compareThings(aCurrentItem->value, bCurrentItem->value)) {
+            return VOXEL_FALSE;
+        }
+
+        if (!aCurrentItem) {
+            return VOXEL_FALSE;
+        }
+
+        if (!bCurrentItem) {
+            return VOXEL_FALSE;
+        }
+
+        aCurrentItem = aCurrentItem->nextItem;
+        bCurrentItem = bCurrentItem->nextItem;
+    }
+
+    return VOXEL_TRUE;
+}
+
+void voxel_lockList(voxel_Thing* thing) {
+    voxel_List* list = thing->value;
+    voxel_ListItem* currentItem = list->firstItem;
+
+    while (currentItem) {
+        voxel_lockThing(currentItem->value);
+
+        currentItem = currentItem->nextItem;
+    }
+}
+
+voxel_Thing* voxel_copyList(voxel_Context* context, voxel_Thing* thing) {
+    // Shallow copy only; deep copying will be handled in the Voxel standard library
+
+    voxel_List* list = thing->value;
+    voxel_Thing* newList = voxel_newList(context);
+    voxel_ListItem* currentItem = list->firstItem;
+
+    while (currentItem) {
+        voxel_pushOntoList(context, newList, currentItem->value);
+
+        currentItem = currentItem->nextItem;
+    }
+
+    return newList;
+}
+
 VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index) {
     voxel_List* list = thing->value;
     voxel_ListItem* currentItem = list->firstItem;

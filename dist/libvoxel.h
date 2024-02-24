@@ -261,19 +261,19 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newNull(voxel_Context* context);
-void voxel_destroyNull(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_destroyNull(voxel_Thing* thing);
 voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyNull(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_nullToString(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value);
-void voxel_destroyBoolean(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_destroyBoolean(voxel_Thing* thing);
 voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyBoolean(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value);
-void voxel_destroyByte(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing);
 voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing);
@@ -282,7 +282,7 @@ VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builtinFunctionIndex);
 voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Count positionReference);
-void voxel_destroyFunction(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_destroyFunction(voxel_Thing* thing);
 voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyFunction(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thing);
@@ -292,14 +292,14 @@ voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value);
 voxel_Int voxel_getNumberInt(voxel_Thing* thing);
 voxel_Float voxel_getNumberFloat(voxel_Thing* thing);
-void voxel_destroyNumber(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_destroyNumber(voxel_Thing* thing);
 voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* thing, voxel_Count base, voxel_Count minSize);
 
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data);
-void voxel_destroyBuffer(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing);
 voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyBuffer(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing);
@@ -307,7 +307,7 @@ VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data);
 voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
-void voxel_destroyString(voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing);
@@ -324,16 +324,20 @@ VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing,
 VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte);
 
 voxel_Thing* voxel_newObject(voxel_Context* context);
+VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b);
+void voxel_lockObject(voxel_Thing* thing);
 voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
-void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
-voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b);
-void voxel_lockObject(voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newList(voxel_Context* context);
+VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_compareLists(voxel_Thing* a, voxel_Thing* b);
+void voxel_lockList(voxel_Thing* thing);
+voxel_Thing* voxel_copyList(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index);
 VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index);
@@ -440,14 +444,15 @@ voxel_Thing* voxel_newThing(voxel_Context* context) {
 
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_NULL: voxel_destroyNull(thing); return VOXEL_OK;
-        case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing); return VOXEL_OK;
-        case VOXEL_TYPE_BYTE: voxel_destroyByte(thing); return VOXEL_OK;
-        case VOXEL_TYPE_FUNCTION: voxel_destroyFunction(thing); return VOXEL_OK;
-        case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing); return VOXEL_OK;
-        case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing); return VOXEL_OK;
-        case VOXEL_TYPE_STRING: voxel_destroyString(thing); return VOXEL_OK;
-        case VOXEL_TYPE_OBJECT: voxel_destroyObject(context, thing); return VOXEL_OK;
+        case VOXEL_TYPE_NULL: voxel_destroyNull(thing);
+        case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing);
+        case VOXEL_TYPE_BYTE: voxel_destroyByte(thing);
+        case VOXEL_TYPE_FUNCTION: voxel_destroyFunction(thing);
+        case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing);
+        case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing);
+        case VOXEL_TYPE_STRING: voxel_destroyString(thing);
+        case VOXEL_TYPE_OBJECT: voxel_destroyObject(context, thing);
+        case VOXEL_TYPE_LIST: voxel_destroyList(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -513,6 +518,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_BUFFER: return voxel_compareBuffers(a, b);
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
         case VOXEL_TYPE_OBJECT: return voxel_compareObjects(a, b);
+        case VOXEL_TYPE_LIST: return voxel_compareLists(a, b);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now");
@@ -544,6 +550,7 @@ voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_BUFFER: return voxel_copyBuffer(context, thing);
         case VOXEL_TYPE_STRING: return voxel_copyString(context, thing);
         case VOXEL_TYPE_OBJECT: return voxel_copyObject(context, thing);
+        case VOXEL_TYPE_LIST: return voxel_copyList(context, thing);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning null thing for now");
@@ -584,8 +591,10 @@ voxel_Thing* voxel_newNull(voxel_Context* context) {
     return voxel_newThing(context);
 }
 
-void voxel_destroyNull(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyNull(voxel_Thing* thing) {
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareNulls(voxel_Thing* a, voxel_Thing* b) {
@@ -611,8 +620,10 @@ voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
     return thing;
 }
 
-void voxel_destroyBoolean(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyBoolean(voxel_Thing* thing) {
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b) {
@@ -636,8 +647,10 @@ voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
     thing->value = (void*)(voxel_IntPtr)value;
 }
 
-void voxel_destroyByte(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing) {
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b) {
@@ -695,8 +708,10 @@ voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Count positio
     return thing;
 }
 
-void voxel_destroyFunction(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyFunction(voxel_Thing* thing) {
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b) {
@@ -783,9 +798,11 @@ voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
     }
 }
 
-void voxel_destroyNumber(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyNumber(voxel_Thing* thing) {
     VOXEL_FREE(thing->value);
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
@@ -981,12 +998,14 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byt
     return thing;
 }
 
-void voxel_destroyBuffer(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing) {
     voxel_Buffer* buffer = thing->value;
 
     VOXEL_FREE(buffer->value);
     VOXEL_FREE(buffer);
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b) {
@@ -1067,12 +1086,14 @@ voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data)
     return voxel_newString(context, size, data);
 }
 
-void voxel_destroyString(voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing) {
     voxel_String* string = thing->value;
 
     VOXEL_FREE(string->value);
     VOXEL_FREE(string);
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
@@ -1288,110 +1309,14 @@ voxel_Thing* voxel_newObject(voxel_Context* context) {
     return thing;
 }
 
-voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
-    voxel_Object* object = thing->value;
-    voxel_ObjectItem* currentItem = object->firstItem;
-
-    while (VOXEL_TRUE) {
-        if (!currentItem) {
-            return VOXEL_NULL;
-        }
-
-        if (voxel_compareThings(currentItem->key, key)) {
-            return currentItem;
-        }
-
-        currentItem = currentItem->nextItem;
-    }
-}
-
-VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
-    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
-    
-    voxel_Object* object = thing->value;
-    voxel_ObjectItem* objectItem = voxel_getObjectItem(thing, key);
-
-    if (objectItem) {
-        VOXEL_MUST(voxel_unreferenceThing(context, objectItem->value));
-
-        objectItem->value = value;
-        value->referenceCount++;
-
-        return VOXEL_OK;
-    }
-
-    voxel_lockThing(key);
-
-    objectItem = VOXEL_MALLOC(sizeof(voxel_ObjectItem));
-
-    objectItem->key = key;
-    key->referenceCount++;
-
-    objectItem->value = value;
-    value->referenceCount++;
-
-    objectItem->nextItem = VOXEL_NULL;
-
-    if (!object->firstItem) {
-        object->firstItem = objectItem;
-    }
-
-    if (object->lastItem) {
-        object->lastItem->nextItem = objectItem;
-    }
-
-    object->length++;
-    object->lastItem = objectItem;
-
-    return VOXEL_OK;
-}
-
-VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
-    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
-
-    voxel_Object* object = thing->value;
-    voxel_ObjectItem* currentItem = object->firstItem;
-    voxel_ObjectItem* previousItem = VOXEL_NULL;
-
-    while (VOXEL_TRUE) {
-        if (!currentItem) {
-            VOXEL_THROW(VOXEL_ERROR_THING_LOCKED);
-        }
-
-        if (voxel_compareThings(currentItem->key, key)) {
-            if (currentItem == object->firstItem) {
-                object->firstItem = currentItem->nextItem;
-            } else {
-                previousItem->nextItem = currentItem->nextItem;
-            }
-
-            if (currentItem == object->lastItem) {
-                object->lastItem = previousItem;
-            }
-
-            VOXEL_MUST(voxel_unreferenceThing(context, currentItem->key));
-            VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
-
-            VOXEL_FREE(currentItem);
-
-            object->length--;
-
-            return VOXEL_OK;
-        }
-
-        previousItem = currentItem;
-        currentItem = currentItem->nextItem;
-    }
-}
-
-void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) {
+VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) {
     voxel_Object* object = thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_ObjectItem* nextItem;
 
     while (currentItem) {
-        voxel_unreferenceThing(context, currentItem->key);
-        voxel_unreferenceThing(context, currentItem->value);
+        VOXEL_MUST(voxel_unreferenceThing(context, currentItem->key));
+        VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
 
         nextItem = currentItem->nextItem;
 
@@ -1402,6 +1327,8 @@ void voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) {
 
     VOXEL_FREE(object);
     VOXEL_FREE(thing);
+
+    return VOXEL_OK;
 }
 
 voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b) {
@@ -1501,6 +1428,102 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
     return VOXEL_OK_RET(string);
 }
 
+voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
+    voxel_Object* object = thing->value;
+    voxel_ObjectItem* currentItem = object->firstItem;
+
+    while (VOXEL_TRUE) {
+        if (!currentItem) {
+            return VOXEL_NULL;
+        }
+
+        if (voxel_compareThings(currentItem->key, key)) {
+            return currentItem;
+        }
+
+        currentItem = currentItem->nextItem;
+    }
+}
+
+VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+    
+    voxel_Object* object = thing->value;
+    voxel_ObjectItem* objectItem = voxel_getObjectItem(thing, key);
+
+    if (objectItem) {
+        VOXEL_MUST(voxel_unreferenceThing(context, objectItem->value));
+
+        objectItem->value = value;
+        value->referenceCount++;
+
+        return VOXEL_OK;
+    }
+
+    voxel_lockThing(key);
+
+    objectItem = VOXEL_MALLOC(sizeof(voxel_ObjectItem));
+
+    objectItem->key = key;
+    key->referenceCount++;
+
+    objectItem->value = value;
+    value->referenceCount++;
+
+    objectItem->nextItem = VOXEL_NULL;
+
+    if (!object->firstItem) {
+        object->firstItem = objectItem;
+    }
+
+    if (object->lastItem) {
+        object->lastItem->nextItem = objectItem;
+    }
+
+    object->length++;
+    object->lastItem = objectItem;
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
+    VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
+
+    voxel_Object* object = thing->value;
+    voxel_ObjectItem* currentItem = object->firstItem;
+    voxel_ObjectItem* previousItem = VOXEL_NULL;
+
+    while (VOXEL_TRUE) {
+        if (!currentItem) {
+            VOXEL_THROW(VOXEL_ERROR_THING_LOCKED);
+        }
+
+        if (voxel_compareThings(currentItem->key, key)) {
+            if (currentItem == object->firstItem) {
+                object->firstItem = currentItem->nextItem;
+            } else {
+                previousItem->nextItem = currentItem->nextItem;
+            }
+
+            if (currentItem == object->lastItem) {
+                object->lastItem = previousItem;
+            }
+
+            VOXEL_MUST(voxel_unreferenceThing(context, currentItem->key));
+            VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
+
+            VOXEL_FREE(currentItem);
+
+            object->length--;
+
+            return VOXEL_OK;
+        }
+
+        previousItem = currentItem;
+        currentItem = currentItem->nextItem;
+    }
+}
+
 // src/lists.h
 
 voxel_Thing* voxel_newList(voxel_Context* context) {
@@ -1516,6 +1539,89 @@ voxel_Thing* voxel_newList(voxel_Context* context) {
     thing->value = list;
 
     return thing;
+}
+
+VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing) {
+    voxel_List* list = thing->value;
+    voxel_ListItem* currentItem = list->firstItem;
+    voxel_ListItem* nextItem;
+
+    while (currentItem) {
+        VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
+
+        nextItem = currentItem->nextItem;
+
+        VOXEL_FREE(currentItem);
+
+        currentItem = nextItem;
+    }
+
+    VOXEL_FREE(list);
+    VOXEL_FREE(thing);
+
+    return VOXEL_OK;
+}
+
+voxel_Bool voxel_compareLists(voxel_Thing* a, voxel_Thing* b) {
+    voxel_List* aList = a->value;
+    voxel_List* bList = b->value;
+
+    if (aList->length != bList->length) {
+        return VOXEL_FALSE;
+    }
+
+    voxel_ListItem* aCurrentItem = aList->firstItem;
+    voxel_ListItem* bCurrentItem = bList->firstItem;
+
+    while (VOXEL_TRUE) {
+        if (!aCurrentItem && !bCurrentItem) {
+            break;
+        }
+
+        if (!voxel_compareThings(aCurrentItem->value, bCurrentItem->value)) {
+            return VOXEL_FALSE;
+        }
+
+        if (!aCurrentItem) {
+            return VOXEL_FALSE;
+        }
+
+        if (!bCurrentItem) {
+            return VOXEL_FALSE;
+        }
+
+        aCurrentItem = aCurrentItem->nextItem;
+        bCurrentItem = bCurrentItem->nextItem;
+    }
+
+    return VOXEL_TRUE;
+}
+
+void voxel_lockList(voxel_Thing* thing) {
+    voxel_List* list = thing->value;
+    voxel_ListItem* currentItem = list->firstItem;
+
+    while (currentItem) {
+        voxel_lockThing(currentItem->value);
+
+        currentItem = currentItem->nextItem;
+    }
+}
+
+voxel_Thing* voxel_copyList(voxel_Context* context, voxel_Thing* thing) {
+    // Shallow copy only; deep copying will be handled in the Voxel standard library
+
+    voxel_List* list = thing->value;
+    voxel_Thing* newList = voxel_newList(context);
+    voxel_ListItem* currentItem = list->firstItem;
+
+    while (currentItem) {
+        voxel_pushOntoList(context, newList, currentItem->value);
+
+        currentItem = currentItem->nextItem;
+    }
+
+    return newList;
 }
 
 VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index) {
