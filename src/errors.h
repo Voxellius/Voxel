@@ -30,16 +30,18 @@ typedef int voxel_ErrorCode;
 
 #define VOXEL_IS_ERROR(result) ((result).errorCode != VOXEL_OK_CODE)
 
-#define VOXEL_OK_CODE 0
-#define VOXEL_ERROR_NO_CODE -1
-#define VOXEL_ERROR_TOKENISATION_BYTE -2
-#define VOXEL_ERROR_TOKENISATION_END -3
-#define VOXEL_ERROR_TYPE_MISMATCH -4
-#define VOXEL_ERROR_NOT_IMPLEMENTED -5
-#define VOXEL_ERROR_THING_LOCKED -6
-#define VOXEL_ERROR_NOT_A_MEMBER -7
-#define VOXEL_ERROR_INVALID_ARGUMENT -8
-#define VOXEL_ERROR_CANNOT_CONVERT_THING -9
+#define VOXEL_OK_CODE 0x00
+#define VOXEL_ERROR_NO_CODE -0x10
+#define VOXEL_ERROR_TOKENISATION_BYTE -0x11
+#define VOXEL_ERROR_TOKENISATION_END -0x12
+#define VOXEL_ERROR_TYPE_MISMATCH -0x20
+#define VOXEL_ERROR_NOT_IMPLEMENTED -0x21
+#define VOXEL_ERROR_INVALID_ARGUMENT -0x22
+#define VOXEL_ERROR_THING_LOCKED -0x30
+#define VOXEL_ERROR_CANNOT_CONVERT_THING -0x31
+#define VOXEL_ERROR_NOT_A_MEMBER -0x32
+#define VOXEL_ERROR_CANNOT_CALL_THING -0x33
+#define VOXEL_ERROR_MISSING_ARG -0x40
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
@@ -61,17 +63,23 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
         case VOXEL_ERROR_NOT_IMPLEMENTED:
             return "Not implemented";
 
+        case VOXEL_ERROR_INVALID_ARGUMENT:
+            return "Invalid argument";
+
         case VOXEL_ERROR_THING_LOCKED:
             return "Thing is locked (possibly as it belongs to a constant)";
+
+        case VOXEL_ERROR_CANNOT_CONVERT_THING:
+            return "Cannot convert thing into desired type or format";
 
         case VOXEL_ERROR_NOT_A_MEMBER:
             return "Not a member of an object";
 
-        case VOXEL_ERROR_INVALID_ARGUMENT:
-            return "Invalid argument";
+        case VOXEL_ERROR_CANNOT_CALL_THING:
+            return "Attempt to call a thing that is not a function";
 
-        case VOXEL_ERROR_CANNOT_CONVERT_THING:
-            return "Cannot convert thing into desired type or format";
+        case VOXEL_ERROR_MISSING_ARG:
+            return "Missing a required argument on value stack";
 
         default:
             return "Unknown error";

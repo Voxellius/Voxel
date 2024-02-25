@@ -1,4 +1,4 @@
-VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count* position, voxel_Count bytesToRead) {
+VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead) {
     if ((*position) + bytesToRead > context->codeLength) {
         VOXEL_THROW(VOXEL_ERROR_TOKENISATION_END);
     }
@@ -6,7 +6,7 @@ VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count* position, 
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position) {
+VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position) {
     VOXEL_ASSERT(context->code, VOXEL_ERROR_NO_CODE);
     
     voxel_Token token;
@@ -148,6 +148,9 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position) {
             break;
 
         case VOXEL_TOKEN_TYPE_CALL:
+        case VOXEL_TOKEN_TYPE_RETURN:
+        case VOXEL_TOKEN_TYPE_GET:
+        case VOXEL_TOKEN_TYPE_SET:
             break;
 
         case '\0':

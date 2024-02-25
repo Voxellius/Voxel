@@ -10,7 +10,7 @@ voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builti
     return thing;
 }
 
-voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Count positionReference) {
+voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Position positionReference) {
     voxel_Thing* thing = voxel_newThing(context);
 
     thing->type = VOXEL_TYPE_FUNCTION;

@@ -8,6 +8,12 @@ voxel_Scope* voxel_newScope(voxel_Context* context) {
     return scope;
 }
 
+VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope) {
+    VOXEL_MUST(voxel_unreferenceThing(scope->context, scope->things));
+
+    VOXEL_FREE(scope);
+}
+
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key) {
     voxel_ObjectItem* thisScopeItem = voxel_getObjectItem(scope->things, key);
 
