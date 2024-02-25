@@ -8,6 +8,8 @@ typedef struct voxel_Context {
     voxel_Count codeLength;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
+    struct voxel_Executor* firstExecutor;
+    struct voxel_Executor* lastExecutor;
 } voxel_Context;
 
 typedef enum {
@@ -103,6 +105,22 @@ typedef struct voxel_Token {
     voxel_TokenType type;
     void* data;
 } voxel_Token;
+
+typedef struct voxel_Scope {
+    voxel_Context* context;
+    struct voxel_Scope* parentScope;
+    voxel_Thing* things;
+} voxel_Scope;
+
+typedef struct voxel_Executor {
+    voxel_Context* context;
+    voxel_Scope* scope;
+    voxel_Bool isRunning;
+    voxel_Thing* callStack;
+    voxel_Thing* valueStack;
+    struct voxel_Executor* previousExecutor;
+    struct voxel_Executor* nextExecutor;
+} voxel_Executor;
 
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size);
 voxel_Bool voxel_compare(voxel_Byte* a, voxel_Byte* b, voxel_Count aSize, voxel_Count bSize);
@@ -218,5 +236,11 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count* position, voxel_Count bytesToRead);
 VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position);
+
+voxel_Scope* voxel_newScope(voxel_Context* context);
+voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key);
+VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
+
+voxel_Executor* voxel_newExecutor(voxel_Context* context);
 
 void voxel_test();

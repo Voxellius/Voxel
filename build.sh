@@ -26,7 +26,7 @@ include src/common.h
 include src/errors.h
 include src/declarations.h
 include src/maths.h
-include src/context.h
+include src/contexts.h
 include src/things.h
 include src/null.h
 include src/booleans.h
@@ -38,6 +38,8 @@ include src/strings.h
 include src/objects.h
 include src/lists.h
 include src/parser.h
+include src/executors.h
+include src/scopes.h
 include src/voxel.h
 
 tee -a dist/libvoxel.h > /dev/null << EOF

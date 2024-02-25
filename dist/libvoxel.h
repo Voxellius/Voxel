@@ -143,6 +143,8 @@ typedef struct voxel_Context {
     voxel_Count codeLength;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
+    struct voxel_Executor* firstExecutor;
+    struct voxel_Executor* lastExecutor;
 } voxel_Context;
 
 typedef enum {
@@ -238,6 +240,22 @@ typedef struct voxel_Token {
     voxel_TokenType type;
     void* data;
 } voxel_Token;
+
+typedef struct voxel_Scope {
+    voxel_Context* context;
+    struct voxel_Scope* parentScope;
+    voxel_Thing* things;
+} voxel_Scope;
+
+typedef struct voxel_Executor {
+    voxel_Context* context;
+    voxel_Scope* scope;
+    voxel_Bool isRunning;
+    voxel_Thing* callStack;
+    voxel_Thing* valueStack;
+    struct voxel_Executor* previousExecutor;
+    struct voxel_Executor* nextExecutor;
+} voxel_Executor;
 
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size);
 voxel_Bool voxel_compare(voxel_Byte* a, voxel_Byte* b, voxel_Count aSize, voxel_Count bSize);
@@ -354,6 +372,12 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Count* position, voxel_Count bytesToRead);
 VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position);
 
+voxel_Scope* voxel_newScope(voxel_Context* context);
+voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key);
+VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
+
+voxel_Executor* voxel_newExecutor(voxel_Context* context);
+
 void voxel_test();
 
 // src/maths.h
@@ -411,7 +435,7 @@ voxel_Float voxel_maths_roundToPrecision(voxel_Float number, voxel_Count precisi
     return (voxel_Float)((voxel_Int)(number * multiplier)) / multiplier;
 }
 
-// src/context.h
+// src/contexts.h
 
 voxel_Context* voxel_newContext() {
     voxel_Context* context = VOXEL_MALLOC(sizeof(voxel_Context));
@@ -419,6 +443,10 @@ voxel_Context* voxel_newContext() {
     context->code = VOXEL_NULL;
     context->firstTrackedThing = VOXEL_NULL;
     context->lastTrackedThing = VOXEL_NULL;
+    context->firstExecutor = VOXEL_NULL;
+    context->lastExecutor = VOXEL_NULL;
+
+    voxel_newExecutor(context);
 
     return context;
 }
@@ -2034,6 +2062,79 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Count* position) {
     VOXEL_INTO_PTR(token, tokenPtr);
 
     return VOXEL_OK_RET(tokenPtr);
+}
+
+// src/executors.h
+
+voxel_Executor* voxel_newExecutor(voxel_Context* context) {
+    voxel_Executor* executor = VOXEL_MALLOC(sizeof(voxel_Executor));
+
+    executor->context = context;
+    executor->scope = voxel_newScope(context);
+    executor->isRunning = VOXEL_TRUE;
+    executor->callStack = voxel_newList(context);
+    executor->valueStack = voxel_newList(context);
+    executor->previousExecutor = context->lastExecutor;
+    executor->nextExecutor = VOXEL_NULL;
+
+    if (!context->firstExecutor) {
+        context->firstExecutor = executor;
+    }
+
+    context->lastExecutor = executor;
+
+    return executor;
+}
+
+// src/scopes.h
+
+voxel_Scope* voxel_newScope(voxel_Context* context) {
+    voxel_Scope* scope = VOXEL_MALLOC(sizeof(voxel_Scope));
+
+    scope->context = context;
+    scope->parentScope = VOXEL_NULL;
+    scope->things = voxel_newObject(context);
+
+    return scope;
+}
+
+voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key) {
+    voxel_ObjectItem* thisScopeItem = voxel_getObjectItem(scope->things, key);
+
+    if (!thisScopeItem) {
+        return thisScopeItem;
+    }
+
+    if (scope->parentScope) {
+        return voxel_getScopeItem(scope->parentScope, key);
+    }
+
+    return VOXEL_NULL;
+}
+
+VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value) {
+    voxel_ObjectItem* scopeItem = VOXEL_NULL;
+
+    if (scope->parentScope) {
+        scopeItem = voxel_getScopeItem(scope->parentScope, key);
+    }
+
+    if (!scopeItem) {
+        scopeItem = voxel_getObjectItem(scope->things, key);
+    }
+
+    if (!scopeItem) {
+        voxel_setObjectItem(scope->context, scope->things, key, value);
+
+        return VOXEL_OK;
+    }
+
+    voxel_unreferenceThing(scope->context, scopeItem->value);
+
+    scopeItem->value = value;
+    value->referenceCount++;
+
+    return VOXEL_OK;
 }
 
 // src/voxel.h
