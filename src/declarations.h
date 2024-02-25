@@ -1,5 +1,9 @@
 typedef voxel_Count voxel_Position;
 
+struct voxel_Executor;
+
+typedef void (*voxel_Builtin)(struct voxel_Executor* executor);
+
 typedef struct voxel_Result {
     voxel_ErrorCode errorCode;
     void* value;
@@ -8,6 +12,9 @@ typedef struct voxel_Result {
 typedef struct voxel_Context {
     char* code;
     voxel_Count codeLength;
+    voxel_Builtin* builtins;
+    voxel_Count builtinCount;
+    struct voxel_Scope* rootScope;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
     struct voxel_Executor* firstExecutor;
@@ -137,6 +144,9 @@ voxel_Float voxel_maths_power(voxel_Float base, voxel_Int power);
 voxel_Float voxel_maths_roundToPrecision(voxel_Float number, voxel_Count precision);
 
 voxel_Context* voxel_newContext();
+VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context);
+voxel_Bool voxel_anyContextsRunning(voxel_Context* context);
+VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, voxel_Builtin builtin);
 
 voxel_Thing* voxel_newThing(voxel_Context* context);
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing);
@@ -148,6 +158,7 @@ void voxel_lockThing(voxel_Thing* thing);
 voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newNull(voxel_Context* context);
 VOXEL_ERRORABLE voxel_destroyNull(voxel_Thing* thing);
@@ -243,7 +254,7 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead);
 VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position);
 
-voxel_Scope* voxel_newScope(voxel_Context* context);
+voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope);
 VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope);
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
@@ -253,5 +264,9 @@ voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
 void voxel_stepOutExecutor(voxel_Executor* executor);
+
+void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
+void voxel_pushNull(voxel_Executor* executor);
+voxel_Thing* voxel_pop(voxel_Executor* executor);
 
 void voxel_test();

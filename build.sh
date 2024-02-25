@@ -40,6 +40,7 @@ include src/lists.h
 include src/parser.h
 include src/executors.h
 include src/scopes.h
+include src/helpers.h
 include src/voxel.h
 
 tee -a dist/libvoxel.h > /dev/null << EOF

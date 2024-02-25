@@ -169,3 +169,11 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
 
     return voxel_thingToString(context, thing);
 }
+
+VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing) {
+    VOXEL_ERRORABLE string = voxel_thingToString(context, thing); VOXEL_MUST(string);
+
+    voxel_logString(string.value);
+
+    VOXEL_MUST(voxel_unreferenceThing(context, string.value));
+}

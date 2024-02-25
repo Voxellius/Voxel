@@ -47,8 +47,8 @@ VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thin
     ));
 }
 
-voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* thing) {
-    if ((voxel_IntPtr)thing->value < 0) {
+voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* thing) {    
+    if ((voxel_Int)(voxel_IntPtr)thing->value < 0) {
         return VOXEL_FUNCTION_TYPE_BUILTIN;
     }
 

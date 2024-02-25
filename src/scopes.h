@@ -1,8 +1,8 @@
-voxel_Scope* voxel_newScope(voxel_Context* context) {
+voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope) {
     voxel_Scope* scope = VOXEL_MALLOC(sizeof(voxel_Scope));
 
     scope->context = context;
-    scope->parentScope = VOXEL_NULL;
+    scope->parentScope = parentScope;
     scope->things = voxel_newObject(context);
 
     return scope;
@@ -17,7 +17,7 @@ VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope) {
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key) {
     voxel_ObjectItem* thisScopeItem = voxel_getObjectItem(scope->things, key);
 
-    if (!thisScopeItem) {
+    if (thisScopeItem) {
         return thisScopeItem;
     }
 

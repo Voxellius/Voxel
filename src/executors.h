@@ -2,7 +2,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     voxel_Executor* executor = VOXEL_MALLOC(sizeof(voxel_Executor));
 
     executor->context = context;
-    executor->scope = voxel_newScope(context);
+    executor->scope = voxel_newScope(context, context->rootScope);
     executor->isRunning = VOXEL_TRUE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count);
     executor->callStack = VOXEL_MALLOC(executor->callStackSize);
@@ -14,6 +14,10 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
 
     if (!context->firstExecutor) {
         context->firstExecutor = executor;
+    }
+    
+    if (context->lastExecutor) {
+        context->lastExecutor->nextExecutor = executor;
     }
 
     context->lastExecutor = executor;
@@ -51,7 +55,21 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callFunction);
 
             if (functionType == VOXEL_FUNCTION_TYPE_BUILTIN) {
-                VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
+                voxel_Count builtinFunctionIndex = (voxel_IntPtr)callFunction->value;
+
+                builtinFunctionIndex *= -1;
+                builtinFunctionIndex--;
+
+                VOXEL_ASSERT(
+                    builtinFunctionIndex >= 0 && builtinFunctionIndex < executor->context->builtinCount,
+                    VOXEL_ERROR_INVALID_BUILTIN
+                );
+
+                voxel_Builtin builtin = executor->context->builtins[builtinFunctionIndex];
+
+                (*builtin)(executor);
+
+                break;
             }
 
             voxel_stepInExecutor(executor, (voxel_Position)(voxel_IntPtr)callFunction->value);
@@ -95,9 +113,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 }
 
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position) {
-    voxel_Scope* newScope = voxel_newScope(executor->context);
+    voxel_Scope* newScope = voxel_newScope(executor->context, executor->scope);
 
-    newScope->parentScope = executor->scope;
     executor->scope = newScope;
 
     executor->callStackHead++;
