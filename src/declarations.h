@@ -109,7 +109,16 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_CALL = '!',
     VOXEL_TOKEN_TYPE_RETURN = '^',
     VOXEL_TOKEN_TYPE_GET = '?',
-    VOXEL_TOKEN_TYPE_SET = ':'
+    VOXEL_TOKEN_TYPE_SET = ':',
+    VOXEL_TOKEN_TYPE_POS_REF_HERE = '@',
+    VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE = '#',
+    VOXEL_TOKEN_TYPE_POS_REF_BACKWARD = '<',
+    VOXEL_TOKEN_TYPE_POS_REF_FORWARD = '>',
+    VOXEL_TOKEN_TYPE_JUMP = 'J',
+    VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY = '=',
+    VOXEL_TOKEN_TYPE_NOT = '~',
+    VOXEL_TOKEN_TYPE_AND = '&',
+    VOXEL_TOKEN_TYPE_OR = '|'
 } voxel_TokenType;
 
 typedef struct voxel_Token {

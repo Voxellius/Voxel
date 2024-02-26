@@ -41,7 +41,8 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_CANNOT_CONVERT_THING -0x31
 #define VOXEL_ERROR_NOT_A_MEMBER -0x32
 #define VOXEL_ERROR_CANNOT_CALL_THING -0x33
-#define VOXEL_ERROR_INVALID_BUILTIN -0x34
+#define VOXEL_ERROR_CANNOT_JUMP_TO_THING -0x34
+#define VOXEL_ERROR_INVALID_BUILTIN -0x35
 #define VOXEL_ERROR_MISSING_ARG -0x40
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
@@ -78,6 +79,9 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
 
         case VOXEL_ERROR_CANNOT_CALL_THING:
             return "Attempt to call a thing that is not a function";
+
+        case VOXEL_ERROR_CANNOT_JUMP_TO_THING:
+            return "Attempt to jump to a thing that is not a position reference";
 
         case VOXEL_ERROR_INVALID_BUILTIN:
             return "Invalid builtin function";

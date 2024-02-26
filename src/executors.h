@@ -103,6 +103,44 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             break;
 
+        case VOXEL_TOKEN_TYPE_POS_REF_HERE:
+        case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
+        case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
+        case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
+            voxel_Position referencedPosition = *position;
+
+            if (token->type == VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE) {
+                referencedPosition = (voxel_IntPtr)token->data;
+            } else if (token->type == VOXEL_TOKEN_TYPE_POS_REF_BACKWARD) {
+                referencedPosition -= (voxel_IntPtr)token->data;
+            } else if (token->type == VOXEL_TOKEN_TYPE_POS_REF_FORWARD) {
+                referencedPosition += (voxel_IntPtr)token->data;
+            }
+
+            voxel_Thing* function = voxel_newFunctionPosRef(executor->context, referencedPosition);
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, function));
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_JUMP:
+            VOXEL_ERRORABLE jumpFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(jumpFunctionResult);
+            voxel_Thing* jumpFunction = jumpFunctionResult.value;
+
+            VOXEL_ASSERT(jumpFunction, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
+            VOXEL_ASSERT(jumpFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
+            VOXEL_ASSERT(voxel_getFunctionType(executor->context, jumpFunction) == VOXEL_FUNCTION_TYPE_POS_REF, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
+
+            *position = (voxel_IntPtr)jumpFunction->value;
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
+        case VOXEL_TOKEN_TYPE_NOT:
+        case VOXEL_TOKEN_TYPE_AND:
+        case VOXEL_TOKEN_TYPE_OR:
+            VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
+
         default:
             // Token contains thing to be pushed onto value stack
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, token->data));

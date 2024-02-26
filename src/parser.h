@@ -151,6 +151,28 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_RETURN:
         case VOXEL_TOKEN_TYPE_GET:
         case VOXEL_TOKEN_TYPE_SET:
+        case VOXEL_TOKEN_TYPE_POS_REF_HERE:
+        case VOXEL_TOKEN_TYPE_JUMP:
+        case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
+        case VOXEL_TOKEN_TYPE_NOT:
+        case VOXEL_TOKEN_TYPE_AND:
+        case VOXEL_TOKEN_TYPE_OR:
+            break;
+
+        case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE: // TODO: For absolute, maybe pop number and use that instead?
+        case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
+        case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
+            VOXEL_MUST(voxel_safeToRead(context, position, 4));
+
+            voxel_UInt32 stepSize = 0;
+
+            for (voxel_Count i = 0; i < 4; i++) {
+                stepSize <<= 8;
+                stepSize |= context->code[(*position)++];
+            }
+
+            token.data = (void*)(voxel_IntPtr)stepSize;
+
             break;
 
         case '\0':
