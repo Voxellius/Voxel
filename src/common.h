@@ -16,12 +16,44 @@ typedef VOXEL_INTPTR voxel_IntPtr;
 #define VOXEL_FALSE 0
 #define VOXEL_NULL 0
 
+#define VOXEL_NOOP do {} while (0)
+
 #define VOXEL_INTO_PTR(data, pointer) voxel_copy((voxel_Byte*)&(data), (voxel_Byte*)pointer, sizeof(data))
 
 #ifdef VOXEL_DEBUG
     #define VOXEL_DEBUG_LOG VOXEL_LOG
 #else
-    void VOXEL_DEBUG_LOG(char* text) {}
+    #define VOXEL_DEBUG_LOG(text) VOXEL_NOOP
+#endif
+
+#ifdef VOXEL_DEBUG_THINGS
+    #include <stdio.h>
+
+    voxel_Count _voxel_thingCount = 0;
+
+    #define VOXEL_TAG_NEW_THING(type) printf("[New thing %s = %d]\n", #type, ++_voxel_thingCount);
+    #define VOXEL_TAG_DESTROY_THING(type) printf("[Destroy thing %s = %d]\n", #type, --_voxel_thingCount);
+#else
+    #define VOXEL_TAG_NEW_THING(type) VOXEL_NOOP
+    #define VOXEL_TAG_DESTROY_THING(type) VOXEL_NOOP
+#endif
+
+#ifdef VOXEL_DEBUG_MEMORY
+    #include <stdio.h>
+
+    voxel_Count _voxel_memoryUsage = 0;
+
+    #define VOXEL_TAG_MALLOC(type) printf("[Allocate memory for %s, +%d = %d]\n", #type, sizeof(type), _voxel_memoryUsage += sizeof(type))
+    #define VOXEL_TAG_MALLOC_SIZE(name, size) printf("[Allocate memory for %s, +%d = %d]\n", name, size, _voxel_memoryUsage += size)
+    #define VOXEL_TAG_FREE(type) printf("[Free memory for %s, -%d = %d]\n", #type, sizeof(type), _voxel_memoryUsage -= sizeof(type))
+    #define VOXEL_TAG_FREE_SIZE(name, size) printf("[Free memory for %s, -%d = %d]\n", name, size, _voxel_memoryUsage -= size)
+    #define VOXEL_TAG_REALLOC(name, oldSize, newSize) printf("[Reallocate memory for %s, -%d +%d = %d]\n", name, oldSize, newSize, _voxel_memoryUsage += newSize - oldSize)
+#else
+    #define VOXEL_TAG_MALLOC(type) VOXEL_NOOP
+    #define VOXEL_TAG_MALLOC_SIZE(name, size) VOXEL_NOOP
+    #define VOXEL_TAG_FREE(type) VOXEL_NOOP
+    #define VOXEL_TAG_FREE_SIZE(name, size) VOXEL_NOOP
+    #define VOXEL_TAG_REALLOC(name, oldSize, newSize) VOXEL_NOOP
 #endif
 
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size) {

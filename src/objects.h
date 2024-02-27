@@ -1,11 +1,11 @@
 voxel_Thing* voxel_newObject(voxel_Context* context) {
-    voxel_Object* object = VOXEL_MALLOC(sizeof(voxel_Object));
+    voxel_Object* object = VOXEL_MALLOC(sizeof(voxel_Object)); VOXEL_TAG_MALLOC(voxel_Object);
 
     object->length = 0;
     object->firstItem = VOXEL_NULL;
     object->lastItem = VOXEL_NULL;
 
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_OBJECT);
 
     thing->type = VOXEL_TYPE_OBJECT;
     thing->value = object;
@@ -14,6 +14,8 @@ voxel_Thing* voxel_newObject(voxel_Context* context) {
 }
 
 VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) {
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_OBJECT);
+
     voxel_Object* object = thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_ObjectItem* nextItem;
@@ -24,13 +26,13 @@ VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) 
 
         nextItem = currentItem->nextItem;
 
-        VOXEL_FREE(currentItem);
+        VOXEL_FREE(currentItem); VOXEL_TAG_FREE(voxel_ObjectItem);
 
         currentItem = nextItem;
     }
 
-    VOXEL_FREE(object);
-    VOXEL_FREE(thing);
+    VOXEL_FREE(object); VOXEL_TAG_FREE(voxel_Object);
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;
 }
@@ -166,7 +168,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
 
     voxel_lockThing(key);
 
-    objectItem = VOXEL_MALLOC(sizeof(voxel_ObjectItem));
+    objectItem = VOXEL_MALLOC(sizeof(voxel_ObjectItem)); VOXEL_TAG_MALLOC(voxel_ObjectItem);
 
     objectItem->key = key;
     key->referenceCount++;
@@ -216,7 +218,7 @@ VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, vox
             VOXEL_MUST(voxel_unreferenceThing(context, currentItem->key));
             VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
 
-            VOXEL_FREE(currentItem);
+            VOXEL_FREE(currentItem); VOXEL_TAG_FREE(voxel_ObjectItem);
 
             object->length--;
 

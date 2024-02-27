@@ -1,10 +1,10 @@
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
-    voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number));
+    voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
 
     number->type = VOXEL_NUMBER_TYPE_INT;
     number->value.asInt = value;
 
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_NUMBER);
 
     thing->type = VOXEL_TYPE_NUMBER;
     thing->value = number;
@@ -13,12 +13,12 @@ voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
 }
 
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value) {
-    voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number));
+    voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
 
     number->type = VOXEL_NUMBER_TYPE_FLOAT;
     number->value.asFloat = value;
 
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_NUMBER);
 
     thing->type = VOXEL_TYPE_NUMBER;
     thing->value = number;
@@ -51,8 +51,10 @@ voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_destroyNumber(voxel_Thing* thing) {
-    VOXEL_FREE(thing->value);
-    VOXEL_FREE(thing);
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_NUMBER);
+
+    VOXEL_FREE(thing->value); VOXEL_TAG_FREE(voxel_Number);
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;
 }
@@ -114,7 +116,7 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
         }
 
         if (value > voxel_maths_power(10, VOXEL_MAX_PRECISION - 1)) {
-            while (value > 9 + voxel_maths_power(10, -VOXEL_MAX_PRECISION)) {
+            while (value > 10 + voxel_maths_power(10, -VOXEL_MAX_PRECISION)) {
                 value /= 10;
                 exponent++;
             }

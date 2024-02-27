@@ -129,10 +129,10 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
                 voxel_Count neededSize = (((stringSize / VOXEL_STRING_BLOCK_SIZE) + 1) * VOXEL_STRING_BLOCK_SIZE);
 
                 if (currentString == NULL) {
-                    currentString = VOXEL_MALLOC(neededSize);
+                    currentString = VOXEL_MALLOC(neededSize); VOXEL_TAG_MALLOC_SIZE("voxel_Byte[]", neededSize);
                     currentSize = neededSize;
                 } else if (neededSize > currentSize) {
-                    currentString = VOXEL_REALLOC(currentString, neededSize);
+                    currentString = VOXEL_REALLOC(currentString, neededSize); VOXEL_TAG_REALLOC("voxel_Byte[]", currentSize, neededSize);
                     currentSize = neededSize;
                 }
 
@@ -141,7 +141,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
             token.data = voxel_newString(context, stringSize, currentString);
 
-            VOXEL_FREE(currentString);
+            VOXEL_FREE(currentString); VOXEL_TAG_FREE_SIZE("voxel_Byte[]", currentSize);
 
             VOXEL_DEBUG_LOG("[Token: string]\n");
 
@@ -157,6 +157,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_NOT:
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
+            VOXEL_DEBUG_LOG("[Non-thing token]\n");
             break;
 
         case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE: // TODO: For absolute, maybe pop number and use that instead?
@@ -173,6 +174,8 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
             token.data = (void*)(voxel_IntPtr)stepSize;
 
+            VOXEL_DEBUG_LOG("[Token: position reference]\n");
+
             break;
 
         case '\0':
@@ -186,7 +189,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
     token.type = tokenType;
 
-    voxel_Token* tokenPtr = VOXEL_MALLOC(sizeof(token));
+    voxel_Token* tokenPtr = VOXEL_MALLOC(sizeof(token)); VOXEL_TAG_MALLOC(voxel_Token);
 
     VOXEL_INTO_PTR(token, tokenPtr);
 

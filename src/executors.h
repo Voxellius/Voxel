@@ -1,11 +1,11 @@
 voxel_Executor* voxel_newExecutor(voxel_Context* context) {
-    voxel_Executor* executor = VOXEL_MALLOC(sizeof(voxel_Executor));
+    voxel_Executor* executor = VOXEL_MALLOC(sizeof(voxel_Executor)); VOXEL_TAG_MALLOC(voxel_Executor);
 
     executor->context = context;
     executor->scope = voxel_newScope(context, context->rootScope);
     executor->isRunning = VOXEL_TRUE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count);
-    executor->callStack = VOXEL_MALLOC(executor->callStackSize);
+    executor->callStack = VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count));
     executor->callStack[0] = 0;
     executor->callStackHead = 0;
     executor->valueStack = voxel_newList(context);
@@ -74,6 +74,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             voxel_stepInExecutor(executor, (voxel_Position)(voxel_IntPtr)callFunction->value);
 
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, callFunction));
+
             break;
 
         case VOXEL_TOKEN_TYPE_RETURN:
@@ -91,6 +93,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, scopeValue));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, getKey.value));
 
+            scopeValue->referenceCount++; // To ensure that builtins don't dereference the thing in the scope
+
             break;
 
         case VOXEL_TOKEN_TYPE_SET:
@@ -101,6 +105,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(setValue, VOXEL_ERROR_MISSING_ARG);
 
             VOXEL_MUST(voxel_setScopeItem(executor->scope, setKey.value, setValue));
+
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, setKey.value));
 
             break;
 
@@ -134,6 +140,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             *position = (voxel_IntPtr)jumpFunction->value;
 
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpFunction));
+
             break;
 
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
@@ -148,7 +156,12 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
     }
 
-    VOXEL_FREE(token);
+    #ifdef VOXEL_DEBUG_EXECUTORS
+        VOXEL_DEBUG_LOG("Current value stack: ");
+        voxel_logThing(executor->context, executor->valueStack);
+    #endif
+
+    VOXEL_FREE(token); VOXEL_TAG_FREE(voxel_Token);
 
     return VOXEL_OK;
 }
@@ -164,7 +177,7 @@ void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position) {
 
     if (executor->callStackSize < neededSize) {
         executor->callStackSize = neededSize;
-        executor->callStack = VOXEL_REALLOC(executor->callStack, neededSize);
+        executor->callStack = VOXEL_REALLOC(executor->callStack, neededSize); VOXEL_TAG_REALLOC("voxel_Executor->callStack", neededSize - sizeof(voxel_Count), neededSize);
     }
 
     executor->callStack[executor->callStackHead] = position;

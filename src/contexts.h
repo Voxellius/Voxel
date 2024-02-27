@@ -1,8 +1,8 @@
 voxel_Context* voxel_newContext() {
-    voxel_Context* context = VOXEL_MALLOC(sizeof(voxel_Context));
+    voxel_Context* context = VOXEL_MALLOC(sizeof(voxel_Context)); VOXEL_TAG_MALLOC(voxel_Context);
 
     context->code = VOXEL_NULL;
-    context->builtins = VOXEL_MALLOC(0);
+    context->builtins = VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
     context->firstTrackedThing = VOXEL_NULL;
     context->lastTrackedThing = VOXEL_NULL;
@@ -48,7 +48,7 @@ VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, vo
 
     context->builtinCount++;
 
-    context->builtins = VOXEL_REALLOC(context->builtins, context->builtinCount);
+    context->builtins = VOXEL_REALLOC(context->builtins, context->builtinCount); VOXEL_TAG_REALLOC("voxel_Context->builtins", context->builtinCount - 1, context->builtinCount);
     context->builtins[context->builtinCount - 1] = builtin;
 
     voxel_Thing* function = voxel_newFunctionBuiltin(context, context->builtinCount - 1);

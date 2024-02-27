@@ -1,10 +1,10 @@
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data) {
-    voxel_Buffer* buffer = VOXEL_MALLOC(sizeof(voxel_Buffer));
+    voxel_Buffer* buffer = VOXEL_MALLOC(sizeof(voxel_Buffer)); VOXEL_TAG_MALLOC(voxel_Buffer);
 
     buffer->size = size;
-    buffer->value = VOXEL_MALLOC(size);
+    buffer->value = VOXEL_MALLOC(size); VOXEL_TAG_MALLOC_SIZE("voxel_Buffer->value", size);
 
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_BUFFER);
 
     thing->type = VOXEL_TYPE_BUFFER;
     thing->value = buffer;
@@ -21,11 +21,13 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byt
 }
 
 VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing) {
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_BUFFER);
+
     voxel_Buffer* buffer = thing->value;
 
-    VOXEL_FREE(buffer->value);
-    VOXEL_FREE(buffer);
-    VOXEL_FREE(thing);
+    VOXEL_FREE(buffer->value); VOXEL_TAG_FREE_SIZE("voxel_Buffer->value", buffer->size);
+    VOXEL_FREE(buffer); VOXEL_TAG_FREE(voxel_Buffer);
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;
 }

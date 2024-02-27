@@ -1,12 +1,14 @@
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_BYTE);
 
     thing->type = VOXEL_TYPE_BYTE;
     thing->value = (void*)(voxel_IntPtr)value;
 }
 
 VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing) {
-    VOXEL_FREE(thing);
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_BYTE);
+
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;
 }

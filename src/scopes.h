@@ -1,5 +1,5 @@
 voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope) {
-    voxel_Scope* scope = VOXEL_MALLOC(sizeof(voxel_Scope));
+    voxel_Scope* scope = VOXEL_MALLOC(sizeof(voxel_Scope)); VOXEL_TAG_MALLOC(voxel_Scope);
 
     scope->context = context;
     scope->parentScope = parentScope;
@@ -11,7 +11,7 @@ voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope) {
 VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope) {
     VOXEL_MUST(voxel_unreferenceThing(scope->context, scope->things));
 
-    VOXEL_FREE(scope);
+    VOXEL_FREE(scope); VOXEL_TAG_FREE(voxel_Scope);
 }
 
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key) {

@@ -1,5 +1,5 @@
 voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builtinFunctionIndex) {
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_FUNCTION);
 
     builtinFunctionIndex++;
     builtinFunctionIndex *= -1;
@@ -11,7 +11,7 @@ voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builti
 }
 
 voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Position positionReference) {
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_FUNCTION);
 
     thing->type = VOXEL_TYPE_FUNCTION;
     thing->value = (void*)(voxel_IntPtr)positionReference;
@@ -20,7 +20,9 @@ voxel_Thing* voxel_newFunctionPosRef(voxel_Context* context, voxel_Position posi
 }
 
 VOXEL_ERRORABLE voxel_destroyFunction(voxel_Thing* thing) {
-    VOXEL_FREE(thing);
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_FUNCTION);
+
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;
 }
@@ -30,7 +32,7 @@ voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b) {
 }
 
 voxel_Thing* voxel_copyFunction(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Thing* newThing = voxel_newThing(context);
+    voxel_Thing* newThing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_FUNCTION);
 
     newThing->type = VOXEL_TYPE_FUNCTION;
     newThing->value = thing->value;

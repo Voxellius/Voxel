@@ -1,5 +1,5 @@
 voxel_Thing* voxel_newThing(voxel_Context* context) {
-    voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing));
+    voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing)); VOXEL_TAG_MALLOC(voxel_Thing);
 
     thing->type = VOXEL_TYPE_NULL;
     thing->value = VOXEL_NULL;
@@ -40,7 +40,9 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
 VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thing) {
     if (thing->referenceCount > 0) {
         thing->referenceCount--;
+    }
 
+    if (thing->referenceCount > 0) {
         return VOXEL_OK;
     }
 
@@ -162,7 +164,14 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
 VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_BYTE: return voxel_byteToVxon(context, thing);
-        case VOXEL_TYPE_FUNCTION: VOXEL_THROW(VOXEL_ERROR_CANNOT_CONVERT_THING);
+
+        case VOXEL_TYPE_FUNCTION:
+            #ifdef VOXEL_DEBUG_EXECUTORS
+                break;
+            #else
+                VOXEL_THROW(VOXEL_ERROR_CANNOT_CONVERT_THING);
+            #endif
+
         case VOXEL_TYPE_BUFFER: return voxel_bufferToVxon(context, thing);
         case VOXEL_TYPE_STRING: return voxel_stringToVxon(context, thing);
         case VOXEL_TYPE_OBJECT: return voxel_objectToVxon(context, thing);

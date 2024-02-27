@@ -1,11 +1,11 @@
 voxel_Thing* voxel_newList(voxel_Context* context) {
-    voxel_List* list = VOXEL_MALLOC(sizeof(voxel_List));
+    voxel_List* list = VOXEL_MALLOC(sizeof(voxel_List)); VOXEL_TAG_MALLOC(voxel_List);
 
     list->length = 0;
     list->firstItem = VOXEL_NULL;
     list->lastItem = VOXEL_NULL;
 
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_LIST);
 
     thing->type = VOXEL_TYPE_LIST;
     thing->value = list;
@@ -14,6 +14,8 @@ voxel_Thing* voxel_newList(voxel_Context* context) {
 }
 
 VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing) {
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_LIST);
+
     voxel_List* list = thing->value;
     voxel_ListItem* currentItem = list->firstItem;
     voxel_ListItem* nextItem;
@@ -23,13 +25,13 @@ VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing) {
 
         nextItem = currentItem->nextItem;
 
-        VOXEL_FREE(currentItem);
+        VOXEL_FREE(currentItem); VOXEL_TAG_FREE(voxel_ListItem);
 
         currentItem = nextItem;
     }
 
-    VOXEL_FREE(list);
-    VOXEL_FREE(thing);
+    VOXEL_FREE(list); VOXEL_TAG_FREE(voxel_List);
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;
 }
@@ -200,7 +202,7 @@ VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing,
     list->length--;
 
     VOXEL_MUST(voxel_unreferenceThing(context, listItem->value));
-    VOXEL_FREE(listItem);
+    VOXEL_FREE(listItem); VOXEL_TAG_FREE(voxel_ListItem);
 
     return VOXEL_OK;
 }
@@ -209,7 +211,7 @@ VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, v
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_List* list = thing->value;
-    voxel_ListItem* listItem = VOXEL_MALLOC(sizeof(voxel_ListItem));
+    voxel_ListItem* listItem = VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
     value->referenceCount++;
@@ -218,7 +220,9 @@ VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, v
 
     if (list->lastItem) {
         list->lastItem->nextItem = listItem;
-    } else {
+    }
+
+    if (!list->firstItem) {
         list->firstItem = listItem;
     }
 
@@ -232,12 +236,15 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     
     voxel_List* list = thing->value;
+    voxel_ListItem* listItem = list->lastItem;
 
-    if (!list->lastItem) {
+    if (!listItem) {
         return VOXEL_OK_RET(VOXEL_NULL);
     }
 
-    voxel_ListItem* listItem = list->lastItem;
+    if (listItem->previousItem) {
+        listItem->previousItem->nextItem = VOXEL_NULL;
+    }
 
     list->lastItem = listItem->previousItem;
 
@@ -250,7 +257,7 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing) {
     list->length--;
 
     VOXEL_MUST(voxel_unreferenceThing(context, value));
-    VOXEL_FREE(listItem);
+    VOXEL_FREE(listItem); VOXEL_TAG_FREE(voxel_ListItem);
 
     return VOXEL_OK_RET(value);
 }
@@ -269,7 +276,7 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
     voxel_ListItem* currentListItem = listItemResult.value;
-    voxel_ListItem* listItem = VOXEL_MALLOC(sizeof(voxel_ListItem));
+    voxel_ListItem* listItem = VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
     value->referenceCount++;

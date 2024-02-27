@@ -1,5 +1,5 @@
 voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
-    voxel_Thing* thing = voxel_newThing(context);
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_BOOLEAN);
 
     thing->type = VOXEL_TYPE_BOOLEAN;
     thing->value = value ? (void*)0x00 : (void*)0x01;
@@ -8,7 +8,9 @@ voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
 }
 
 VOXEL_ERRORABLE voxel_destroyBoolean(voxel_Thing* thing) {
-    VOXEL_FREE(thing);
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_BOOLEAN);
+
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;
 }
