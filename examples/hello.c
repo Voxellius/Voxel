@@ -8,8 +8,7 @@
 //     VOXEL_TOKEN_TYPE_STRING, 'a', '\0',
 //     VOXEL_TOKEN_TYPE_SET,
 //     // log("Hello, world!");
-//     // VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0',
-//     VOXEL_TOKEN_TYPE_NUMBER_INT_8, 12,
+//     VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0',
 //     VOXEL_TOKEN_TYPE_STRING, '.', 'l', 'o', 'g', '\0',
 //     VOXEL_TOKEN_TYPE_GET,
 //     VOXEL_TOKEN_TYPE_CALL,
