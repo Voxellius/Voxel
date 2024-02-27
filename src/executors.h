@@ -89,6 +89,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             voxel_Thing* scopeValue = scopeItem ? scopeItem->value : voxel_newNull(executor->context);
 
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, scopeValue));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, getKey.value));
 
             break;
 
@@ -146,6 +147,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, token->data));
             break;
     }
+
+    VOXEL_FREE(token);
 
     return VOXEL_OK;
 }

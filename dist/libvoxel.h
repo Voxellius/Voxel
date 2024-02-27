@@ -514,6 +514,8 @@ VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context) {
         currentExecutor = currentExecutor->nextExecutor;
     }
 
+    voxel_removeUnusedThings(context);
+
     return VOXEL_OK;
 }
 
@@ -573,15 +575,15 @@ voxel_Thing* voxel_newThing(voxel_Context* context) {
 
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_NULL: voxel_destroyNull(thing);
-        case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing);
-        case VOXEL_TYPE_BYTE: voxel_destroyByte(thing);
-        case VOXEL_TYPE_FUNCTION: voxel_destroyFunction(thing);
-        case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing);
-        case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing);
-        case VOXEL_TYPE_STRING: voxel_destroyString(thing);
-        case VOXEL_TYPE_OBJECT: voxel_destroyObject(context, thing);
-        case VOXEL_TYPE_LIST: voxel_destroyList(context, thing);
+        case VOXEL_TYPE_NULL: return voxel_destroyNull(thing);
+        case VOXEL_TYPE_BOOLEAN: return voxel_destroyBoolean(thing);
+        case VOXEL_TYPE_BYTE: return voxel_destroyByte(thing);
+        case VOXEL_TYPE_FUNCTION: return voxel_destroyFunction(thing);
+        case VOXEL_TYPE_NUMBER: return voxel_destroyNumber(thing);
+        case VOXEL_TYPE_BUFFER: return voxel_destroyBuffer(thing);
+        case VOXEL_TYPE_STRING: return voxel_destroyString(thing);
+        case VOXEL_TYPE_OBJECT: return voxel_destroyObject(context, thing);
+        case VOXEL_TYPE_LIST: return voxel_destroyList(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -611,6 +613,8 @@ VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thin
     }
 
     VOXEL_MUST(voxel_destroyThing(context, thing));
+
+    return VOXEL_OK;
 }
 
 VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context) {
@@ -2160,7 +2164,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_OR:
             break;
 
-        case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
+        case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE: // TODO: For absolute, maybe pop number and use that instead?
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
         case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
             VOXEL_MUST(voxel_safeToRead(context, position, 4));
@@ -2287,6 +2291,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             voxel_Thing* scopeValue = scopeItem ? scopeItem->value : voxel_newNull(executor->context);
 
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, scopeValue));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, getKey.value));
 
             break;
 
@@ -2344,6 +2349,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, token->data));
             break;
     }
+
+    VOXEL_FREE(token);
 
     return VOXEL_OK;
 }

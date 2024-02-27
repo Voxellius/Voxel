@@ -23,15 +23,15 @@ voxel_Thing* voxel_newThing(voxel_Context* context) {
 
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_NULL: voxel_destroyNull(thing);
-        case VOXEL_TYPE_BOOLEAN: voxel_destroyBoolean(thing);
-        case VOXEL_TYPE_BYTE: voxel_destroyByte(thing);
-        case VOXEL_TYPE_FUNCTION: voxel_destroyFunction(thing);
-        case VOXEL_TYPE_NUMBER: voxel_destroyNumber(thing);
-        case VOXEL_TYPE_BUFFER: voxel_destroyBuffer(thing);
-        case VOXEL_TYPE_STRING: voxel_destroyString(thing);
-        case VOXEL_TYPE_OBJECT: voxel_destroyObject(context, thing);
-        case VOXEL_TYPE_LIST: voxel_destroyList(context, thing);
+        case VOXEL_TYPE_NULL: return voxel_destroyNull(thing);
+        case VOXEL_TYPE_BOOLEAN: return voxel_destroyBoolean(thing);
+        case VOXEL_TYPE_BYTE: return voxel_destroyByte(thing);
+        case VOXEL_TYPE_FUNCTION: return voxel_destroyFunction(thing);
+        case VOXEL_TYPE_NUMBER: return voxel_destroyNumber(thing);
+        case VOXEL_TYPE_BUFFER: return voxel_destroyBuffer(thing);
+        case VOXEL_TYPE_STRING: return voxel_destroyString(thing);
+        case VOXEL_TYPE_OBJECT: return voxel_destroyObject(context, thing);
+        case VOXEL_TYPE_LIST: return voxel_destroyList(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -61,6 +61,8 @@ VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thin
     }
 
     VOXEL_MUST(voxel_destroyThing(context, thing));
+
+    return VOXEL_OK;
 }
 
 VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context) {
