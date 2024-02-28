@@ -181,6 +181,20 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
     return voxel_thingToString(context, thing);
 }
 
+voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
+    switch (thing->type) {
+        case VOXEL_TYPE_NULL: return voxel_nullIsTruthy(thing);
+        case VOXEL_TYPE_BOOLEAN: return voxel_booleanIsTruthy(thing);
+        case VOXEL_TYPE_BYTE: return voxel_byteIsTruthy(thing);
+        case VOXEL_TYPE_FUNCTION: return voxel_functionIsTruthy(thing);
+        case VOXEL_TYPE_NUMBER: return voxel_numberIsTruthy(thing);
+        case VOXEL_TYPE_BUFFER: return voxel_bufferIsTruthy(thing);
+        case VOXEL_TYPE_STRING: return voxel_stringIsTruthy(thing);
+        case VOXEL_TYPE_OBJECT: return voxel_objectIsTruthy(thing);
+        case VOXEL_TYPE_LIST: return voxel_listIsTruthy(thing);
+    }
+}
+
 VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_ERRORABLE string = voxel_thingToString(context, thing); VOXEL_MUST(string);
 

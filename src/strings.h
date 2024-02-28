@@ -83,6 +83,12 @@ VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
     return VOXEL_OK_RET(vxonString);
 }
 
+voxel_Bool voxel_stringIsTruthy(voxel_Thing* thing) {
+    voxel_String* string = thing->value;
+
+    return string->size != 0;
+}
+
 voxel_Count voxel_getStringSize(voxel_Thing* thing) {
     voxel_String* string = thing->value;
 

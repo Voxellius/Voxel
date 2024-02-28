@@ -227,3 +227,15 @@ VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* th
 
     return VOXEL_OK_RET(string);
 }
+
+voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing) {
+    voxel_Number* number = thing->value;
+
+    switch (number->type) {
+        case VOXEL_NUMBER_TYPE_INT:
+            return number->value.asInt != 0;
+
+        case VOXEL_NUMBER_TYPE_FLOAT:
+            return number->value.asFloat != 0.0;
+    }
+}

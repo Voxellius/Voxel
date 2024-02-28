@@ -134,6 +134,12 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
     return VOXEL_OK_RET(string);
 }
 
+voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing) {
+    voxel_Object* object = thing->value;
+
+    return object->length != 0;
+}
+
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
     voxel_Object* object = thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;

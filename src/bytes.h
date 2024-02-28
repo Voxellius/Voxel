@@ -21,10 +21,6 @@ voxel_Thing* voxel_copyByte(voxel_Context* context, voxel_Thing* thing) {
     return voxel_newByte(context, (voxel_IntPtr)thing->value);
 }
 
-voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing) {
-    return voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
-}
-
 VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing) {
     voxel_Byte bytes[1] = {(voxel_IntPtr)thing->value};
 
@@ -43,4 +39,12 @@ VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_MUST(voxel_unreferenceThing(context, hexString.value));
 
     return VOXEL_OK_RET(string);
+}
+
+voxel_Bool voxel_byteIsTruthy(voxel_Thing* thing) {
+    return thing->value != 0x00;
+}
+
+voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing) {
+    return voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
 }

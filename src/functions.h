@@ -56,3 +56,7 @@ voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* th
 
     return VOXEL_FUNCTION_TYPE_POS_REF;
 }
+
+voxel_Bool voxel_functionIsTruthy(voxel_Thing* thing) {
+    return VOXEL_TRUE;
+}

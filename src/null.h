@@ -21,3 +21,7 @@ voxel_Thing* voxel_copyNull(voxel_Context* context, voxel_Thing* thing) {
 VOXEL_ERRORABLE voxel_nullToString(voxel_Context* context, voxel_Thing* thing) {
     return VOXEL_OK_RET(voxel_newStringTerminated(context, "null"));
 }
+
+voxel_Bool voxel_nullIsTruthy(voxel_Thing* thing) {
+    return VOXEL_FALSE;
+}

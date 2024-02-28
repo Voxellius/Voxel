@@ -130,6 +130,12 @@ VOXEL_ERRORABLE voxel_listToVxon(voxel_Context* context, voxel_Thing* thing) {
     return VOXEL_OK_RET(string);
 }
 
+voxel_Bool voxel_listIsTruthy(voxel_Thing* thing) {
+    voxel_List* list = thing->value;
+
+    return list->length != 0;
+}
+
 VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index) {
     voxel_List* list = thing->value;
     voxel_ListItem* currentItem = list->firstItem;
