@@ -108,7 +108,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_LIST: return voxel_compareLists(a, b);
     }
 
-    VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now");
+    VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now\n");
 
     return VOXEL_FALSE;
 }
@@ -140,7 +140,7 @@ voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_LIST: return voxel_copyList(context, thing);
     }
 
-    VOXEL_DEBUG_LOG("Thing comparison not implemented; returning null thing for now");
+    VOXEL_DEBUG_LOG("Thing comparison not implemented; returning null thing for now\n");
 
     return voxel_newNull(context);
 }
@@ -193,6 +193,10 @@ voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
         case VOXEL_TYPE_OBJECT: return voxel_objectIsTruthy(thing);
         case VOXEL_TYPE_LIST: return voxel_listIsTruthy(thing);
     }
+
+    VOXEL_DEBUG_LOG("Thing truthiness not implemented; returning null thing for now\n");
+
+    return VOXEL_FALSE;
 }
 
 VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing) {
