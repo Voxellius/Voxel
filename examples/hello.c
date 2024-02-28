@@ -4,9 +4,8 @@
 
 // char* code = (char[]) {
 //     // while (true) {
-//     VOXEL_TOKEN_TYPE_POS_REF_FORWARD, 0x00, 0x00, 0x00, 0x04,
 //     VOXEL_TOKEN_TYPE_STRING, 'a', '\0',
-//     VOXEL_TOKEN_TYPE_SET,
+//     VOXEL_TOKEN_TYPE_POS_REF_HERE,
 //     // log("Hello, world!");
 //     VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0',
 //     VOXEL_TOKEN_TYPE_STRING, '.', 'l', 'o', 'g', '\0',
