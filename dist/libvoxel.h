@@ -288,17 +288,20 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_NUMBER_FLOAT = '%',
     VOXEL_TOKEN_TYPE_BUFFER = 'B',
     VOXEL_TOKEN_TYPE_BUFFER_EMPTY = 'E',
-    VOXEL_TOKEN_TYPE_STRING = '$',
+    VOXEL_TOKEN_TYPE_STRING = '"',
     VOXEL_TOKEN_TYPE_CALL = '!',
     VOXEL_TOKEN_TYPE_RETURN = '^',
     VOXEL_TOKEN_TYPE_GET = '?',
     VOXEL_TOKEN_TYPE_SET = ':',
     VOXEL_TOKEN_TYPE_POS_REF_HERE = '@',
     VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE = '#',
-    VOXEL_TOKEN_TYPE_POS_REF_BACKWARD = '<',
-    VOXEL_TOKEN_TYPE_POS_REF_FORWARD = '>',
+    VOXEL_TOKEN_TYPE_POS_REF_BACKWARD = '[',
+    VOXEL_TOKEN_TYPE_POS_REF_FORWARD = ']',
     VOXEL_TOKEN_TYPE_JUMP = 'J',
-    VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY = '=',
+    VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY = 'I',
+    VOXEL_TOKEN_TYPE_EQUAL = '=',
+    VOXEL_TOKEN_TYPE_LESS_THAN = '<',
+    VOXEL_TOKEN_TYPE_GREATER_THAN = '>',
     VOXEL_TOKEN_TYPE_NOT = '~',
     VOXEL_TOKEN_TYPE_AND = '&',
     VOXEL_TOKEN_TYPE_OR = '|'
@@ -2303,13 +2306,16 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_JUMP:
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
+        case VOXEL_TOKEN_TYPE_EQUAL:
+        case VOXEL_TOKEN_TYPE_LESS_THAN:
+        case VOXEL_TOKEN_TYPE_GREATER_THAN:
         case VOXEL_TOKEN_TYPE_NOT:
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
             VOXEL_DEBUG_LOG("[Non-thing token]\n");
             break;
 
-        case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE: // TODO: For absolute, maybe pop number and use that instead?
+        case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
         case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
             VOXEL_MUST(voxel_safeToRead(context, position, 4));
@@ -2454,7 +2460,6 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(setValue, VOXEL_ERROR_MISSING_ARG);
 
             VOXEL_MUST(voxel_setScopeItem(executor->scope, setKey.value, setValue));
-
             VOXEL_MUST(voxel_unreferenceThing(executor->context, setKey.value));
 
             break;
@@ -2463,6 +2468,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
         case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
+            VOXEL_ERRORABLE posRefKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(posRefKey);
+
             voxel_Position referencedPosition = *position;
 
             if (token->type == VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE) {
@@ -2475,7 +2482,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             voxel_Thing* function = voxel_newFunctionPosRef(executor->context, referencedPosition);
 
-            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, function));
+            VOXEL_MUST(voxel_setScopeItem(executor->scope, posRefKey.value, function));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, posRefKey.value));
 
             break;
 
@@ -2497,6 +2505,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_NOT:
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
+        case VOXEL_TOKEN_TYPE_EQUAL:
+        case VOXEL_TOKEN_TYPE_LESS_THAN:
+        case VOXEL_TOKEN_TYPE_GREATER_THAN:
             VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
 
         default:

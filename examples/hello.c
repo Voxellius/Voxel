@@ -30,9 +30,8 @@ char* code = (char[]) {
     VOXEL_TOKEN_TYPE_STRING, 'x', '\0',
     VOXEL_TOKEN_TYPE_SET,
     // while (true) {
-    VOXEL_TOKEN_TYPE_POS_REF_FORWARD, 0x00, 0x00, 0x00, 0x04,
     VOXEL_TOKEN_TYPE_STRING, 'a', '\0',
-    VOXEL_TOKEN_TYPE_SET,
+    VOXEL_TOKEN_TYPE_POS_REF_HERE,
     // x = x + 1;
     VOXEL_TOKEN_TYPE_NUMBER_INT_8, 0x01,
     VOXEL_TOKEN_TYPE_STRING, 'x', '\0',

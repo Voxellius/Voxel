@@ -105,7 +105,6 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(setValue, VOXEL_ERROR_MISSING_ARG);
 
             VOXEL_MUST(voxel_setScopeItem(executor->scope, setKey.value, setValue));
-
             VOXEL_MUST(voxel_unreferenceThing(executor->context, setKey.value));
 
             break;
@@ -114,6 +113,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
         case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
+            VOXEL_ERRORABLE posRefKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(posRefKey);
+
             voxel_Position referencedPosition = *position;
 
             if (token->type == VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE) {
@@ -126,7 +127,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             voxel_Thing* function = voxel_newFunctionPosRef(executor->context, referencedPosition);
 
-            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, function));
+            VOXEL_MUST(voxel_setScopeItem(executor->scope, posRefKey.value, function));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, posRefKey.value));
 
             break;
 
@@ -148,6 +150,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_NOT:
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
+        case VOXEL_TOKEN_TYPE_EQUAL:
+        case VOXEL_TOKEN_TYPE_LESS_THAN:
+        case VOXEL_TOKEN_TYPE_GREATER_THAN:
             VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
 
         default:

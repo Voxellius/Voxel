@@ -154,13 +154,16 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_JUMP:
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
+        case VOXEL_TOKEN_TYPE_EQUAL:
+        case VOXEL_TOKEN_TYPE_LESS_THAN:
+        case VOXEL_TOKEN_TYPE_GREATER_THAN:
         case VOXEL_TOKEN_TYPE_NOT:
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
             VOXEL_DEBUG_LOG("[Non-thing token]\n");
             break;
 
-        case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE: // TODO: For absolute, maybe pop number and use that instead?
+        case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
         case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
             VOXEL_MUST(voxel_safeToRead(context, position, 4));
