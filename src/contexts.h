@@ -8,7 +8,7 @@ voxel_Context* voxel_newContext() {
     context->lastTrackedThing = VOXEL_NULL;
     context->firstExecutor = VOXEL_NULL;
     context->lastExecutor = VOXEL_NULL;
-    context->rootScope = voxel_newScope(context, VOXEL_NULL);
+    context->globalScope = voxel_newScope(context, VOXEL_NULL);
 
     voxel_newExecutor(context);
 
@@ -53,7 +53,7 @@ VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, vo
 
     voxel_Thing* function = voxel_newFunctionBuiltin(context, context->builtinCount - 1);
 
-    VOXEL_MUST(voxel_setScopeItem(context->rootScope, key, function));
+    VOXEL_MUST(voxel_setScopeItem(context->globalScope, key, function));
 
     return VOXEL_OK;
 }

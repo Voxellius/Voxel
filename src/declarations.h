@@ -14,7 +14,7 @@ typedef struct voxel_Context {
     voxel_Count codeLength;
     voxel_Builtin* builtins;
     voxel_Count builtinCount;
-    struct voxel_Scope* rootScope;
+    struct voxel_Scope* globalScope;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
     struct voxel_Executor* firstExecutor;

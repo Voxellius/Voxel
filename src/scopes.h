@@ -22,22 +22,14 @@ voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key) {
     }
 
     if (scope->parentScope) {
-        return voxel_getScopeItem(scope->parentScope, key);
+        return voxel_getScopeItem(scope->context->globalScope, key);
     }
 
     return VOXEL_NULL;
 }
 
 VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value) {
-    voxel_ObjectItem* scopeItem = VOXEL_NULL;
-
-    if (scope->parentScope) {
-        scopeItem = voxel_getScopeItem(scope->parentScope, key);
-    }
-
-    if (!scopeItem) {
-        scopeItem = voxel_getObjectItem(scope->things, key);
-    }
+    voxel_ObjectItem* scopeItem = voxel_getScopeItem(scope, key);
 
     if (!scopeItem) {
         voxel_setObjectItem(scope->context, scope->things, key, value);

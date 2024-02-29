@@ -197,7 +197,7 @@ typedef struct voxel_Context {
     voxel_Count codeLength;
     voxel_Builtin* builtins;
     voxel_Count builtinCount;
-    struct voxel_Scope* rootScope;
+    struct voxel_Scope* globalScope;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
     struct voxel_Executor* firstExecutor;
@@ -543,7 +543,7 @@ voxel_Context* voxel_newContext() {
     context->lastTrackedThing = VOXEL_NULL;
     context->firstExecutor = VOXEL_NULL;
     context->lastExecutor = VOXEL_NULL;
-    context->rootScope = voxel_newScope(context, VOXEL_NULL);
+    context->globalScope = voxel_newScope(context, VOXEL_NULL);
 
     voxel_newExecutor(context);
 
@@ -588,7 +588,7 @@ VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, vo
 
     voxel_Thing* function = voxel_newFunctionBuiltin(context, context->builtinCount - 1);
 
-    VOXEL_MUST(voxel_setScopeItem(context->rootScope, key, function));
+    VOXEL_MUST(voxel_setScopeItem(context->globalScope, key, function));
 
     return VOXEL_OK;
 }
@@ -2357,7 +2357,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     voxel_Executor* executor = VOXEL_MALLOC(sizeof(voxel_Executor)); VOXEL_TAG_MALLOC(voxel_Executor);
 
     executor->context = context;
-    executor->scope = voxel_newScope(context, context->rootScope);
+    executor->scope = voxel_newScope(context, context->globalScope);
     executor->isRunning = VOXEL_TRUE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count);
     executor->callStack = VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count));
@@ -2587,22 +2587,14 @@ voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key) {
     }
 
     if (scope->parentScope) {
-        return voxel_getScopeItem(scope->parentScope, key);
+        return voxel_getScopeItem(scope->context->globalScope, key);
     }
 
     return VOXEL_NULL;
 }
 
 VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value) {
-    voxel_ObjectItem* scopeItem = VOXEL_NULL;
-
-    if (scope->parentScope) {
-        scopeItem = voxel_getScopeItem(scope->parentScope, key);
-    }
-
-    if (!scopeItem) {
-        scopeItem = voxel_getObjectItem(scope->things, key);
-    }
+    voxel_ObjectItem* scopeItem = voxel_getScopeItem(scope, key);
 
     if (!scopeItem) {
         voxel_setObjectItem(scope->context, scope->things, key, value);
