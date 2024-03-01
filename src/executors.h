@@ -114,8 +114,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
         case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
             VOXEL_ERRORABLE posRefKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(posRefKey);
-
             voxel_Position referencedPosition = *position;
+
+            VOXEL_ASSERT(posRefKey.value, VOXEL_ERROR_INVALID_ARGUMENT);
 
             if (token->type == VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE) {
                 referencedPosition = (voxel_IntPtr)token->data;
@@ -133,12 +134,30 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
 
         case VOXEL_TOKEN_TYPE_JUMP:
+        case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
             VOXEL_ERRORABLE jumpFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(jumpFunctionResult);
             voxel_Thing* jumpFunction = jumpFunctionResult.value;
 
-            VOXEL_ASSERT(jumpFunction, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
+            VOXEL_ASSERT(jumpFunction, VOXEL_ERROR_INVALID_ARGUMENT);
             VOXEL_ASSERT(jumpFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
             VOXEL_ASSERT(voxel_getFunctionType(executor->context, jumpFunction) == VOXEL_FUNCTION_TYPE_POS_REF, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
+
+            if (token->type == VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY) {
+                VOXEL_ERRORABLE jumpConditionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(jumpConditionResult);
+                voxel_Thing* jumpCondition = jumpConditionResult.value;
+
+                if (jumpCondition) {
+                    voxel_Bool truthiness = voxel_thingIsTruthy(jumpCondition);
+
+                    VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpCondition));
+
+                    if (!voxel_thingIsTruthy(jumpCondition)) {
+                        VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpFunction));
+
+                        break;
+                    }
+                }
+            }
 
             *position = (voxel_IntPtr)jumpFunction->value;
 
@@ -146,11 +165,47 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             break;
 
-        case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
         case VOXEL_TOKEN_TYPE_NOT:
+            VOXEL_ERRORABLE notValueResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(notValueResult);
+
+            VOXEL_ASSERT(notValueResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
+
+            VOXEL_ERRORABLE notResult = voxel_notOperation(executor->context, notValueResult.value); VOXEL_MUST(notResult);
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, notResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, notValueResult.value));
+
+            break;
+
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
         case VOXEL_TOKEN_TYPE_EQUAL:
+            VOXEL_ERRORABLE binaryBResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryBResult);
+            VOXEL_ERRORABLE binaryAResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryAResult);
+
+            VOXEL_ASSERT(binaryAResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
+            VOXEL_ASSERT(binaryBResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
+
+            VOXEL_ERRORABLE binaryResult;
+
+            if (token->type == VOXEL_TOKEN_TYPE_AND) {
+                binaryResult = voxel_andOperation(executor->context, binaryAResult.value, binaryBResult.value);
+            } else if (token->type == VOXEL_TOKEN_TYPE_OR) {
+                binaryResult = voxel_orOperation(executor->context, binaryAResult.value, binaryBResult.value);
+            } else if (token->type == VOXEL_TOKEN_TYPE_EQUAL) {
+                binaryResult = voxel_equalOperation(executor->context, binaryAResult.value, binaryBResult.value);
+            } else {
+                VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
+            }
+
+            VOXEL_MUST(binaryResult);
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, binaryResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryAResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryBResult.value));
+
+            break;
+
         case VOXEL_TOKEN_TYPE_LESS_THAN:
         case VOXEL_TOKEN_TYPE_GREATER_THAN:
             VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);

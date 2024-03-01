@@ -353,6 +353,7 @@ void voxel_lockThing(voxel_Thing* thing);
 voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_thingToByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing);
 
@@ -368,15 +369,16 @@ VOXEL_ERRORABLE voxel_destroyBoolean(voxel_Thing* thing);
 voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyBoolean(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_booleanToNumber(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_booleanIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value);
 VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing);
 voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyByte(voxel_Context* context, voxel_Thing* thing);
-voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_byteIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builtinFunctionIndex);
@@ -397,6 +399,7 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* thing, voxel_Count base, voxel_Count minSize);
+VOXEL_ERRORABLE voxel_numberToByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data);
@@ -455,6 +458,11 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value);
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
+
+VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
+VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
+VOXEL_ERRORABLE voxel_equalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead);
 VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position);
@@ -778,6 +786,32 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
     return voxel_thingToString(context, thing);
 }
 
+VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) {
+    switch (thing->type) {
+        case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
+        case VOXEL_TYPE_BOOLEAN: return voxel_booleanToNumber(context, thing);
+        case VOXEL_TYPE_BYTE: return voxel_byteToNumber(context, thing);
+        case VOXEL_TYPE_FUNCTION: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
+        case VOXEL_TYPE_NUMBER: return VOXEL_OK_RET(voxel_copyNumber(context, thing));
+        case VOXEL_TYPE_BUFFER: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getBufferSize(thing)));
+        // TODO: Implement string to number conversion
+        case VOXEL_TYPE_OBJECT: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getObjectLength(thing)));
+        case VOXEL_TYPE_LIST: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getListLength(thing)));
+    }
+
+    VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
+}
+
+VOXEL_ERRORABLE voxel_thingToByte(voxel_Context* context, voxel_Thing* thing) {
+    if (thing->type == VOXEL_TYPE_BYTE) {
+        return VOXEL_OK_RET(voxel_copyByte(context, thing));
+    }
+
+    VOXEL_ERRORABLE number = voxel_thingToNumber(context, thing); VOXEL_MUST(number);
+
+    return voxel_numberToByte(context, number.value);
+}
+
 voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_NULL: return voxel_nullIsTruthy(thing);
@@ -865,6 +899,10 @@ VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing
     return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? "true" : "false"));
 }
 
+VOXEL_ERRORABLE voxel_booleanToNumber(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newNumberInt(context, thing->value ? 1 : 0));
+}
+
 voxel_Bool voxel_booleanIsTruthy(voxel_Thing* thing) {
     return !!thing->value;
 }
@@ -914,12 +952,12 @@ VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing) {
     return VOXEL_OK_RET(string);
 }
 
-voxel_Bool voxel_byteIsTruthy(voxel_Thing* thing) {
-    return thing->value != 0x00;
+VOXEL_ERRORABLE voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newNumberInt(context, (voxel_IntPtr)thing->value));
 }
 
-voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing) {
-    return voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
+voxel_Bool voxel_byteIsTruthy(voxel_Thing* thing) {
+    return thing->value != 0x00;
 }
 
 // src/functions.h
@@ -1217,6 +1255,10 @@ VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* th
     voxel_reverseString(context, string);
 
     return VOXEL_OK_RET(string);
+}
+
+VOXEL_ERRORABLE voxel_numberToByte(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newByte(context, (voxel_Byte)voxel_getNumberInt(thing)));
 }
 
 voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing) {
@@ -2148,6 +2190,70 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
     return VOXEL_OK_RET(string);
 }
 
+// src/operations.h
+
+VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing) {
+    if (thing->type == VOXEL_TYPE_BYTE) {
+        return VOXEL_OK_RET(voxel_newByte(context, ~(voxel_Byte)(voxel_IntPtr)thing->value));
+    }
+
+    if (thing->type == VOXEL_TYPE_NUMBER) {
+        return VOXEL_OK_RET(voxel_newNumberInt(context, ~voxel_getNumberInt(thing)));
+    }
+
+    return VOXEL_OK_RET(voxel_newBoolean(context, !voxel_thingIsTruthy(thing)));
+}
+
+VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
+    if (a->type == VOXEL_TYPE_BYTE) {
+        VOXEL_ERRORABLE bByteResult = voxel_thingToByte(context, b); VOXEL_MUST(bByteResult);
+        voxel_Thing* bByte = bByteResult.value;
+        voxel_Thing* result = voxel_newByte(context, (voxel_IntPtr)a->value & (voxel_IntPtr)bByte->value);
+
+        VOXEL_MUST(voxel_unreferenceThing(context, bByte));
+
+        return VOXEL_OK_RET(result);
+    }
+
+    if (a->type == VOXEL_TYPE_NUMBER) {
+        VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
+        voxel_Thing* bNumber = bNumberResult.value;
+
+        VOXEL_MUST(voxel_unreferenceThing(context, bNumber));
+
+        return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getNumberInt(a) & voxel_getNumberInt(bNumber)));
+    }
+
+    return VOXEL_OK_RET(voxel_newBoolean(context, voxel_thingIsTruthy(a) && voxel_thingIsTruthy(b)));
+}
+
+VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
+    if (a->type == VOXEL_TYPE_BYTE) {
+        VOXEL_ERRORABLE bByteResult = voxel_thingToByte(context, b); VOXEL_MUST(bByteResult);
+        voxel_Thing* bByte = bByteResult.value;
+        voxel_Thing* result = voxel_newByte(context, (voxel_IntPtr)a->value | (voxel_IntPtr)bByte->value);
+
+        VOXEL_MUST(voxel_unreferenceThing(context, bByte));
+
+        return VOXEL_OK_RET(result);
+    }
+
+    if (a->type == VOXEL_TYPE_NUMBER) {
+        VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
+        voxel_Thing* bNumber = bNumberResult.value;
+
+        VOXEL_MUST(voxel_unreferenceThing(context, bNumber));
+
+        return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getNumberInt(a) | voxel_getNumberInt(bNumber)));
+    }
+
+    return VOXEL_OK_RET(voxel_newBoolean(context, voxel_thingIsTruthy(a) || voxel_thingIsTruthy(b)));
+}
+
+VOXEL_ERRORABLE voxel_equalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
+    return VOXEL_OK_RET(voxel_newBoolean(context, voxel_compareThings(a, b)));
+}
+
 // src/parser.h
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead) {
@@ -2469,8 +2575,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
         case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
             VOXEL_ERRORABLE posRefKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(posRefKey);
-
             voxel_Position referencedPosition = *position;
+
+            VOXEL_ASSERT(posRefKey.value, VOXEL_ERROR_INVALID_ARGUMENT);
 
             if (token->type == VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE) {
                 referencedPosition = (voxel_IntPtr)token->data;
@@ -2488,12 +2595,30 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
 
         case VOXEL_TOKEN_TYPE_JUMP:
+        case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
             VOXEL_ERRORABLE jumpFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(jumpFunctionResult);
             voxel_Thing* jumpFunction = jumpFunctionResult.value;
 
-            VOXEL_ASSERT(jumpFunction, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
+            VOXEL_ASSERT(jumpFunction, VOXEL_ERROR_INVALID_ARGUMENT);
             VOXEL_ASSERT(jumpFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
             VOXEL_ASSERT(voxel_getFunctionType(executor->context, jumpFunction) == VOXEL_FUNCTION_TYPE_POS_REF, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
+
+            if (token->type == VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY) {
+                VOXEL_ERRORABLE jumpConditionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(jumpConditionResult);
+                voxel_Thing* jumpCondition = jumpConditionResult.value;
+
+                if (jumpCondition) {
+                    voxel_Bool truthiness = voxel_thingIsTruthy(jumpCondition);
+
+                    VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpCondition));
+
+                    if (!voxel_thingIsTruthy(jumpCondition)) {
+                        VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpFunction));
+
+                        break;
+                    }
+                }
+            }
 
             *position = (voxel_IntPtr)jumpFunction->value;
 
@@ -2501,11 +2626,47 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             break;
 
-        case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
         case VOXEL_TOKEN_TYPE_NOT:
+            VOXEL_ERRORABLE notValueResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(notValueResult);
+
+            VOXEL_ASSERT(notValueResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
+
+            VOXEL_ERRORABLE notResult = voxel_notOperation(executor->context, notValueResult.value); VOXEL_MUST(notResult);
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, notResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, notValueResult.value));
+
+            break;
+
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
         case VOXEL_TOKEN_TYPE_EQUAL:
+            VOXEL_ERRORABLE binaryBResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryBResult);
+            VOXEL_ERRORABLE binaryAResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryAResult);
+
+            VOXEL_ASSERT(binaryAResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
+            VOXEL_ASSERT(binaryBResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
+
+            VOXEL_ERRORABLE binaryResult;
+
+            if (token->type == VOXEL_TOKEN_TYPE_AND) {
+                binaryResult = voxel_andOperation(executor->context, binaryAResult.value, binaryBResult.value);
+            } else if (token->type == VOXEL_TOKEN_TYPE_OR) {
+                binaryResult = voxel_orOperation(executor->context, binaryAResult.value, binaryBResult.value);
+            } else if (token->type == VOXEL_TOKEN_TYPE_EQUAL) {
+                binaryResult = voxel_equalOperation(executor->context, binaryAResult.value, binaryBResult.value);
+            } else {
+                VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
+            }
+
+            VOXEL_MUST(binaryResult);
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, binaryResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryAResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryBResult.value));
+
+            break;
+
         case VOXEL_TOKEN_TYPE_LESS_THAN:
         case VOXEL_TOKEN_TYPE_GREATER_THAN:
             VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);

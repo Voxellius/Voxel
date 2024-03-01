@@ -170,6 +170,7 @@ void voxel_lockThing(voxel_Thing* thing);
 voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_thingToByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing);
 
@@ -185,15 +186,16 @@ VOXEL_ERRORABLE voxel_destroyBoolean(voxel_Thing* thing);
 voxel_Bool voxel_compareBooleans(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyBoolean(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_booleanToNumber(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_booleanIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value);
 VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing);
 voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyByte(voxel_Context* context, voxel_Thing* thing);
-voxel_Thing* voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_byteToNumber(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_byteIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newFunctionBuiltin(voxel_Context* context, voxel_Count builtinFunctionIndex);
@@ -214,6 +216,7 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* thing, voxel_Count base, voxel_Count minSize);
+VOXEL_ERRORABLE voxel_numberToByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data);
@@ -272,6 +275,11 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value);
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
+
+VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
+VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
+VOXEL_ERRORABLE voxel_equalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead);
 VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position);

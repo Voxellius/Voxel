@@ -228,6 +228,10 @@ VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* th
     return VOXEL_OK_RET(string);
 }
 
+VOXEL_ERRORABLE voxel_numberToByte(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newByte(context, (voxel_Byte)voxel_getNumberInt(thing)));
+}
+
 voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing) {
     voxel_Number* number = thing->value;
 

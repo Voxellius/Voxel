@@ -27,6 +27,10 @@ VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing
     return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? "true" : "false"));
 }
 
+VOXEL_ERRORABLE voxel_booleanToNumber(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newNumberInt(context, thing->value ? 1 : 0));
+}
+
 voxel_Bool voxel_booleanIsTruthy(voxel_Thing* thing) {
     return !!thing->value;
 }

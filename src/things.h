@@ -181,6 +181,32 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
     return voxel_thingToString(context, thing);
 }
 
+VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) {
+    switch (thing->type) {
+        case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
+        case VOXEL_TYPE_BOOLEAN: return voxel_booleanToNumber(context, thing);
+        case VOXEL_TYPE_BYTE: return voxel_byteToNumber(context, thing);
+        case VOXEL_TYPE_FUNCTION: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
+        case VOXEL_TYPE_NUMBER: return VOXEL_OK_RET(voxel_copyNumber(context, thing));
+        case VOXEL_TYPE_BUFFER: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getBufferSize(thing)));
+        // TODO: Implement string to number conversion
+        case VOXEL_TYPE_OBJECT: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getObjectLength(thing)));
+        case VOXEL_TYPE_LIST: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getListLength(thing)));
+    }
+
+    VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
+}
+
+VOXEL_ERRORABLE voxel_thingToByte(voxel_Context* context, voxel_Thing* thing) {
+    if (thing->type == VOXEL_TYPE_BYTE) {
+        return VOXEL_OK_RET(voxel_copyByte(context, thing));
+    }
+
+    VOXEL_ERRORABLE number = voxel_thingToNumber(context, thing); VOXEL_MUST(number);
+
+    return voxel_numberToByte(context, number.value);
+}
+
 voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
     switch (thing->type) {
         case VOXEL_TYPE_NULL: return voxel_nullIsTruthy(thing);
