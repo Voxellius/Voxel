@@ -13,7 +13,7 @@
 #define VOXEL_UINT_8 uint8_t
 #define VOXEL_UINT_16 uint16_t
 #define VOXEL_UINT_32 uint32_t
-#define VOXEL_FLOAT _Float32
+#define VOXEL_FLOAT float
 #define VOXEL_INTPTR intptr_t
 
 #define VOXEL_MAX_PRECISION 6

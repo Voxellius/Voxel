@@ -874,7 +874,7 @@ voxel_Thing* voxel_newBoolean(voxel_Context* context, voxel_Bool value) {
     voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_BOOLEAN);
 
     thing->type = VOXEL_TYPE_BOOLEAN;
-    thing->value = value ? (void*)0x00 : (void*)0x01;
+    thing->value = value ? (void*)0x01 : (void*)0x00;
 
     return thing;
 }
@@ -2612,7 +2612,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
                     VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpCondition));
 
-                    if (!voxel_thingIsTruthy(jumpCondition)) {
+                    if (!truthiness) {
                         VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpFunction));
 
                         break;

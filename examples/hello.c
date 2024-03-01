@@ -45,9 +45,14 @@ char* code = (char[]) {
     VOXEL_TOKEN_TYPE_GET,
     VOXEL_TOKEN_TYPE_CALL,
     // }
+    VOXEL_TOKEN_TYPE_NUMBER_INT_8, 100,
+    VOXEL_TOKEN_TYPE_STRING, 'x', '\0',
+    VOXEL_TOKEN_TYPE_GET,
+    VOXEL_TOKEN_TYPE_EQUAL,
+    VOXEL_TOKEN_TYPE_NOT,
     VOXEL_TOKEN_TYPE_STRING, 'a', '\0',
     VOXEL_TOKEN_TYPE_GET,
-    VOXEL_TOKEN_TYPE_JUMP,
+    VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY,
     0x00
 };
 
@@ -90,7 +95,7 @@ int main(int argc, char* argv[]) {
     voxel_defineBuiltin(context, ".add", &builtin_add);
 
     context->code = code;
-    context->codeLength = 73;
+    context->codeLength = 1024;
 
     voxel_Position currentPosition = 0;
 

@@ -151,7 +151,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
                     VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpCondition));
 
-                    if (!voxel_thingIsTruthy(jumpCondition)) {
+                    if (!truthiness) {
                         VOXEL_MUST(voxel_unreferenceThing(executor->context, jumpFunction));
 
                         break;
