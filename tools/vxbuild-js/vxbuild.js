@@ -1,6 +1,6 @@
 import {parseArgs} from "https://deno.land/std@0.218.2/cli/parse_args.ts";
 
-import * as parser from "./parser.js";
+import * as tokeniser from "./tokeniser.js";
 
 var flags = parseArgs(Deno.args, {
     string: ["input"],
@@ -12,4 +12,4 @@ flags["input"] ??= flags["_"].shift();
 
 var source = await Deno.readTextFile(flags["input"]);
 
-console.log(parser.tokenise(source));
+console.log(tokeniser.tokenise(source));
