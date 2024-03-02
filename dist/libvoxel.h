@@ -1476,8 +1476,6 @@ void voxel_logString(voxel_Thing* thing) {
     for (voxel_Count i = 0; i < string->size; i++) {
         VOXEL_LOG_BYTE(string->value[i]);
     }
-
-    VOXEL_LOG_BYTE('\n');
 }
 
 voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {

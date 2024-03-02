@@ -19,8 +19,8 @@
 // };
 
 char* code = (char[]) {
-    // log("Hello, world!");
-    VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0',
+    // log("Hello, world!\n");
+    VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\n', '\0',
     VOXEL_TOKEN_TYPE_STRING, '.', 'l', 'o', 'g', '\0',
     VOXEL_TOKEN_TYPE_GET,
     VOXEL_TOKEN_TYPE_CALL,
@@ -41,6 +41,11 @@ char* code = (char[]) {
     VOXEL_TOKEN_TYPE_STRING, 'x', '\0',
     VOXEL_TOKEN_TYPE_SET,
     // log(x);
+    VOXEL_TOKEN_TYPE_STRING, '.', 'l', 'o', 'g', '\0',
+    VOXEL_TOKEN_TYPE_GET,
+    VOXEL_TOKEN_TYPE_CALL,
+    // log(byte("\n"));
+    VOXEL_TOKEN_TYPE_BYTE, '\n',
     VOXEL_TOKEN_TYPE_STRING, '.', 'l', 'o', 'g', '\0',
     VOXEL_TOKEN_TYPE_GET,
     VOXEL_TOKEN_TYPE_CALL,
