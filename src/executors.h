@@ -180,6 +180,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
         case VOXEL_TOKEN_TYPE_EQUAL:
+        case VOXEL_TOKEN_TYPE_LESS_THAN:
+        case VOXEL_TOKEN_TYPE_GREATER_THAN:
             VOXEL_ERRORABLE binaryBResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryBResult);
             VOXEL_ERRORABLE binaryAResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryAResult);
 
@@ -194,6 +196,10 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
                 binaryResult = voxel_orOperation(executor->context, binaryAResult.value, binaryBResult.value);
             } else if (token->type == VOXEL_TOKEN_TYPE_EQUAL) {
                 binaryResult = voxel_equalOperation(executor->context, binaryAResult.value, binaryBResult.value);
+            } else if (token->type == VOXEL_TOKEN_TYPE_LESS_THAN) {
+                binaryResult = voxel_lessThanOperation(executor->context, binaryAResult.value, binaryBResult.value);
+            } else if (token->type == VOXEL_TOKEN_TYPE_GREATER_THAN) {
+                binaryResult = voxel_greaterThanOperation(executor->context, binaryAResult.value, binaryBResult.value);
             } else {
                 VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
             }
@@ -205,10 +211,6 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryBResult.value));
 
             break;
-
-        case VOXEL_TOKEN_TYPE_LESS_THAN:
-        case VOXEL_TOKEN_TYPE_GREATER_THAN:
-            VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
 
         default:
             // Token contains thing to be pushed onto value stack
