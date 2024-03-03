@@ -1,16 +1,32 @@
 export class Token {
+    static HUMAN_READABLE_NAME = "token";
+
     constructor(source) {
-        this.source = source;
+        this.value = source;
+    }
+
+    static matches(token, targetValue = null) {
+        if (!(token instanceof this)) {
+            return false;
+        }
+
+        if (targetValue != null && token.value != targetValue) {
+            return false;
+        }
+
+        return true;
     }
 }
 
-export class KeywordToken extends Token {}
-export class BracketToken extends Token {}
-export class DelimeterToken extends Token {}
-export class StatementDelimeterToken extends Token {}
-export class IdentifierToken extends Token {}
+export class KeywordToken extends Token {static HUMAN_READABLE_NAME = "keyword";}
+export class BracketToken extends Token {static HUMAN_READABLE_NAME = "bracket";}
+export class DelimeterToken extends Token {static HUMAN_READABLE_NAME = "delimeter (,)";}
+export class StatementDelimeterToken extends Token {static HUMAN_READABLE_NAME = "statement delimeter (;)";}
+export class IdentifierToken extends Token {static HUMAN_READABLE_NAME = "identifier";}
 
 export class StringToken extends Token {
+    static HUMAN_READABLE_NAME = "string literal";
+
     constructor(value) {
         super(null);
 

@@ -1,3 +1,7 @@
-function test() {
-    log("Hello!\n");
+function test(a, b, c) {
+    a
+    b
+    c
 }
+
+function hello(a, b, c) d
