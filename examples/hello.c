@@ -3,6 +3,9 @@
 #include <libvoxel.h>
 
 // char* code = (char[]) {
+//     #ifdef VOXEL_MAGIC
+//         VOXEL_MAGIC,
+//     #endif
 //     // while (true) {
 //     VOXEL_TOKEN_TYPE_STRING, 'a', '\0',
 //     VOXEL_TOKEN_TYPE_POS_REF_HERE,
@@ -20,6 +23,9 @@
 // };
 
 // char* code = (char[]) {
+//     #ifdef VOXEL_MAGIC
+//         VOXEL_MAGIC,
+//     #endif
 //     // log("Hello, world!\n");
 //     VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\n', '\0',
 //     VOXEL_TOKEN_TYPE_NUMBER_INT_8, 1,
@@ -67,6 +73,9 @@
 // };
 
 char* code = (char[]) {
+    #ifdef VOXEL_MAGIC
+        VOXEL_MAGIC,
+    #endif
     34,  84, 104, 105, 115,  32, 109, 101, 115,
   115,  97, 103, 101,  32, 119,  97, 115,  32,
   102, 114, 111, 109,  32,  97,  32,  46, 118,
@@ -122,7 +131,9 @@ int main(int argc, char* argv[]) {
     context->code = code;
     context->codeLength = 1024;
 
-    voxel_Position currentPosition = 0;
+    voxel_initContext(context);
+
+    voxel_Position currentPosition = 4;
 
     while (VOXEL_TRUE) {
         VOXEL_ERRORABLE nextToken = voxel_nextToken(context, &currentPosition); VOXEL_MUST_CODE(nextToken);

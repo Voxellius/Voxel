@@ -1,7 +1,9 @@
 voxel_Context* voxel_newContext() {
     voxel_Context* context = VOXEL_MALLOC(sizeof(voxel_Context)); VOXEL_TAG_MALLOC(voxel_Context);
 
+    context->isInitialised = VOXEL_FALSE;
     context->code = VOXEL_NULL;
+    context->codeLength = 0;
     context->builtins = VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
     context->firstTrackedThing = VOXEL_NULL;
@@ -15,7 +17,33 @@ voxel_Context* voxel_newContext() {
     return context;
 }
 
+VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
+    if (context->isInitialised) {
+        return VOXEL_OK;
+    }
+
+    #ifdef VOXEL_MAGIC
+        if (context->codeLength < VOXEL_MAGIC_SIZE) {
+            VOXEL_THROW(VOXEL_ERROR_INVALID_MAGIC);
+        }
+
+        voxel_Byte* magic = (voxel_Byte[VOXEL_MAGIC_SIZE]) {VOXEL_MAGIC};
+
+        for (voxel_Count i = 0; i < VOXEL_MAGIC_SIZE; i++) {
+            if (context->code[i] != magic[i]) {
+                VOXEL_THROW(VOXEL_ERROR_INVALID_MAGIC);
+            }
+        }
+    #endif
+
+    context->isInitialised = VOXEL_TRUE;
+
+    return VOXEL_OK;
+}
+
 VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context) {
+    VOXEL_ASSERT(context->isInitialised, VOXEL_ERROR_NOT_INITIALISED);
+
     voxel_Executor* currentExecutor = context->firstExecutor;
 
     while (currentExecutor) {

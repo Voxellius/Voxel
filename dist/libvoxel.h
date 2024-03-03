@@ -116,9 +116,11 @@ typedef int voxel_ErrorCode;
 #define VOXEL_IS_ERROR(result) ((result).errorCode != VOXEL_OK_CODE)
 
 #define VOXEL_OK_CODE 0x00
-#define VOXEL_ERROR_NO_CODE -0x10
-#define VOXEL_ERROR_TOKENISATION_BYTE -0x11
-#define VOXEL_ERROR_TOKENISATION_END -0x12
+#define VOXEL_ERROR_NOT_INITIALISED -0x10
+#define VOXEL_ERROR_NO_CODE -0x11
+#define VOXEL_ERROR_INVALID_MAGIC -0x12
+#define VOXEL_ERROR_TOKENISATION_BYTE -0x13
+#define VOXEL_ERROR_TOKENISATION_END -0x14
 #define VOXEL_ERROR_TYPE_MISMATCH -0x20
 #define VOXEL_ERROR_NOT_IMPLEMENTED -0x21
 #define VOXEL_ERROR_INVALID_ARGUMENT -0x22
@@ -137,6 +139,12 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
     switch (error) {
         case VOXEL_ERROR_NO_CODE:
             return "No code loaded";
+
+        case VOXEL_ERROR_NOT_INITIALISED:
+            return "Context not initialised yet";
+
+        case VOXEL_ERROR_INVALID_MAGIC:
+            return "Code has invalid magic";
 
         case VOXEL_ERROR_TOKENISATION_BYTE:
             return "Unknown byte when tokenising";
@@ -193,6 +201,7 @@ typedef struct voxel_Result {
 } voxel_Result;
 
 typedef struct voxel_Context {
+    voxel_Bool isInitialised;
     char* code;
     voxel_Count codeLength;
     voxel_Builtin* builtins;
@@ -339,6 +348,7 @@ voxel_Float voxel_maths_power(voxel_Float base, voxel_Int power);
 voxel_Float voxel_maths_roundToPrecision(voxel_Float number, voxel_Count precision);
 
 voxel_Context* voxel_newContext();
+VOXEL_ERRORABLE voxel_initContext(voxel_Context* context);
 VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context);
 voxel_Bool voxel_anyContextsRunning(voxel_Context* context);
 VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, voxel_Builtin builtin);
@@ -546,7 +556,9 @@ voxel_Float voxel_maths_roundToPrecision(voxel_Float number, voxel_Count precisi
 voxel_Context* voxel_newContext() {
     voxel_Context* context = VOXEL_MALLOC(sizeof(voxel_Context)); VOXEL_TAG_MALLOC(voxel_Context);
 
+    context->isInitialised = VOXEL_FALSE;
     context->code = VOXEL_NULL;
+    context->codeLength = 0;
     context->builtins = VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
     context->firstTrackedThing = VOXEL_NULL;
@@ -560,7 +572,33 @@ voxel_Context* voxel_newContext() {
     return context;
 }
 
+VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
+    if (context->isInitialised) {
+        return VOXEL_OK;
+    }
+
+    #ifdef VOXEL_MAGIC
+        if (context->codeLength < VOXEL_MAGIC_SIZE) {
+            VOXEL_THROW(VOXEL_ERROR_INVALID_MAGIC);
+        }
+
+        voxel_Byte* magic = (voxel_Byte[VOXEL_MAGIC_SIZE]) {VOXEL_MAGIC};
+
+        for (voxel_Count i = 0; i < VOXEL_MAGIC_SIZE; i++) {
+            if (context->code[i] != magic[i]) {
+                VOXEL_THROW(VOXEL_ERROR_INVALID_MAGIC);
+            }
+        }
+    #endif
+
+    context->isInitialised = VOXEL_TRUE;
+
+    return VOXEL_OK;
+}
+
 VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context) {
+    VOXEL_ASSERT(context->isInitialised, VOXEL_ERROR_NOT_INITIALISED);
+
     voxel_Executor* currentExecutor = context->firstExecutor;
 
     while (currentExecutor) {
@@ -2491,7 +2529,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->isRunning = VOXEL_TRUE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count);
     executor->callStack = VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count));
-    executor->callStack[0] = 0;
+    executor->callStack[0] = VOXEL_MAGIC_SIZE;
     executor->callStackHead = 0;
     executor->valueStack = voxel_newList(context);
     executor->previousExecutor = context->lastExecutor;
@@ -2515,6 +2553,8 @@ voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor) {
 }
 
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
+    VOXEL_ASSERT(executor->context->isInitialised, VOXEL_ERROR_NOT_INITIALISED);
+
     if (!executor->isRunning) {
         return VOXEL_OK;
     }

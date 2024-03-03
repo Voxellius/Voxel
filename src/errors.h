@@ -31,9 +31,11 @@ typedef int voxel_ErrorCode;
 #define VOXEL_IS_ERROR(result) ((result).errorCode != VOXEL_OK_CODE)
 
 #define VOXEL_OK_CODE 0x00
-#define VOXEL_ERROR_NO_CODE -0x10
-#define VOXEL_ERROR_TOKENISATION_BYTE -0x11
-#define VOXEL_ERROR_TOKENISATION_END -0x12
+#define VOXEL_ERROR_NOT_INITIALISED -0x10
+#define VOXEL_ERROR_NO_CODE -0x11
+#define VOXEL_ERROR_INVALID_MAGIC -0x12
+#define VOXEL_ERROR_TOKENISATION_BYTE -0x13
+#define VOXEL_ERROR_TOKENISATION_END -0x14
 #define VOXEL_ERROR_TYPE_MISMATCH -0x20
 #define VOXEL_ERROR_NOT_IMPLEMENTED -0x21
 #define VOXEL_ERROR_INVALID_ARGUMENT -0x22
@@ -52,6 +54,12 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
     switch (error) {
         case VOXEL_ERROR_NO_CODE:
             return "No code loaded";
+
+        case VOXEL_ERROR_NOT_INITIALISED:
+            return "Context not initialised yet";
+
+        case VOXEL_ERROR_INVALID_MAGIC:
+            return "Code has invalid magic";
 
         case VOXEL_ERROR_TOKENISATION_BYTE:
             return "Unknown byte when tokenising";

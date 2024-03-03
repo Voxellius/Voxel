@@ -6,7 +6,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->isRunning = VOXEL_TRUE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count);
     executor->callStack = VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count));
-    executor->callStack[0] = 0;
+    executor->callStack[0] = VOXEL_MAGIC_SIZE;
     executor->callStackHead = 0;
     executor->valueStack = voxel_newList(context);
     executor->previousExecutor = context->lastExecutor;
@@ -30,6 +30,8 @@ voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor) {
 }
 
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
+    VOXEL_ASSERT(executor->context->isInitialised, VOXEL_ERROR_NOT_INITIALISED);
+
     if (!executor->isRunning) {
         return VOXEL_OK;
     }

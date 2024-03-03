@@ -10,6 +10,7 @@ typedef struct voxel_Result {
 } voxel_Result;
 
 typedef struct voxel_Context {
+    voxel_Bool isInitialised;
     char* code;
     voxel_Count codeLength;
     voxel_Builtin* builtins;
@@ -156,6 +157,7 @@ voxel_Float voxel_maths_power(voxel_Float base, voxel_Int power);
 voxel_Float voxel_maths_roundToPrecision(voxel_Float number, voxel_Count precision);
 
 voxel_Context* voxel_newContext();
+VOXEL_ERRORABLE voxel_initContext(voxel_Context* context);
 VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context);
 voxel_Bool voxel_anyContextsRunning(voxel_Context* context);
 VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, voxel_Builtin builtin);
