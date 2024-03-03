@@ -19,3 +19,6 @@ console.log(tokens);
 var ast = parser.parse(tokens);
 
 console.log(ast);
+
+console.log(ast.generateCode());
+console.log(new TextDecoder().decode(ast.generateCode()));

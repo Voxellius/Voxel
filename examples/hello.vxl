@@ -1,5 +1,1 @@
-function test() {
-    log("Hello!\n");
-}
-
-test();
+log("This message was from a .vxl file!\n");

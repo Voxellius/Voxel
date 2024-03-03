@@ -2,6 +2,7 @@ import * as tokeniser from "./tokeniser.js";
 import * as namespaces from "./namespaces.js";
 import * as statements from "./statements.js";
 import * as ast from "./ast.js";
+import * as codeGen from "./codegen.js";
 
 export class ModuleNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "module";
@@ -26,6 +27,10 @@ export class ModuleNode extends ast.AstNode {
         }
 
         return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(...this.children.map((child) => child.generateCode()));
     }
 }
 

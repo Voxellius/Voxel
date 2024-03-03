@@ -119,4 +119,8 @@ export class AstNode {
             throw new SyntaxError(`Expected ${nodeTypes.map((node) => node.HUMAN_READABLE_NAME).join(" or ")} but got ${tokenHumanReadableName}`);
         }
     }
+
+    generateCode() {
+        throw new Error("Not implemented in base class");
+    }
 }
