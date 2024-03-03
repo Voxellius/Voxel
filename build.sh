@@ -53,3 +53,9 @@ if [ "$1" == "--examples" ]; then
 
     gcc -Idist/ examples/hello.c -o examples/build/hello
 fi
+
+if [ "$1" == "--runtime" ]; then
+    mkdir -p runtime/build
+
+    gcc -Idist/ runtime/voxel.c -o runtime/build/voxel
+fi

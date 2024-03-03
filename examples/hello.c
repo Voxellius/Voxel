@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     context->code = code;
     context->codeLength = 1024;
 
-    voxel_initContext(context);
+    VOXEL_MUST_CODE(voxel_initContext(context));
 
     voxel_Position currentPosition = 4;
 
