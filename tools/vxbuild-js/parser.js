@@ -256,20 +256,104 @@ export class FunctionNode extends AstNode {
     }
 }
 
-export class ExpressionNode extends AstNode {
-    static HUMAN_READABLE_NAME = "expression";
+export class ThingNode extends AstNode {
+    static HUMAN_READABLE_NAME = "thing expression";
 
     static MATCH_QUERIES = [
         new TokenQuery(tokeniser.IdentifierToken),
-        new TokenQuery(tokeniser.BracketToken, "("),
-        new TokenQuery(tokeniser.BracketToken, "[", "list literal"),
-        new TokenQuery(tokeniser.BracketToken, "{", "object literal")
+        new TokenQuery(tokeniser.StringToken)
+    ];
+
+    value = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        var token = this.eat(tokens);
+
+        if (token instanceof tokeniser.IdentifierToken) {
+            instance.value = new namespaces.Symbol(namespace, token.value);
+        } else if (token instanceof tokeniser.StringToken) {
+            instance.value = token.value;
+        } else {
+            throw new Error("Not implemented");
+        }
+
+        return instance;
+    }
+}
+
+export class FunctionArgumentsNode extends AstNode {
+    static HUMAN_READABLE_NAME = "argument list";
+
+    static MATCH_QUERIES = [
+        new TokenQuery(tokeniser.BracketToken, "(")
+    ];
+
+    arguments = [];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        var addedFirstArgument = false;
+
+        while (true) {
+            if (this.maybeEat(tokens, [new TokenQuery(tokeniser.BracketToken, ")")])) {
+                break;
+            }
+
+            if (addedFirstArgument) {
+                this.eat(tokens, [new TokenQuery(tokeniser.DelimeterToken)]);
+            }
+
+            instance.arguments.push(
+                instance.expectChildByMatching(tokens, [ExpressionNode], namespace)
+            );
+
+            addedFirstArgument = true;
+        }
+
+        return instance;
+    }
+}
+
+export class FunctionCallNode extends AstNode {
+    static HUMAN_READABLE_NAME = "function call";
+
+    static MATCH_QUERIES = [
+        new TokenQuery(tokeniser.BracketToken, "(")
     ];
 
     static create(tokens, namespace) {
         var instance = new this();
 
-        console.log("Expression:", this.eat(tokens));
+        instance.expectChildByMatching(tokens, [FunctionArgumentsNode], namespace);
+
+        return instance;
+    }
+}
+
+export class ExpressionNode extends AstNode {
+    static HUMAN_READABLE_NAME = "expression";
+
+    static MATCH_QUERIES = [
+        ...ThingNode.MATCH_QUERIES
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.expectChildByMatching(tokens, [ThingNode], namespace);
+
+        while (true) {
+            if (instance.addChildByMatching(tokens, [FunctionCallNode], namespace)) {
+                continue;
+            }
+
+            break;
+        }
 
         return instance;
     }
