@@ -89,8 +89,8 @@ void builtin_log(voxel_Executor* executor) {
 
 void builtin_add(voxel_Executor* executor) {
     voxel_Thing* argCount = voxel_pop(executor);
-    voxel_Thing* a = voxel_pop(executor);
     voxel_Thing* b = voxel_pop(executor);
+    voxel_Thing* a = voxel_pop(executor);
 
     voxel_unreferenceThing(executor->context, argCount);
 

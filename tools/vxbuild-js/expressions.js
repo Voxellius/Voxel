@@ -8,7 +8,8 @@ export class ThingNode extends ast.AstNode {
 
     static MATCH_QUERIES = [
         new ast.TokenQuery(tokeniser.IdentifierToken),
-        new ast.TokenQuery(tokeniser.StringToken)
+        new ast.TokenQuery(tokeniser.StringToken),
+        new ast.TokenQuery(tokeniser.NumberToken)
     ];
 
     value = null;
@@ -20,7 +21,7 @@ export class ThingNode extends ast.AstNode {
 
         if (token instanceof tokeniser.IdentifierToken) {
             instance.value = new namespaces.Symbol(namespace, token.value);
-        } else if (token instanceof tokeniser.StringToken) {
+        } else if (token instanceof tokeniser.StringToken || token instanceof tokeniser.NumberToken) {
             instance.value = token.value;
         } else {
             throw new Error("Not implemented");
@@ -39,6 +40,10 @@ export class ThingNode extends ast.AstNode {
 
         if (typeof(this.value) == "string") {
             return codeGen.string(this.value);
+        }
+
+        if (typeof(this.value) == "number") {
+            return codeGen.number(this.value);
         }
 
         throw new Error("Not implemented");
@@ -116,6 +121,77 @@ export class ExpressionNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "expression";
 
     static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.BracketToken, "("),
+        ...ThingNode.MATCH_QUERIES,
+        new ast.TokenQuery(tokeniser.OperatorToken, "-")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.expectChildByMatching(tokens, [AdditionSubtractionOperatorExpressionNode], namespace);
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(...this.children.map((child) => child.generateCode()));
+    }
+}
+
+export class ExpressionLeafNode extends ExpressionNode {
+    static maybeAddAccessors(instance, tokens, namespace) {
+        while (true) {
+            if (instance.addChildByMatching(tokens, [FunctionCallNode], namespace)) {
+                continue;
+            }
+
+            break;
+        }
+    }
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        if (instance.addChildByMatching(tokens, [UnaryNegativeOperatorExpressionNode], namespace)) {
+            return instance;
+        }
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")])) {
+            instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
+
+            this.maybeAddAccessors(instance, tokens, namespace);
+
+            return instance;
+        }
+
+        instance.expectChildByMatching(tokens, [ExpressionThingNode], namespace);
+
+        return instance;
+    }
+
+    generateCode() {
+        var currentCode = codeGen.bytes();
+
+        for (var child of this.children) {
+            if (child instanceof FunctionCallNode) {
+                // Function calls need to push the arguments passed to the function first before the function thing is pushed on
+                currentCode = child.generateCode(currentCode);
+
+                continue;
+            }
+
+            currentCode = codeGen.join(currentCode, child.generateCode());
+        }
+
+        return currentCode;
+    }
+}
+
+export class ExpressionThingNode extends ExpressionLeafNode {
+    static MATCH_QUERIES = [
         ...ThingNode.MATCH_QUERIES
     ];
 
@@ -124,27 +200,139 @@ export class ExpressionNode extends ast.AstNode {
 
         instance.expectChildByMatching(tokens, [ThingNode], namespace);
 
+        this.maybeAddAccessors(instance, tokens, namespace);
+
+        return instance;
+    }
+}
+
+export class UnaryOperatorExpressionNode extends ExpressionNode {
+    static MATCH_QUERIES = [];
+    static OPERATOR_CODE = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        instance.expectChildByMatching(tokens, [ExpressionLeafNode], namespace);
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(this.children[0].generateCode(), this.constructor.OPERATOR_CODE);
+    }
+}
+
+export class UnaryNegativeOperatorExpressionNode extends UnaryOperatorExpressionNode {
+    static MATCH_QUERIES = [new ast.TokenQuery(tokeniser.OperatorToken, "-")];
+
+    static OPERATOR_CODE = codeGen.join(
+        codeGen.number(1),
+        codeGen.string("neg"),
+        codeGen.bytes(
+            codeGen.vxcTokens.GET,
+            codeGen.vxcTokens.CALL
+        )
+    );
+}
+
+export class BinaryOperatorExpressionNode extends ExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [];
+    static OPERATOR_CODE = {};
+    static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+
+    operatorTokens = [];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
         while (true) {
-            if (instance.addChildByMatching(tokens, [FunctionCallNode], namespace)) {
-                continue;
+            instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+
+            var operatorToken = this.maybeEat(tokens, this.OPERATOR_TOKEN_QUERIES);
+
+            if (!operatorToken) {
+                break;
             }
 
-            break;
+            instance.operatorTokens.push(operatorToken);
         }
 
         return instance;
     }
 
     generateCode() {
-        var children = [...this.children];
-        var lastChild = children[children.length - 1];
+        var currentCode = this.children[0].generateCode();
 
-        if (lastChild instanceof FunctionCallNode) {
-            children.pop();
+        for (var i = 1; i < this.children.length; i++) {
+            var child = this.children[i];
+            var operator = this.operatorTokens[i - 1];
 
-            return lastChild.generateCode(codeGen.join(...children.map((child) => child.generateCode())));
+            currentCode = codeGen.join(
+                currentCode,
+                child.generateCode(),
+                this.constructor.OPERATOR_CODE[operator.value]
+            );
         }
 
-        return codeGen.join(...children.map((child) => child.generateCode()));
+        return currentCode;
     }
+}
+
+export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "*"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "/")
+    ];
+
+    static OPERATOR_CODE = {
+        "*": codeGen.join(
+            codeGen.number(2),
+            codeGen.string("mul"),
+            codeGen.bytes(
+                codeGen.vxcTokens.GET,
+                codeGen.vxcTokens.CALL
+            )
+        ),
+        "/": codeGen.join(
+            codeGen.number(2),
+            codeGen.string("div"),
+            codeGen.bytes(
+                codeGen.vxcTokens.GET,
+                codeGen.vxcTokens.CALL
+            )
+        )
+    };
+
+    static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+}
+
+export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "+"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "-")
+    ];
+
+    static OPERATOR_CODE = {
+        "+": codeGen.join(
+            codeGen.number(2),
+            codeGen.string("add"),
+            codeGen.bytes(
+                codeGen.vxcTokens.GET,
+                codeGen.vxcTokens.CALL
+            )
+        ),
+        "-": codeGen.join(
+            codeGen.number(2),
+            codeGen.string("sub"),
+            codeGen.bytes(
+                codeGen.vxcTokens.GET,
+                codeGen.vxcTokens.CALL
+            )
+        )
+    };
+
+    static CHILD_EXPRESSION_NODE_CLASS = MultiplicationDivisionOperatorExpressionNode;
 }

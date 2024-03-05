@@ -76,7 +76,9 @@ VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, vo
 
     context->builtinCount++;
 
-    context->builtins = VOXEL_REALLOC(context->builtins, context->builtinCount); VOXEL_TAG_REALLOC("voxel_Context->builtins", context->builtinCount - 1, context->builtinCount);
+    voxel_Count newSize = context->builtinCount * sizeof(voxel_Builtin);
+
+    context->builtins = VOXEL_REALLOC(context->builtins, newSize); VOXEL_TAG_REALLOC("voxel_Context->builtins", newSize - sizeof(voxel_Builtin), newSize);
     context->builtins[context->builtinCount - 1] = builtin;
 
     voxel_Thing* function = voxel_newFunctionBuiltin(context, context->builtinCount - 1);

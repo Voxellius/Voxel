@@ -22,10 +22,21 @@ export class KeywordToken extends Token {static HUMAN_READABLE_NAME = "keyword";
 export class BracketToken extends Token {static HUMAN_READABLE_NAME = "bracket";}
 export class DelimeterToken extends Token {static HUMAN_READABLE_NAME = "delimeter (,)";}
 export class StatementDelimeterToken extends Token {static HUMAN_READABLE_NAME = "statement delimeter (;)";}
+export class OperatorToken extends Token {static HUMAN_READABLE_NAME = "operator";}
 export class IdentifierToken extends Token {static HUMAN_READABLE_NAME = "identifier";}
 
 export class StringToken extends Token {
     static HUMAN_READABLE_NAME = "string literal";
+
+    constructor(value) {
+        super(null);
+
+        this.value = value;
+    }
+}
+
+export class NumberToken extends Token {
+    static HUMAN_READABLE_NAME = "number literal";
 
     constructor(value) {
         super(null);
@@ -52,8 +63,8 @@ export function tokenise(source) {
         return false;
     }
 
-    function addToken(tokenClass) {
-        tokens.push(new tokenClass(match[0]));
+    function addToken(tokenClass, value = match[0]) {
+        tokens.push(new tokenClass(value));
     }
 
     while (source.length > 0) {
@@ -106,8 +117,18 @@ export function tokenise(source) {
             continue;
         }
 
+        if (matchToken(/^[+\-*\/]/)) {
+            addToken(OperatorToken);
+            continue;
+        }
+
         if (matchToken(/^[a-zA-Z$_][a-zA-Z0-9$_]*\b/)) {
             addToken(IdentifierToken);
+            continue;
+        }
+
+        if (matchToken(/^(?:[0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)(?:[eE][+-]?[0-9]+)?\b/)) {
+            addToken(NumberToken, parseFloat(match[0]));
             continue;
         }
 

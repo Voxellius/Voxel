@@ -1,2 +1,4 @@
 log("This message was from a .vxl file!\n");
 log("This time, it was compiled to a .vxc file and loaded by the runtime!\n");
+log(-5 + 12 * (-3 + 2) * -(5 - 4));
+log("\n");
