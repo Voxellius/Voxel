@@ -144,6 +144,10 @@ VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, vo
         return VOXEL_OK_RET(VOXEL_NULL);
     }
 
+    if (index == list->length - 1) {
+        return VOXEL_OK_RET(list->lastItem);
+    }
+
     for (voxel_Count i = 0; i < index; i++) {
         if (!currentItem) {
             return VOXEL_OK_RET(VOXEL_NULL);

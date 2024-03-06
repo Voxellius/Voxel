@@ -146,6 +146,7 @@ typedef struct voxel_Executor {
     voxel_Count callStackHead;
     voxel_Count callStackSize;
     voxel_Thing* valueStack;
+    voxel_Thing* exceptionHandlerStack;
     struct voxel_Executor* previousExecutor;
     struct voxel_Executor* nextExecutor;
 } voxel_Executor;
@@ -301,6 +302,9 @@ voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
 void voxel_stepOutExecutor(voxel_Executor* executor);
+VOXEL_ERRORABLE voxel_setExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef);
+VOXEL_ERRORABLE voxel_pushExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef);
+VOXEL_ERRORABLE voxel_popExceptionHandler(voxel_Executor* executor);
 
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
 void voxel_pushNull(voxel_Executor* executor);

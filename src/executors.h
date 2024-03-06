@@ -9,6 +9,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->callStack[0] = VOXEL_MAGIC_SIZE;
     executor->callStackHead = 0;
     executor->valueStack = voxel_newList(context);
+    executor->exceptionHandlerStack = voxel_newList(context);
     executor->previousExecutor = context->lastExecutor;
     executor->nextExecutor = VOXEL_NULL;
 
@@ -271,4 +272,28 @@ void voxel_stepOutExecutor(voxel_Executor* executor) {
     }
 
     executor->callStackHead--;
+}
+
+VOXEL_ERRORABLE voxel_setExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef) {
+    voxel_Thing* stack = executor->exceptionHandlerStack;
+
+    return voxel_setListItem(executor->context, stack, voxel_getListLength(stack) - 1, handlerPosRef);
+}
+
+VOXEL_ERRORABLE voxel_pushExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef) {
+    voxel_Thing* stack = executor->exceptionHandlerStack;
+
+    if (!handlerPosRef) {
+        // Duplicate top item if no handler pos ref is provided
+
+        VOXEL_ERRORABLE item = voxel_getListItem(executor->context, stack, voxel_getListLength(stack) - 1); VOXEL_MUST(item);
+
+        handlerPosRef = item.value;
+    }
+
+    return voxel_pushOntoList(executor->context, stack, handlerPosRef);
+}
+
+VOXEL_ERRORABLE voxel_popExceptionHandler(voxel_Executor* executor) {
+    return voxel_popFromList(executor->context, executor->exceptionHandlerStack);
 }
