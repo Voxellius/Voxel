@@ -10,11 +10,12 @@
 //     VOXEL_TOKEN_TYPE_STRING, 'a', '\0',
 //     VOXEL_TOKEN_TYPE_POS_REF_HERE,
 //     // log("Hello, world!");
-//     VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0',
+//     VOXEL_TOKEN_TYPE_STRING, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\n', '\0',
 //     VOXEL_TOKEN_TYPE_NUMBER_INT_8, 1,
 //     VOXEL_TOKEN_TYPE_STRING, 'l', 'o', 'g', '\0',
 //     VOXEL_TOKEN_TYPE_GET,
 //     VOXEL_TOKEN_TYPE_CALL,
+//     VOXEL_TOKEN_TYPE_POP,
 //     // }
 //     VOXEL_TOKEN_TYPE_STRING, 'a', '\0',
 //     VOXEL_TOKEN_TYPE_GET,
@@ -32,6 +33,7 @@ char* code = (char[]) {
     VOXEL_TOKEN_TYPE_STRING, 'l', 'o', 'g', '\0',
     VOXEL_TOKEN_TYPE_GET,
     VOXEL_TOKEN_TYPE_CALL,
+    VOXEL_TOKEN_TYPE_POP,
     // var x = 0;
     VOXEL_TOKEN_TYPE_NUMBER_INT_8, 0,
     VOXEL_TOKEN_TYPE_STRING, 'x', '\0',
@@ -54,12 +56,14 @@ char* code = (char[]) {
     VOXEL_TOKEN_TYPE_STRING, 'l', 'o', 'g', '\0',
     VOXEL_TOKEN_TYPE_GET,
     VOXEL_TOKEN_TYPE_CALL,
+    VOXEL_TOKEN_TYPE_POP,
     // log(byte("\n"));
     VOXEL_TOKEN_TYPE_BYTE, '\n',
     VOXEL_TOKEN_TYPE_NUMBER_INT_8, 1,
     VOXEL_TOKEN_TYPE_STRING, 'l', 'o', 'g', '\0',
     VOXEL_TOKEN_TYPE_GET,
     VOXEL_TOKEN_TYPE_CALL,
+    VOXEL_TOKEN_TYPE_POP,
     // }
     VOXEL_TOKEN_TYPE_NUMBER_INT_8, 100,
     VOXEL_TOKEN_TYPE_STRING, 'x', '\0',
@@ -84,7 +88,7 @@ void builtin_log(voxel_Executor* executor) {
         voxel_unreferenceThing(executor->context, thing);
     }
 
-    // voxel_pushNull(executor);
+    voxel_pushNull(executor);
 }
 
 void builtin_add(voxel_Executor* executor) {
