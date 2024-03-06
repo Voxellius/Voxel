@@ -300,8 +300,6 @@ void voxel_stepOutExecutor(voxel_Executor* executor) {
 void voxel_setExceptionHandler(voxel_Executor* executor, voxel_Position exceptionHandlerPosition) {
     voxel_Call* callStackTop = &executor->callStack[executor->callStackHead];
 
-    printf("set %i\n", exceptionHandlerPosition);
-
     callStackTop->canHandleExceptions = VOXEL_TRUE;
     callStackTop->exceptionHandlerPosition = exceptionHandlerPosition;
 }
@@ -311,16 +309,19 @@ void voxel_clearExceptionHandler(voxel_Executor* executor) {
 }
 
 VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor) {
-    printf("pos %d\n", executor->callStack[executor->callStackHead].exceptionHandlerPosition);
     while (!executor->callStack[executor->callStackHead].canHandleExceptions) {
         if (executor->callStackHead == 0) {
-            VOXEL_ERRORABLE thrownThing = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(thrownThing);
+            #ifdef VOXEL_LOG_UNHANDLED_EXCEPTIONS
+                voxel_Thing* valueStack = executor->valueStack;
+                voxel_List* valueStackList = valueStack->value;
+                voxel_ListItem* lastItem = valueStackList->lastItem;
 
-            if (thrownThing.value) {
-                VOXEL_LOG("Unhandled exception: ");
-                VOXEL_MUST(voxel_logThing(executor->context, thrownThing.value));
-                VOXEL_LOG("\n");
-            }
+                if (lastItem) {
+                    VOXEL_LOG("Unhandled exception: ");
+                    VOXEL_MUST(voxel_logThing(executor->context, lastItem->value));
+                    VOXEL_LOG("\n");
+                }
+            #endif
 
             VOXEL_THROW(VOXEL_ERROR_UNHANDLED_EXCEPTION);
         }
