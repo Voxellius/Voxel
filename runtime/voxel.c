@@ -31,7 +31,7 @@ void builtin_log(voxel_Executor* executor) {
         voxel_unreferenceThing(executor->context, thing);
     }
 
-    // voxel_pushNull(executor);
+    voxel_pushNull(executor);
 }
 
 RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_add, +);

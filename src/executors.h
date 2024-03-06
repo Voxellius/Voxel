@@ -100,14 +100,22 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
 
         case VOXEL_TOKEN_TYPE_SET:
+        case VOXEL_TOKEN_TYPE_VAR:
             VOXEL_ERRORABLE setKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(setKey);
             voxel_Thing* setValue = ((voxel_List*)executor->valueStack->value)->lastItem->value;
 
             VOXEL_ASSERT(setKey.value, VOXEL_ERROR_MISSING_ARG);
             VOXEL_ASSERT(setValue, VOXEL_ERROR_MISSING_ARG);
 
-            VOXEL_MUST(voxel_setScopeItem(executor->scope, setKey.value, setValue));
+            VOXEL_MUST((token->type == VOXEL_TOKEN_TYPE_VAR ? voxel_setLocalScopeItem : voxel_setScopeItem)(executor->scope, setKey.value, setValue));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, setKey.value));
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_POP:
+            VOXEL_ERRORABLE popValue = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(popValue);
+
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, popValue.value));
 
             break;
 

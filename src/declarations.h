@@ -111,6 +111,8 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_RETURN = '^',
     VOXEL_TOKEN_TYPE_GET = '?',
     VOXEL_TOKEN_TYPE_SET = ':',
+    VOXEL_TOKEN_TYPE_VAR = 'v',
+    VOXEL_TOKEN_TYPE_POP = 'p',
     VOXEL_TOKEN_TYPE_POS_REF_HERE = '@',
     VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE = '#',
     VOXEL_TOKEN_TYPE_POS_REF_BACKWARD = '[',
@@ -292,6 +294,7 @@ voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope);
 VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope);
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
+VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);

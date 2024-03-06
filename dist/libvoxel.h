@@ -302,6 +302,8 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_RETURN = '^',
     VOXEL_TOKEN_TYPE_GET = '?',
     VOXEL_TOKEN_TYPE_SET = ':',
+    VOXEL_TOKEN_TYPE_VAR = 'v',
+    VOXEL_TOKEN_TYPE_POP = 'p',
     VOXEL_TOKEN_TYPE_POS_REF_HERE = '@',
     VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE = '#',
     VOXEL_TOKEN_TYPE_POS_REF_BACKWARD = '[',
@@ -483,6 +485,7 @@ voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope);
 VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope);
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
+VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
@@ -685,6 +688,10 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thing) {
+    if (!thing) {
+        return VOXEL_OK;
+    }
+
     if (thing->referenceCount > 0) {
         thing->referenceCount--;
     }
@@ -2473,6 +2480,8 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_RETURN:
         case VOXEL_TOKEN_TYPE_GET:
         case VOXEL_TOKEN_TYPE_SET:
+        case VOXEL_TOKEN_TYPE_VAR:
+        case VOXEL_TOKEN_TYPE_POP:
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_JUMP:
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
@@ -2625,14 +2634,22 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
 
         case VOXEL_TOKEN_TYPE_SET:
+        case VOXEL_TOKEN_TYPE_VAR:
             VOXEL_ERRORABLE setKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(setKey);
             voxel_Thing* setValue = ((voxel_List*)executor->valueStack->value)->lastItem->value;
 
             VOXEL_ASSERT(setKey.value, VOXEL_ERROR_MISSING_ARG);
             VOXEL_ASSERT(setValue, VOXEL_ERROR_MISSING_ARG);
 
-            VOXEL_MUST(voxel_setScopeItem(executor->scope, setKey.value, setValue));
+            VOXEL_MUST((token->type == VOXEL_TOKEN_TYPE_VAR ? voxel_setLocalScopeItem : voxel_setScopeItem)(executor->scope, setKey.value, setValue));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, setKey.value));
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_POP:
+            VOXEL_ERRORABLE popValue = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(popValue);
+
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, popValue.value));
 
             break;
 
@@ -2826,9 +2843,7 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
     voxel_ObjectItem* scopeItem = voxel_getScopeItem(scope, key);
 
     if (!scopeItem) {
-        voxel_setObjectItem(scope->context, scope->things, key, value);
-
-        return VOXEL_OK;
+        return voxel_setObjectItem(scope->context, scope->things, key, value);
     }
 
     voxel_unreferenceThing(scope->context, scopeItem->value);
@@ -2837,6 +2852,10 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
     value->referenceCount++;
 
     return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value) {
+    return voxel_setObjectItem(scope->context, scope->things, key, value);
 }
 
 // src/helpers.h

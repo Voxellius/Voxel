@@ -2,7 +2,6 @@ import * as tokeniser from "./tokeniser.js";
 import * as namespaces from "./namespaces.js";
 import * as ast from "./ast.js";
 import * as codeGen from "./codegen.js";
-import * as statements from "./statements.js";
 import * as expressions from "./expressions.js";
 
 export class StatementNode extends ast.AstNode {
@@ -15,12 +14,19 @@ export class StatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [statements.FunctionNode, expressions.ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [FunctionNode, expressions.ExpressionNode], namespace);
 
         return instance;
     }
 
     generateCode() {
+        if (
+            this.children[0] instanceof FunctionNode ||
+            this.children[0] instanceof expressions.ExpressionNode
+        ) {
+            return codeGen.join(this.children[0].generateCode(), codeGen.bytes(codeGen.vxcTokens.POP));
+        }
+
         return this.children[0].generateCode();
     }
 }

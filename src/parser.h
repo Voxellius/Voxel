@@ -151,6 +151,8 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_RETURN:
         case VOXEL_TOKEN_TYPE_GET:
         case VOXEL_TOKEN_TYPE_SET:
+        case VOXEL_TOKEN_TYPE_VAR:
+        case VOXEL_TOKEN_TYPE_POP:
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_JUMP:
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:

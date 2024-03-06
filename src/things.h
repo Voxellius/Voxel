@@ -38,6 +38,10 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thing) {
+    if (!thing) {
+        return VOXEL_OK;
+    }
+
     if (thing->referenceCount > 0) {
         thing->referenceCount--;
     }

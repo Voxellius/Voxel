@@ -32,9 +32,7 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
     voxel_ObjectItem* scopeItem = voxel_getScopeItem(scope, key);
 
     if (!scopeItem) {
-        voxel_setObjectItem(scope->context, scope->things, key, value);
-
-        return VOXEL_OK;
+        return voxel_setObjectItem(scope->context, scope->things, key, value);
     }
 
     voxel_unreferenceThing(scope->context, scopeItem->value);
@@ -43,4 +41,8 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
     value->referenceCount++;
 
     return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value) {
+    return voxel_setObjectItem(scope->context, scope->things, key, value);
 }
