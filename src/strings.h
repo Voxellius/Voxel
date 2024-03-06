@@ -196,7 +196,7 @@ VOXEL_ERRORABLE voxel_cutStringStart(voxel_Context* context, voxel_Thing* thing,
 
 VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count size) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
-    VOXEL_ASSERT(size > 0, VOXEL_ERROR_INVALID_ARGUMENT);
+    VOXEL_ASSERT(size > 0, VOXEL_ERROR_INVALID_ARG);
 
     voxel_String* string = thing->value;
 

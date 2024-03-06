@@ -203,7 +203,7 @@ VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* th
     voxel_Bool isNegative = VOXEL_FALSE;
 
     if (base < 2 || base > 16) {
-        VOXEL_THROW(VOXEL_ERROR_INVALID_ARGUMENT);
+        VOXEL_THROW(VOXEL_ERROR_INVALID_ARG);
     }
 
     if (value < 0) {

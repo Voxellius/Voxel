@@ -123,7 +123,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_TOKENISATION_END -0x14
 #define VOXEL_ERROR_TYPE_MISMATCH -0x20
 #define VOXEL_ERROR_NOT_IMPLEMENTED -0x21
-#define VOXEL_ERROR_INVALID_ARGUMENT -0x22
+#define VOXEL_ERROR_INVALID_ARG -0x22
 #define VOXEL_ERROR_THING_LOCKED -0x30
 #define VOXEL_ERROR_CANNOT_CONVERT_THING -0x31
 #define VOXEL_ERROR_NOT_A_MEMBER -0x32
@@ -131,6 +131,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_CANNOT_JUMP_TO_THING -0x34
 #define VOXEL_ERROR_INVALID_BUILTIN -0x35
 #define VOXEL_ERROR_MISSING_ARG -0x40
+#define VOXEL_ERROR_UNHANDLED_EXCEPTION -0x50
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
@@ -158,7 +159,7 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
         case VOXEL_ERROR_NOT_IMPLEMENTED:
             return "Not implemented";
 
-        case VOXEL_ERROR_INVALID_ARGUMENT:
+        case VOXEL_ERROR_INVALID_ARG:
             return "Invalid argument";
 
         case VOXEL_ERROR_THING_LOCKED:
@@ -181,6 +182,9 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
 
         case VOXEL_ERROR_MISSING_ARG:
             return "Missing a required argument on value stack";
+
+        case VOXEL_ERROR_UNHANDLED_EXCEPTION:
+            return "Unhandled exception";
 
         default:
             return "Unknown error";
@@ -300,6 +304,9 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_STRING = '"',
     VOXEL_TOKEN_TYPE_CALL = '!',
     VOXEL_TOKEN_TYPE_RETURN = '^',
+    VOXEL_TOKEN_TYPE_THROW = 'T',
+    VOXEL_TOKEN_TYPE_SET_HANDLER = 'H',
+    VOXEL_TOKEN_TYPE_CLEAR_HANDLER = 'h',
     VOXEL_TOKEN_TYPE_GET = '?',
     VOXEL_TOKEN_TYPE_SET = ':',
     VOXEL_TOKEN_TYPE_VAR = 'v',
@@ -329,15 +336,20 @@ typedef struct voxel_Scope {
     voxel_Thing* things;
 } voxel_Scope;
 
+typedef struct voxel_Call {
+    voxel_Position position;
+    voxel_Bool canHandleExceptions;
+    voxel_Position exceptionHandlerPosition;
+} voxel_Call;
+
 typedef struct voxel_Executor {
     voxel_Context* context;
     voxel_Scope* scope;
     voxel_Bool isRunning;
-    voxel_Position* callStack;
+    voxel_Call* callStack;
     voxel_Count callStackHead;
     voxel_Count callStackSize;
     voxel_Thing* valueStack;
-    voxel_Thing* exceptionHandlerStack;
     struct voxel_Executor* previousExecutor;
     struct voxel_Executor* nextExecutor;
 } voxel_Executor;
@@ -493,9 +505,9 @@ voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
 void voxel_stepOutExecutor(voxel_Executor* executor);
-VOXEL_ERRORABLE voxel_setExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef);
-VOXEL_ERRORABLE voxel_pushExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef);
-VOXEL_ERRORABLE voxel_popExceptionHandler(voxel_Executor* executor);
+void voxel_setExceptionHandler(voxel_Executor* executor, voxel_Position exceptionHandlerPosition);
+void voxel_clearExceptionHandler(voxel_Executor* executor);
+VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor);
 
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
 void voxel_pushNull(voxel_Executor* executor);
@@ -1285,7 +1297,7 @@ VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* th
     voxel_Bool isNegative = VOXEL_FALSE;
 
     if (base < 2 || base > 16) {
-        VOXEL_THROW(VOXEL_ERROR_INVALID_ARGUMENT);
+        VOXEL_THROW(VOXEL_ERROR_INVALID_ARG);
     }
 
     if (value < 0) {
@@ -1622,7 +1634,7 @@ VOXEL_ERRORABLE voxel_cutStringStart(voxel_Context* context, voxel_Thing* thing,
 
 VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count size) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
-    VOXEL_ASSERT(size > 0, VOXEL_ERROR_INVALID_ARGUMENT);
+    VOXEL_ASSERT(size > 0, VOXEL_ERROR_INVALID_ARG);
 
     voxel_String* string = thing->value;
 
@@ -2080,8 +2092,8 @@ VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, vo
 
     voxel_List* list = thing->value;
 
-    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARGUMENT);
-    VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARGUMENT);
+    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
+    VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARG);
 
     if (index == list->length) {
         return voxel_pushOntoList(context, thing, value);
@@ -2103,8 +2115,8 @@ VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing,
 
     voxel_List* list = thing->value;
 
-    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARGUMENT);
-    VOXEL_ASSERT(index < list->length, VOXEL_ERROR_INVALID_ARGUMENT);
+    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
+    VOXEL_ASSERT(index < list->length, VOXEL_ERROR_INVALID_ARG);
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
     voxel_ListItem* listItem = listItemResult.value;
@@ -2193,8 +2205,8 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 
     voxel_List* list = thing->value;
 
-    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARGUMENT);
-    VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARGUMENT);
+    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
+    VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARG);
 
     if (index == list->length) {
         return voxel_pushOntoList(context, thing, value);
@@ -2486,6 +2498,9 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
         case VOXEL_TOKEN_TYPE_CALL:
         case VOXEL_TOKEN_TYPE_RETURN:
+        case VOXEL_TOKEN_TYPE_THROW:
+        case VOXEL_TOKEN_TYPE_SET_HANDLER:
+        case VOXEL_TOKEN_TYPE_CLEAR_HANDLER:
         case VOXEL_TOKEN_TYPE_GET:
         case VOXEL_TOKEN_TYPE_SET:
         case VOXEL_TOKEN_TYPE_VAR:
@@ -2546,12 +2561,11 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->context = context;
     executor->scope = voxel_newScope(context, context->globalScope);
     executor->isRunning = VOXEL_TRUE;
-    executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count);
-    executor->callStack = VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Count));
-    executor->callStack[0] = VOXEL_MAGIC_SIZE;
+    executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
+    executor->callStack = VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
+    executor->callStack[0] = (voxel_Call) {.position = VOXEL_MAGIC_SIZE, .canHandleExceptions = VOXEL_FALSE};
     executor->callStackHead = 0;
     executor->valueStack = voxel_newList(context);
-    executor->exceptionHandlerStack = voxel_newList(context);
     executor->previousExecutor = context->lastExecutor;
     executor->nextExecutor = VOXEL_NULL;
 
@@ -2569,7 +2583,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
 }
 
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor) {
-    return &executor->callStack[executor->callStackHead];
+    return &executor->callStack[executor->callStackHead].position;
 }
 
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
@@ -2627,6 +2641,28 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             voxel_stepOutExecutor(executor);
             break;
 
+        case VOXEL_TOKEN_TYPE_THROW:
+            VOXEL_MUST(voxel_throwException(executor));
+            break;
+
+        case VOXEL_TOKEN_TYPE_SET_HANDLER:
+            VOXEL_ERRORABLE handlerFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(handlerFunctionResult);
+            voxel_Thing* handlerFunction = handlerFunctionResult.value;
+
+            VOXEL_ASSERT(handlerFunction, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(handlerFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(voxel_getFunctionType(executor->context, handlerFunction) == VOXEL_FUNCTION_TYPE_POS_REF, VOXEL_ERROR_INVALID_ARG);
+
+            voxel_setExceptionHandler(executor, (voxel_IntPtr)handlerFunction->value);
+
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, handlerFunction));
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_CLEAR_HANDLER:
+            voxel_clearExceptionHandler(executor);
+            break;
+
         case VOXEL_TOKEN_TYPE_GET:
             VOXEL_ERRORABLE getKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(getKey);
 
@@ -2658,6 +2694,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_POP:
             VOXEL_ERRORABLE popValue = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(popValue);
 
+            VOXEL_ASSERT(popValue.value, VOXEL_ERROR_MISSING_ARG);
+
             VOXEL_MUST(voxel_unreferenceThing(executor->context, popValue.value));
 
             break;
@@ -2669,7 +2707,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ERRORABLE posRefKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(posRefKey);
             voxel_Position referencedPosition = *position;
 
-            VOXEL_ASSERT(posRefKey.value, VOXEL_ERROR_INVALID_ARGUMENT);
+            VOXEL_ASSERT(posRefKey.value, VOXEL_ERROR_INVALID_ARG);
 
             if (token->type == VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE) {
                 referencedPosition = (voxel_IntPtr)token->data;
@@ -2691,7 +2729,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ERRORABLE jumpFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(jumpFunctionResult);
             voxel_Thing* jumpFunction = jumpFunctionResult.value;
 
-            VOXEL_ASSERT(jumpFunction, VOXEL_ERROR_INVALID_ARGUMENT);
+            VOXEL_ASSERT(jumpFunction, VOXEL_ERROR_INVALID_ARG);
             VOXEL_ASSERT(jumpFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
             VOXEL_ASSERT(voxel_getFunctionType(executor->context, jumpFunction) == VOXEL_FUNCTION_TYPE_POS_REF, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
 
@@ -2721,7 +2759,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_NOT:
             VOXEL_ERRORABLE notValueResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(notValueResult);
 
-            VOXEL_ASSERT(notValueResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
+            VOXEL_ASSERT(notValueResult.value, VOXEL_ERROR_INVALID_ARG);
 
             VOXEL_ERRORABLE notResult = voxel_notOperation(executor->context, notValueResult.value); VOXEL_MUST(notResult);
 
@@ -2738,8 +2776,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ERRORABLE binaryBResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryBResult);
             VOXEL_ERRORABLE binaryAResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryAResult);
 
-            VOXEL_ASSERT(binaryAResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
-            VOXEL_ASSERT(binaryBResult.value, VOXEL_ERROR_INVALID_ARGUMENT);
+            VOXEL_ASSERT(binaryAResult.value, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(binaryBResult.value, VOXEL_ERROR_INVALID_ARG);
 
             VOXEL_ERRORABLE binaryResult;
 
@@ -2788,14 +2826,14 @@ void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position) {
 
     executor->callStackHead++;
 
-    voxel_Count neededSize = ((executor->callStackHead / VOXEL_CALL_STACK_BLOCK_LENGTH) + 1) * sizeof(voxel_Count);
+    voxel_Count neededSize = ((executor->callStackHead / VOXEL_CALL_STACK_BLOCK_LENGTH) + 1) * sizeof(voxel_Call);
 
     if (executor->callStackSize < neededSize) {
         executor->callStackSize = neededSize;
-        executor->callStack = VOXEL_REALLOC(executor->callStack, neededSize); VOXEL_TAG_REALLOC("voxel_Executor->callStack", neededSize - sizeof(voxel_Count), neededSize);
+        executor->callStack = VOXEL_REALLOC(executor->callStack, neededSize); VOXEL_TAG_REALLOC("voxel_Executor->callStack", neededSize - sizeof(voxel_Call), neededSize);
     }
 
-    executor->callStack[executor->callStackHead] = position;
+    executor->callStack[executor->callStackHead] = (voxel_Call) {.position = position, .canHandleExceptions = VOXEL_FALSE};
 }
 
 void voxel_stepOutExecutor(voxel_Executor* executor) {
@@ -2816,28 +2854,40 @@ void voxel_stepOutExecutor(voxel_Executor* executor) {
     executor->callStackHead--;
 }
 
-VOXEL_ERRORABLE voxel_setExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef) {
-    voxel_Thing* stack = executor->exceptionHandlerStack;
+void voxel_setExceptionHandler(voxel_Executor* executor, voxel_Position exceptionHandlerPosition) {
+    voxel_Call* callStackTop = &executor->callStack[executor->callStackHead];
 
-    return voxel_setListItem(executor->context, stack, voxel_getListLength(stack) - 1, handlerPosRef);
+    printf("set %i\n", exceptionHandlerPosition);
+
+    callStackTop->canHandleExceptions = VOXEL_TRUE;
+    callStackTop->exceptionHandlerPosition = exceptionHandlerPosition;
 }
 
-VOXEL_ERRORABLE voxel_pushExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef) {
-    voxel_Thing* stack = executor->exceptionHandlerStack;
+void voxel_clearExceptionHandler(voxel_Executor* executor) {
+    executor->callStack[executor->callStackHead].canHandleExceptions = VOXEL_FALSE;
+}
 
-    if (!handlerPosRef) {
-        // Duplicate top item if no handler pos ref is provided
+VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor) {
+    printf("pos %d\n", executor->callStack[executor->callStackHead].exceptionHandlerPosition);
+    while (!executor->callStack[executor->callStackHead].canHandleExceptions) {
+        if (executor->callStackHead == 0) {
+            VOXEL_ERRORABLE thrownThing = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(thrownThing);
 
-        VOXEL_ERRORABLE item = voxel_getListItem(executor->context, stack, voxel_getListLength(stack) - 1); VOXEL_MUST(item);
+            if (thrownThing.value) {
+                VOXEL_LOG("Unhandled exception: ");
+                VOXEL_MUST(voxel_logThing(executor->context, thrownThing.value));
+                VOXEL_LOG("\n");
+            }
 
-        handlerPosRef = item.value;
+            VOXEL_THROW(VOXEL_ERROR_UNHANDLED_EXCEPTION);
+        }
+
+        voxel_stepOutExecutor(executor);
     }
 
-    return voxel_pushOntoList(executor->context, stack, handlerPosRef);
-}
+    *voxel_getExecutorPosition(executor) = executor->callStack[executor->callStackHead].exceptionHandlerPosition;
 
-VOXEL_ERRORABLE voxel_popExceptionHandler(voxel_Executor* executor) {
-    return voxel_popFromList(executor->context, executor->exceptionHandlerStack);
+    return VOXEL_OK;
 }
 
 // src/scopes.h

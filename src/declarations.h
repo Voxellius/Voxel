@@ -109,6 +109,9 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_STRING = '"',
     VOXEL_TOKEN_TYPE_CALL = '!',
     VOXEL_TOKEN_TYPE_RETURN = '^',
+    VOXEL_TOKEN_TYPE_THROW = 'T',
+    VOXEL_TOKEN_TYPE_SET_HANDLER = 'H',
+    VOXEL_TOKEN_TYPE_CLEAR_HANDLER = 'h',
     VOXEL_TOKEN_TYPE_GET = '?',
     VOXEL_TOKEN_TYPE_SET = ':',
     VOXEL_TOKEN_TYPE_VAR = 'v',
@@ -138,15 +141,20 @@ typedef struct voxel_Scope {
     voxel_Thing* things;
 } voxel_Scope;
 
+typedef struct voxel_Call {
+    voxel_Position position;
+    voxel_Bool canHandleExceptions;
+    voxel_Position exceptionHandlerPosition;
+} voxel_Call;
+
 typedef struct voxel_Executor {
     voxel_Context* context;
     voxel_Scope* scope;
     voxel_Bool isRunning;
-    voxel_Position* callStack;
+    voxel_Call* callStack;
     voxel_Count callStackHead;
     voxel_Count callStackSize;
     voxel_Thing* valueStack;
-    voxel_Thing* exceptionHandlerStack;
     struct voxel_Executor* previousExecutor;
     struct voxel_Executor* nextExecutor;
 } voxel_Executor;
@@ -302,9 +310,9 @@ voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
 void voxel_stepOutExecutor(voxel_Executor* executor);
-VOXEL_ERRORABLE voxel_setExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef);
-VOXEL_ERRORABLE voxel_pushExceptionHandler(voxel_Executor* executor, voxel_Thing* handlerPosRef);
-VOXEL_ERRORABLE voxel_popExceptionHandler(voxel_Executor* executor);
+void voxel_setExceptionHandler(voxel_Executor* executor, voxel_Position exceptionHandlerPosition);
+void voxel_clearExceptionHandler(voxel_Executor* executor);
+VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor);
 
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
 void voxel_pushNull(voxel_Executor* executor);

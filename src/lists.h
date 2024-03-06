@@ -164,8 +164,8 @@ VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, vo
 
     voxel_List* list = thing->value;
 
-    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARGUMENT);
-    VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARGUMENT);
+    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
+    VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARG);
 
     if (index == list->length) {
         return voxel_pushOntoList(context, thing, value);
@@ -187,8 +187,8 @@ VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing,
 
     voxel_List* list = thing->value;
 
-    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARGUMENT);
-    VOXEL_ASSERT(index < list->length, VOXEL_ERROR_INVALID_ARGUMENT);
+    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
+    VOXEL_ASSERT(index < list->length, VOXEL_ERROR_INVALID_ARG);
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
     voxel_ListItem* listItem = listItemResult.value;
@@ -277,8 +277,8 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 
     voxel_List* list = thing->value;
 
-    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARGUMENT);
-    VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARGUMENT);
+    VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
+    VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARG);
 
     if (index == list->length) {
         return voxel_pushOntoList(context, thing, value);

@@ -38,7 +38,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_TOKENISATION_END -0x14
 #define VOXEL_ERROR_TYPE_MISMATCH -0x20
 #define VOXEL_ERROR_NOT_IMPLEMENTED -0x21
-#define VOXEL_ERROR_INVALID_ARGUMENT -0x22
+#define VOXEL_ERROR_INVALID_ARG -0x22
 #define VOXEL_ERROR_THING_LOCKED -0x30
 #define VOXEL_ERROR_CANNOT_CONVERT_THING -0x31
 #define VOXEL_ERROR_NOT_A_MEMBER -0x32
@@ -46,6 +46,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_CANNOT_JUMP_TO_THING -0x34
 #define VOXEL_ERROR_INVALID_BUILTIN -0x35
 #define VOXEL_ERROR_MISSING_ARG -0x40
+#define VOXEL_ERROR_UNHANDLED_EXCEPTION -0x50
 
 #define VOXEL_OK (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = VOXEL_NULL}
 #define VOXEL_OK_RET(result) (voxel_Result) {.errorCode = VOXEL_OK_CODE, .value = (result)}
@@ -73,7 +74,7 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
         case VOXEL_ERROR_NOT_IMPLEMENTED:
             return "Not implemented";
 
-        case VOXEL_ERROR_INVALID_ARGUMENT:
+        case VOXEL_ERROR_INVALID_ARG:
             return "Invalid argument";
 
         case VOXEL_ERROR_THING_LOCKED:
@@ -96,6 +97,9 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
 
         case VOXEL_ERROR_MISSING_ARG:
             return "Missing a required argument on value stack";
+
+        case VOXEL_ERROR_UNHANDLED_EXCEPTION:
+            return "Unhandled exception";
 
         default:
             return "Unknown error";
