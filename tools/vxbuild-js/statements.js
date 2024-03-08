@@ -55,7 +55,7 @@ export class StatementBlockNode extends ast.AstNode {
                     continue;
                 }
 
-                throw new SyntaxError("Expected statement or }");
+                throw new SyntaxError("Expected statement or \`}\`", tokens[0]?.location);
             }
         } else {
             instance.expectChildByMatching(tokens, [statements.StatementNode], namespace);

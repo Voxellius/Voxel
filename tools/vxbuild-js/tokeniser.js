@@ -1,8 +1,12 @@
+import * as sources from "./sources.js";
+
 export class Token {
     static HUMAN_READABLE_NAME = "token";
 
     constructor(source) {
         this.value = source;
+
+        this.location = null;
     }
 
     static matches(token, targetValue = null) {
@@ -45,32 +49,42 @@ export class NumberToken extends Token {
     }
 }
 
-export function tokenise(source) {
+export function tokenise(sourceContainer) {
+    var source = sourceContainer.source;
     var match = null;
     var tokens = [];
     var stringLiteralOpener = null;
     var currentString = null;
+    var currentPosition = 0;
+    var previousPosition = 0;
 
     function matchToken(pattern) {
         match = source.match(pattern);
 
         if (match) {
             source = source.substring(match[0].length);
-
+            previousPosition = currentPosition;
+            currentPosition += match[0].length;
+            
             return true;
         }
-
+        
         return false;
     }
-
+    
     function addToken(tokenClass, value = match[0]) {
-        tokens.push(new tokenClass(value));
+        var token = new tokenClass(value);
+
+        token.sourceContainer = sourceContainer;
+        token.location = previousPosition;
+ 
+        tokens.push(token);
     }
 
     while (source.length > 0) {
         if (stringLiteralOpener) {
             if (source[0] == stringLiteralOpener) {
-                tokens.push(new StringToken(currentString));
+                addToken(StringToken, currentString);
                 
                 source = source.substring(1);
                 stringLiteralOpener = null;
@@ -136,7 +150,7 @@ export function tokenise(source) {
             continue;
         }
 
-        throw new SyntaxError("Invalid syntax");
+        throw new sources.SourceError("Invalid syntax", currentPosition);
     }
 
     return tokens;

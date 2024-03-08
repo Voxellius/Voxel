@@ -1,3 +1,4 @@
+import * as sources from "./sources.js";
 import * as namespaces from "./namespaces.js";
 import * as tokeniser from "./tokeniser.js";
 import * as ast from "./ast.js";
@@ -180,7 +181,8 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         }
 
         if (!(target.value instanceof namespaces.Symbol)) {
-            throw new SyntaxError("Cannot set a value literal (expected a variable name)");
+            // TODO: Specify token
+            throw new sources.SourceError("Cannot set a value literal (expected a variable name)");
         }
 
         return codeGen.join(

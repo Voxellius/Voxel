@@ -1,3 +1,5 @@
+import * as sources from "./sources.js";
+
 export class TokenQuery {
     constructor(tokenType, targetValue = null, humanReadableName = null) {
         this.tokenType = tokenType;
@@ -48,7 +50,10 @@ export class TokenQuery {
 
         var tokenHumanReadableName = token ? token.constructor.HUMAN_READABLE_NAME : "nothing";
 
-        throw new SyntaxError(`Expected ${humanReadableNames.join(" or ")} but got ${tokenHumanReadableName} instead`);
+        throw new sources.SourceError(
+            `Expected ${humanReadableNames.join(" or ")} but got ${tokenHumanReadableName} instead`,
+            token?.location
+        );
     }
 }
 
@@ -116,7 +121,10 @@ export class AstNode {
         if (!addedChild) {
             var tokenHumanReadableName = tokens[0] ? tokens[0].constructor.HUMAN_READABLE_NAME : "nothing";
 
-            throw new SyntaxError(`Expected ${nodeTypes.map((node) => node.HUMAN_READABLE_NAME).join(" or ")} but got ${tokenHumanReadableName}`);
+            throw new sources.SourceError(
+                `Expected ${nodeTypes.map((node) => node.HUMAN_READABLE_NAME).join(" or ")} but got ${tokenHumanReadableName}`,
+                tokens[0]?.location
+            );
         }
     }
 
