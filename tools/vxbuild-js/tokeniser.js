@@ -117,7 +117,7 @@ export function tokenise(source) {
             continue;
         }
 
-        if (matchToken(/^[+\-*\/]/)) {
+        if (matchToken(/^[+\-*\/=]/)) {
             addToken(OperatorToken);
             continue;
         }

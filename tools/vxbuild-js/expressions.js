@@ -121,6 +121,7 @@ export class ExpressionNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "expression";
 
     static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "var"),
         new ast.TokenQuery(tokeniser.BracketToken, "("),
         ...ThingNode.MATCH_QUERIES,
         new ast.TokenQuery(tokeniser.OperatorToken, "-")
@@ -139,6 +140,58 @@ export class ExpressionNode extends ast.AstNode {
     }
 }
 
+export class ExpressionAssignmentNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "assignment expression";
+
+    constructor(targetInstance, isLocal) {
+        super();
+
+        this.targetInstance = targetInstance;
+        this.isLocal = isLocal;
+    }
+
+    static create(tokens, namespace, targetInstance, isLocal = false) {
+        var instance = new this(targetInstance, isLocal);
+
+        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
+            return instance;
+        }
+
+        instance.addChildByMatching(tokens, [ExpressionNode], namespace);
+
+        return instance;
+    }
+
+    generateCode() {
+        var currentCode = codeGen.bytes();
+        var target = this.targetInstance.children.pop();
+
+        if (this.targetInstance.children.length > 0) {
+            currentCode = currentCode.join(this.targetInstance.generateCode());
+
+            console.log("Accessor parent's code:", currentCode);
+
+            // TODO: Implement setting object and list items in bytecode
+            throw new Error("Not implemented yet");
+        }
+
+        if (!(target instanceof ThingNode)) {
+            throw new Error("Trap: setter target is not a `ThingNode`");
+        }
+
+        if (!(target.value instanceof namespaces.Symbol)) {
+            throw new SyntaxError("Cannot set a value literal (expected a variable name)");
+        }
+
+        return codeGen.join(
+            currentCode,
+            this.children.length > 0 ? this.children[0].generateCode() : codeGen.bytes(codeGen.vxcTokens.NULL),
+            target.value.generateCode(),
+            codeGen.bytes(this.isLocal ? codeGen.vxcTokens.VAR : codeGen.vxcTokens.SET)
+        );
+    }
+}
+
 export class ExpressionLeafNode extends ExpressionNode {
     static maybeAddAccessors(instance, tokens, namespace) {
         while (true) {
@@ -152,9 +205,14 @@ export class ExpressionLeafNode extends ExpressionNode {
 
     static create(tokens, namespace) {
         var instance = new this();
+        var assigningToLocalVariable = false;
 
         if (instance.addChildByMatching(tokens, [UnaryNegativeOperatorExpressionNode], namespace)) {
             return instance;
+        }
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "var")])) {
+            assigningToLocalVariable = true;
         }
 
         if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")])) {
@@ -163,14 +221,32 @@ export class ExpressionLeafNode extends ExpressionNode {
             this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
 
             this.maybeAddAccessors(instance, tokens, namespace);
+        } else {
+            instance.expectChildByMatching(tokens, [ExpressionThingNode], namespace);
 
-            return instance;
+            instance.children = instance.children[0].children;
         }
 
-        instance.expectChildByMatching(tokens, [ExpressionThingNode], namespace);
+        if (this.want(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
+            return ExpressionAssignmentNode.create(tokens, namespace, instance, assigningToLocalVariable);
+        }
+
+        if (assigningToLocalVariable) {
+            return ExpressionAssignmentNode.create(tokens, namespace, instance, true);
+        }
 
         return instance;
     }
+
+    // static create(tokens, namespace) {
+    //     var instance = this.createLeaf();
+
+    //     if (this.want(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
+    //         return ExpressionAssignmentNode.create(tokens, namespace, instance);
+    //     }
+
+    //     return instance;
+    // }
 
     generateCode() {
         var currentCode = codeGen.bytes();
