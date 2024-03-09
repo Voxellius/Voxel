@@ -134,6 +134,8 @@ export class FunctionNode extends ast.AstNode {
     }
 
     generateCode() {
+        var symbolCode = this.identifierSymbol.generateCode();
+
         var bodyCode = codeGen.join(
             this.children[0].generateCode(), // Function parameters
             this.children[1].generateCode(), // Function statement block
@@ -142,14 +144,12 @@ export class FunctionNode extends ast.AstNode {
 
         return codeGen.join(
             codeGen.string("_fnskip"), // TODO: Use better (perhaps generated) name
-            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD, 0, 0, 0, bodyCode.length + 23),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD, 0, 0, 0, bodyCode.length + 17 + symbolCode.length),
             this.identifierSymbol.generateCode(),
-            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD, 0, 0, 0, 11),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD, 0, 0, 0, 5 + symbolCode.length),
             codeGen.string("_fnskip"),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP),
             bodyCode
         );
-
-        var symbolCode = this.identifierSymbol.generateCode();
     }
 }

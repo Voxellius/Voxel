@@ -3,6 +3,10 @@ var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 log("This message was from a .vxl file!\n");
 log("This time, it was compiled to a .vxc file and loaded by the runtime!\n");
 
+function hello() {
+    log("Hello from this function!\n");
+}
+
 function test() {
     log("This is called from a function!\n");
 }
@@ -11,4 +15,5 @@ log("Here is the result of a complex expression: ");
 log(complexExpression);
 log("\n");
 
+hello();
 test();
