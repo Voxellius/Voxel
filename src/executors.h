@@ -270,7 +270,7 @@ void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position) {
 
     executor->callStackHead++;
 
-    voxel_Count neededSize = ((executor->callStackHead / VOXEL_CALL_STACK_BLOCK_LENGTH) + 1) * sizeof(voxel_Call);
+    voxel_Count neededSize = ((executor->callStackHead / VOXEL_CALL_STACK_BLOCK_LENGTH) + 1) * VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
 
     if (executor->callStackSize < neededSize) {
         executor->callStackSize = neededSize;
