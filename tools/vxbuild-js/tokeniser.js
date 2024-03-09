@@ -6,6 +6,7 @@ export class Token {
     constructor(source) {
         this.value = source;
 
+        this.sourceContainer = null;
         this.location = null;
     }
 
@@ -150,7 +151,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        throw new sources.SourceError("Invalid syntax", currentPosition);
+        throw new sources.SourceError("Invalid syntax", sourceContainer, currentPosition);
     }
 
     return tokens;

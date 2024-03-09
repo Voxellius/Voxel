@@ -52,6 +52,7 @@ export class TokenQuery {
 
         throw new sources.SourceError(
             `Expected ${humanReadableNames.join(" or ")} but got ${tokenHumanReadableName} instead`,
+            token?.sourceContainer,
             token?.location
         );
     }
@@ -123,6 +124,7 @@ export class AstNode {
 
             throw new sources.SourceError(
                 `Expected ${nodeTypes.map((node) => node.HUMAN_READABLE_NAME).join(" or ")} but got ${tokenHumanReadableName}`,
+                tokens[0]?.sourceContainer,
                 tokens[0]?.location
             );
         }

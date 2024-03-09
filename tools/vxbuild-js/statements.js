@@ -118,8 +118,8 @@ export class FunctionNode extends ast.AstNode {
         this.eat(tokens); // `function` keyword
         this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
 
-        instance.expectChildByMatching(tokens, [statements.FunctionParametersNode], namespace);
-        instance.expectChildByMatching(tokens, [statements.StatementBlockNode], namespace);
+        instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
+        instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
         return instance;
     }

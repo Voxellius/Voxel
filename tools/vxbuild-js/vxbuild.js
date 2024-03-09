@@ -5,34 +5,43 @@ import * as tokeniser from "./tokeniser.js";
 import * as parser from "./parser.js";
 import * as codeGen from "./codegen.js";
 
-var flags = parseArgs(Deno.args, {
-    string: ["input"],
-    string: ["output"],
-    alias: {"input": "i", "output": "o"}
-});
+try {
+    var flags = parseArgs(Deno.args, {
+        string: ["input"],
+        string: ["output"],
+        alias: {"input": "i", "output": "o"}
+    });
 
-flags["input"] ??= flags["_"].shift();
+    flags["input"] ??= flags["_"].shift();
 
-var source = await Deno.readTextFile(flags["input"]);
-var sourceContainer = new sources.SourceContainer(source, flags["input"]);
-var tokens = tokeniser.tokenise(sourceContainer);
+    var source = await Deno.readTextFile(flags["input"]);
+    var sourceContainer = new sources.SourceContainer(source, flags["input"]);
+    var tokens = tokeniser.tokenise(sourceContainer);
 
-console.log("Parsed tokens:", tokens);
+    console.log("Parsed tokens:", tokens);
 
-var ast = parser.parse(tokens);
+    var ast = parser.parse(tokens);
 
-console.log("Built AST:", ast);
+    console.log("Built AST:", ast);
 
-var code = codeGen.join(codeGen.bytes(
-    codeGen.byte("V"),
-    codeGen.byte("x"),
-    codeGen.byte("C"),
-    1
-), ast.generateCode(), codeGen.bytes(0));
+    var code = codeGen.join(codeGen.bytes(
+        codeGen.byte("V"),
+        codeGen.byte("x"),
+        codeGen.byte("C"),
+        1
+    ), ast.generateCode(), codeGen.bytes(0));
 
-console.log("Generated code:", code);
-console.log("String representation:", JSON.stringify(new TextDecoder().decode(code)));
+    console.log("Generated code:", code);
+    console.log("String representation:", JSON.stringify(new TextDecoder().decode(code)));
 
-Deno.writeFile(flags["output"], code);
+    Deno.writeFile(flags["output"], code);
 
-console.log(`Finished building project; written to \`${flags["output"]}\``);
+    console.log(`Finished building project; written to \`${flags["output"]}\``);
+} catch (e) {
+    if (e instanceof sources.SourceError) {
+        e.log();
+        Deno.exit(1);
+    } else {
+        throw e;
+    }
+}
