@@ -4,16 +4,19 @@ log("This message was from a .vxl file!\n");
 log("This time, it was compiled to a .vxc file and loaded by the runtime!\n");
 
 function hello() {
-    log("Hello from this function!\n");
+    log("Hello from another function!\n");
+    log(complexExpression);
+    log("\n");
 }
 
 function test() {
     log("This is called from a function!\n");
+
+    hello();
 }
 
 log("Here is the result of a complex expression: ");
 log(complexExpression);
 log("\n");
 
-hello();
 test();

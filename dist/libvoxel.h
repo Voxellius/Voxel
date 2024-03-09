@@ -2559,7 +2559,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     voxel_Executor* executor = VOXEL_MALLOC(sizeof(voxel_Executor)); VOXEL_TAG_MALLOC(voxel_Executor);
 
     executor->context = context;
-    executor->scope = voxel_newScope(context, context->globalScope);
+    executor->scope = context->globalScope;
     executor->isRunning = VOXEL_TRUE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
     executor->callStack = VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
