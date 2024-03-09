@@ -2810,8 +2810,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
     }
 
     #ifdef VOXEL_DEBUG_EXECUTORS
-        VOXEL_DEBUG_LOG("Current value stack: ");
+        VOXEL_LOG("Current value stack: ");
         voxel_logThing(executor->context, executor->valueStack);
+        VOXEL_LOG("\n");
     #endif
 
     VOXEL_FREE(token); VOXEL_TAG_FREE(voxel_Token);

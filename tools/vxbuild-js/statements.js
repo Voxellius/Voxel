@@ -51,14 +51,14 @@ export class StatementBlockNode extends ast.AstNode {
                     continue;
                 }
 
-                if (instance.addChildByMatching(tokens, [statements.StatementNode], namespace)) {
+                if (instance.addChildByMatching(tokens, [StatementNode], namespace)) {
                     continue;
                 }
 
                 throw new SyntaxError("Expected statement or \`}\`", tokens[0]?.location);
             }
         } else {
-            instance.expectChildByMatching(tokens, [statements.StatementNode], namespace);
+            instance.expectChildByMatching(tokens, [StatementNode], namespace);
         }
 
         return instance;
@@ -103,6 +103,10 @@ export class FunctionParametersNode extends ast.AstNode {
 
         return instance;
     }
+
+    generateCode() {
+        return codeGen.bytes(codeGen.vxcTokens.POP);
+    }
 }
 
 export class FunctionNode extends ast.AstNode {
@@ -112,15 +116,40 @@ export class FunctionNode extends ast.AstNode {
         new ast.TokenQuery(tokeniser.KeywordToken, "function")
     ];
 
+    identifierSymbol = null;
+
     static create(tokens, namespace) {
         var instance = new this();
 
         this.eat(tokens); // `function` keyword
-        this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+        var identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+        instance.identifierSymbol = new namespaces.Symbol(namespace, identifier.value);
 
         instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
         return instance;
+    }
+
+    generateCode() {
+        var bodyCode = codeGen.join(
+            this.children[0].generateCode(), // Function parameters
+            this.children[1].generateCode(), // Function statement block
+            codeGen.bytes(codeGen.vxcTokens.NULL, codeGen.vxcTokens.RETURN)
+        );
+
+        return codeGen.join(
+            codeGen.string("_fnskip"), // TODO: Use better (perhaps generated) name
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD, 0, 0, 0, bodyCode.length + 23),
+            this.identifierSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD, 0, 0, 0, 11),
+            codeGen.string("_fnskip"),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP),
+            bodyCode
+        );
+
+        var symbolCode = this.identifierSymbol.generateCode();
     }
 }
