@@ -14,7 +14,7 @@ export class StatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [FunctionNode, expressions.ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [FunctionNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
 
         return instance;
     }
@@ -69,6 +69,31 @@ export class StatementBlockNode extends ast.AstNode {
     }
 }
 
+export class ReturnStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "return statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "return")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        instance.addChildByMatching(tokens, [expressions.ExpressionNode], namespace);
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(
+            this.children[0] ? this.children[0].generateCode() : codeGen.bytes(codeGen.vxcTokens.NULL),
+            codeGen.bytes(codeGen.vxcTokens.RETURN)
+        );
+    }
+}
+
 export class FunctionParametersNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "parameter list";
 
@@ -105,7 +130,6 @@ export class FunctionParametersNode extends ast.AstNode {
     }
 
     generateCode() {
-        // return codeGen.bytes(codeGen.vxcTokens.POP);
         return codeGen.join(
             codeGen.number(this.parameters.length),
             codeGen.string("params"),

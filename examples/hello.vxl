@@ -15,10 +15,16 @@ function test(value, otherValue) {
     log("\n");
 
     hello();
+
+    return otherValue + 1;
 }
 
 log("Here is the result of a complex expression: ");
 log(complexExpression);
 log("\n");
 
-test("I am a passed-in value!", 2 + 3);
+var returned = test("I am a passed-in value!", 2 + 3);
+
+log("Returned value: ");
+log(returned);
+log("\n");

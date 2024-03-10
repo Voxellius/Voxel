@@ -114,7 +114,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(function|class|var)\b/)) {
+        if (matchToken(/^(return|function|var)\b/)) {
             addToken(KeywordToken);
             continue;
         }
