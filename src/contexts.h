@@ -6,6 +6,7 @@ voxel_Context* voxel_newContext() {
     context->codeLength = 0;
     context->builtins = VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
+    context->tokenisationState = VOXEL_STATE_NONE;
     context->firstTrackedThing = VOXEL_NULL;
     context->lastTrackedThing = VOXEL_NULL;
     context->firstExecutor = VOXEL_NULL;

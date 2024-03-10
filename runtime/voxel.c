@@ -90,12 +90,12 @@ int main(int argc, char* argv[]) {
     voxel_Context* context = voxel_newContext();
 
     voxel_defineBuiltin(context, "log", &builtin_log);
-    voxel_defineBuiltin(context, "add", &builtin_add);
-    voxel_defineBuiltin(context, "sub", &builtin_subtract);
-    voxel_defineBuiltin(context, "mul", &builtin_multiply);
-    voxel_defineBuiltin(context, "div", &builtin_divide);
-    voxel_defineBuiltin(context, "neg", &builtin_negate);
-    voxel_defineBuiltin(context, "params", &builtin_params);
+    voxel_defineBuiltin(context, ".+", &builtin_add);
+    voxel_defineBuiltin(context, ".-", &builtin_subtract);
+    voxel_defineBuiltin(context, ".*", &builtin_multiply);
+    voxel_defineBuiltin(context, "./", &builtin_divide);
+    voxel_defineBuiltin(context, ".-x", &builtin_negate);
+    voxel_defineBuiltin(context, ".P", &builtin_params);
 
     FILE* fp = fopen(argv[1], "r");
 

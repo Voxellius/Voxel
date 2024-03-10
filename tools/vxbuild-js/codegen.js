@@ -11,6 +11,7 @@ export const vxcTokens = {
     BUFFER_EMPTY: byte("E"),
     STRING: byte("\""),
     CALL: byte("!"),
+    SYSTEM_CALL: byte("."),
     RETURN: byte("^"),
     THROW: byte("T"),
     SET_HANDLER: byte("H"),
@@ -96,6 +97,14 @@ export function number(value) {
 export function string(value) {
     return join(
         bytes(vxcTokens.STRING),
+        new TextEncoder().encode(value),
+        bytes(0x00)
+    );
+}
+
+export function systemCall(value) {
+    return join(
+        bytes(vxcTokens.SYSTEM_CALL),
         new TextEncoder().encode(value),
         bytes(0x00)
     );

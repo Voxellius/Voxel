@@ -10,11 +10,28 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
     VOXEL_ASSERT(context->code, VOXEL_ERROR_NO_CODE);
     
     voxel_Token token;
+    voxel_Byte tokenType;
 
-    VOXEL_MUST(voxel_safeToRead(context, position, 1));
+    switch (context->tokenisationState) {
+        case VOXEL_STATE_SYSTEM_CALL_GET:
+            tokenType = VOXEL_TOKEN_TYPE_GET;
+            context->tokenisationState = VOXEL_STATE_SYSTEM_CALL_CALL;
+            break;
+
+        case VOXEL_STATE_SYSTEM_CALL_CALL:
+            tokenType = VOXEL_TOKEN_TYPE_CALL;
+            context->tokenisationState = VOXEL_STATE_NONE;
+            break;
+
+        default:
+            VOXEL_MUST(voxel_safeToRead(context, position, 1));
+
+            tokenType = context->code[(*position)++];
+
+            break;
+    }
 
     voxel_Bool shouldCreateToken = VOXEL_TRUE;
-    voxel_Byte tokenType = context->code[(*position)++];
 
     switch (tokenType) {
         case VOXEL_TOKEN_TYPE_NULL:
@@ -120,15 +137,18 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             break;
 
         case VOXEL_TOKEN_TYPE_STRING:
+        case VOXEL_TOKEN_TYPE_SYSTEM_CALL:
             voxel_Byte currentByte = '\0';
-            voxel_Byte* currentString = NULL;
+            voxel_Byte* currentString = VOXEL_NULL;
             voxel_Count currentSize = 0;
             voxel_Count stringSize = 0;
+            voxel_Bool needToAddPrefix = tokenType == VOXEL_TOKEN_TYPE_SYSTEM_CALL;
 
             while (VOXEL_TRUE) {
                 VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
-                currentByte = context->code[(*position)++];
+                currentByte = needToAddPrefix ? '.' : context->code[(*position)++];
+                needToAddPrefix = VOXEL_FALSE;
 
                 if (currentByte == '\0') {
                     break;
@@ -136,7 +156,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
                 voxel_Count neededSize = (((stringSize / VOXEL_STRING_BLOCK_SIZE) + 1) * VOXEL_STRING_BLOCK_SIZE);
 
-                if (currentString == NULL) {
+                if (currentString == VOXEL_NULL) {
                     currentString = VOXEL_MALLOC(neededSize); VOXEL_TAG_MALLOC_SIZE("voxel_Byte[]", neededSize);
                     currentSize = neededSize;
                 } else if (neededSize > currentSize) {
@@ -152,6 +172,10 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_FREE(currentString); VOXEL_TAG_FREE_SIZE("voxel_Byte[]", currentSize);
 
             VOXEL_DEBUG_LOG("[Token: string]\n");
+
+            if (tokenType == VOXEL_TOKEN_TYPE_SYSTEM_CALL) {
+                context->tokenisationState = VOXEL_STATE_SYSTEM_CALL_GET;
+            }
 
             break;
 

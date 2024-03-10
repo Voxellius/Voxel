@@ -9,12 +9,19 @@ typedef struct voxel_Result {
     void* value;
 } voxel_Result;
 
+typedef enum {
+    VOXEL_STATE_NONE,
+    VOXEL_STATE_SYSTEM_CALL_GET,
+    VOXEL_STATE_SYSTEM_CALL_CALL
+} voxel_TokenisationState;
+
 typedef struct voxel_Context {
     voxel_Bool isInitialised;
     char* code;
     voxel_Count codeLength;
     voxel_Builtin* builtins;
     voxel_Count builtinCount;
+    voxel_TokenisationState tokenisationState;
     struct voxel_Scope* globalScope;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
@@ -108,6 +115,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_BUFFER_EMPTY = 'E',
     VOXEL_TOKEN_TYPE_STRING = '"',
     VOXEL_TOKEN_TYPE_CALL = '!',
+    VOXEL_TOKEN_TYPE_SYSTEM_CALL = '.',
     VOXEL_TOKEN_TYPE_RETURN = '^',
     VOXEL_TOKEN_TYPE_THROW = 'T',
     VOXEL_TOKEN_TYPE_SET_HANDLER = 'H',

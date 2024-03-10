@@ -308,11 +308,7 @@ export class UnaryNegativeOperatorExpressionNode extends UnaryOperatorExpression
 
     static OPERATOR_CODE = codeGen.join(
         codeGen.number(1),
-        codeGen.string("neg"),
-        codeGen.bytes(
-            codeGen.vxcTokens.GET,
-            codeGen.vxcTokens.CALL
-        )
+        codeGen.systemCall("-x")
     );
 }
 
@@ -368,19 +364,11 @@ export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperator
     static OPERATOR_CODE = {
         "*": codeGen.join(
             codeGen.number(2),
-            codeGen.string("mul"),
-            codeGen.bytes(
-                codeGen.vxcTokens.GET,
-                codeGen.vxcTokens.CALL
-            )
+            codeGen.systemCall("*")
         ),
         "/": codeGen.join(
             codeGen.number(2),
-            codeGen.string("div"),
-            codeGen.bytes(
-                codeGen.vxcTokens.GET,
-                codeGen.vxcTokens.CALL
-            )
+            codeGen.systemCall("/")
         )
     };
 
@@ -396,19 +384,11 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
     static OPERATOR_CODE = {
         "+": codeGen.join(
             codeGen.number(2),
-            codeGen.string("add"),
-            codeGen.bytes(
-                codeGen.vxcTokens.GET,
-                codeGen.vxcTokens.CALL
-            )
+            codeGen.systemCall("+")
         ),
         "-": codeGen.join(
             codeGen.number(2),
-            codeGen.string("sub"),
-            codeGen.bytes(
-                codeGen.vxcTokens.GET,
-                codeGen.vxcTokens.CALL
-            )
+            codeGen.systemCall("/")
         )
     };
 
