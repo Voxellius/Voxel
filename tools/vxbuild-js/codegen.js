@@ -45,8 +45,31 @@ export function join(...arrays) {
     return new Uint8Array(arrays.reduce((a, b) => [...a, ...b], []));
 }
 
+export function int8(value) {
+    return bytes(
+        value & 0xFF
+    );
+}
+
+export function int16(value) {
+    return bytes(
+        (bytes >> 8) & 0xFF,
+        value & 0xFF
+    );
+}
+
+export function int32(value) {
+    return bytes(
+        (bytes >> 24) & 0xFF,
+        (bytes >> 16) & 0xFF,
+        (bytes >> 8) & 0xFF,
+        value & 0xFF
+    );
+}
+
 export function number(value) {
-    return bytes(vxcTokens.NUMBER_INT_8, value);
+    // TODO: Shrink depending on magnitude of value
+    return join(bytes(vxcTokens.NUMBER_INT_32), int32(value));
 }
 
 export function string(value) {
