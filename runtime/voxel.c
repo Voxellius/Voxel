@@ -90,6 +90,7 @@ int main(int argc, char* argv[]) {
     voxel_Context* context = voxel_newContext();
 
     voxel_defineBuiltin(context, "log", &builtin_log);
+    voxel_defineBuiltin(context, ".log", &builtin_log);
     voxel_defineBuiltin(context, ".+", &builtin_add);
     voxel_defineBuiltin(context, ".-", &builtin_subtract);
     voxel_defineBuiltin(context, ".*", &builtin_multiply);

@@ -122,6 +122,7 @@ export class ExpressionNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "expression";
 
     static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "#syscall"),
         new ast.TokenQuery(tokeniser.KeywordToken, "var"),
         new ast.TokenQuery(tokeniser.BracketToken, "("),
         ...ThingNode.MATCH_QUERIES,
@@ -213,6 +214,10 @@ export class ExpressionLeafNode extends ExpressionNode {
             return instance;
         }
 
+        if (this.want(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "#syscall")])) {
+            return SystemCallNode.create(tokens, namespace);
+        }
+
         if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "var")])) {
             assigningToLocalVariable = true;
         }
@@ -239,16 +244,6 @@ export class ExpressionLeafNode extends ExpressionNode {
 
         return instance;
     }
-
-    // static create(tokens, namespace) {
-    //     var instance = this.createLeaf();
-
-    //     if (this.want(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
-    //         return ExpressionAssignmentNode.create(tokens, namespace, instance);
-    //     }
-
-    //     return instance;
-    // }
 
     generateCode() {
         var currentCode = codeGen.bytes();
@@ -393,4 +388,33 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = MultiplicationDivisionOperatorExpressionNode;
+}
+
+export class SystemCallNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "system call";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "#syscall")
+    ];
+
+    value = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        instance.value = new namespaces.SystemCall(namespace, this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value);
+
+        instance.expectChildByMatching(tokens, [FunctionArgumentsNode], namespace);
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(
+            this.children[0].generateCode(),
+            this.value.generateCode()
+        );
+    }
 }

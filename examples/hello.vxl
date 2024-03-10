@@ -1,30 +1,36 @@
 var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 
-log("This message was from a .vxl file!\n");
-log("This time, it was compiled to a .vxc file and loaded by the runtime!\n");
+function print(value) {
+    #syscall log(value);
+}
+
+function println(value) {
+    #syscall log(value);
+    #syscall log("\n");
+}
+
+println("This message was from a .vxl file!");
+println("This time, it was compiled to a .vxc file and loaded by the runtime!");
 
 function hello() {
-    log("Hello from another function!\n");
+    println("Hello from another function!");
 }
 
 function test(value, otherValue) {
-    log("This is called from a function with arguments passed: ");
-    log(value);
-    log(" and ");
-    log(otherValue);
-    log("\n");
+    print("This is called from a function with arguments passed: ");
+    print(value);
+    print(" and ");
+    println(otherValue);
 
     hello();
 
     return otherValue + 1;
 }
 
-log("Here is the result of a complex expression: ");
-log(complexExpression);
-log("\n");
+print("Here is the result of a complex expression: ");
+println(complexExpression);
 
 var returned = test("I am a passed-in value!", 2 + 3);
 
-log("Returned value: ");
-log(returned);
-log("\n");
+print("Returned value: ");
+println(returned);

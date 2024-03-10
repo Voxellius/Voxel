@@ -20,3 +20,9 @@ export class Symbol {
         // return codeGen.string(`${this.namespace.name}_${this.name}`);
     }
 }
+
+export class SystemCall extends Symbol {
+    generateCode() {
+        return codeGen.systemCall(this.name);
+    }
+}
