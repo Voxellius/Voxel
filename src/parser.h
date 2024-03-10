@@ -16,8 +16,6 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
     voxel_Bool shouldCreateToken = VOXEL_TRUE;
     voxel_Byte tokenType = context->code[(*position)++];
 
-    // printf("@%x %x %c\n", *position, tokenType, tokenType);
-
     switch (tokenType) {
         case VOXEL_TOKEN_TYPE_NULL:
             token.data = voxel_newNull(context);
