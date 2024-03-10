@@ -105,7 +105,16 @@ export class FunctionParametersNode extends ast.AstNode {
     }
 
     generateCode() {
-        return codeGen.bytes(codeGen.vxcTokens.POP);
+        // return codeGen.bytes(codeGen.vxcTokens.POP);
+        return codeGen.join(
+            codeGen.number(this.parameters.length),
+            codeGen.string("params"),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL),
+            ...this.parameters.reverse().map((symbol) => codeGen.join(
+                symbol.generateCode(),
+                codeGen.bytes(codeGen.vxcTokens.SET, codeGen.vxcTokens.POP)
+            ))
+        );
     }
 }
 
@@ -142,15 +151,28 @@ export class FunctionNode extends ast.AstNode {
             codeGen.bytes(codeGen.vxcTokens.NULL, codeGen.vxcTokens.RETURN)
         );
 
-        return codeGen.join(
+        var skipJumpCode = codeGen.join(
+            codeGen.string("_fnskip"),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        );
+
+        var storageCode = codeGen.join(
+            symbolCode,
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(skipJumpCode.length)
+        );
+
+        var skipDefinitionCode = codeGen.join(
             codeGen.string("_fnskip"), // TODO: Use better (perhaps generated) name
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
-            codeGen.int32(bodyCode.length + 17 + symbolCode.length),
-            this.identifierSymbol.generateCode(),
-            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
-            codeGen.int32(5 + symbolCode.length),
-            codeGen.string("_fnskip"),
-            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP),
+            codeGen.int32(symbolCode.length + storageCode.length + skipJumpCode.length + bodyCode.length)
+        );
+
+        return codeGen.join(
+            skipDefinitionCode,
+            symbolCode,
+            storageCode,
+            skipJumpCode,
             bodyCode
         );
     }

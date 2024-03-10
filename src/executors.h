@@ -157,6 +157,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             } else if (token->type == VOXEL_TOKEN_TYPE_POS_REF_BACKWARD) {
                 referencedPosition -= (voxel_IntPtr)token->data;
             } else if (token->type == VOXEL_TOKEN_TYPE_POS_REF_FORWARD) {
+                printf("fwd by %d\n", token->data);
                 referencedPosition += (voxel_IntPtr)token->data;
             }
 

@@ -54,6 +54,32 @@ void builtin_negate(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, value);
 }
 
+void builtin_params(voxel_Executor* executor) {
+    voxel_Thing* requiredThing = voxel_pop(executor);
+    voxel_Thing* actualThing = voxel_pop(executor);
+
+    if (!requiredThing || !actualThing) {
+        return;
+    }
+
+    voxel_Int required = voxel_getNumberInt(requiredThing);
+    voxel_Int actual = voxel_getNumberInt(actualThing);
+
+    while (required < actual) {
+        voxel_Thing* unusedThing = voxel_pop(executor);
+
+        voxel_unreferenceThing(executor->context, unusedThing);
+
+        actual--;
+    }
+
+    while (required > actual) {
+        voxel_pushNull(executor);
+
+        actual++;
+    }
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         fprintf(stderr, "No input file specified\n");
@@ -69,6 +95,7 @@ int main(int argc, char* argv[]) {
     voxel_defineBuiltin(context, "mul", &builtin_multiply);
     voxel_defineBuiltin(context, "div", &builtin_divide);
     voxel_defineBuiltin(context, "neg", &builtin_negate);
+    voxel_defineBuiltin(context, "params", &builtin_params);
 
     FILE* fp = fopen(argv[1], "r");
 

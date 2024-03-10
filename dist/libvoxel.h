@@ -1121,6 +1121,10 @@ voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value) {
 }
 
 voxel_Int voxel_getNumberInt(voxel_Thing* thing) {
+    if (thing->type != VOXEL_TYPE_NUMBER) {
+        return 0;
+    }
+
     voxel_Number* number = thing->value;
 
     switch (number->type) {
@@ -1133,6 +1137,10 @@ voxel_Int voxel_getNumberInt(voxel_Thing* thing) {
 }
 
 voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
+    if (thing->type != VOXEL_TYPE_NUMBER) {
+        return 0;
+    }
+
     voxel_Number* number = thing->value;
 
     switch (number->type) {
@@ -2365,6 +2373,8 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
     voxel_Bool shouldCreateToken = VOXEL_TRUE;
     voxel_Byte tokenType = context->code[(*position)++];
 
+    // printf("@%x %x %c\n", *position, tokenType, tokenType);
+
     switch (tokenType) {
         case VOXEL_TOKEN_TYPE_NULL:
             token.data = voxel_newNull(context);
@@ -2448,7 +2458,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
             for (voxel_Count i = 0; i < 4; i++) {
                 bufferSize <<= 8;
-                bufferSize |= context->code[(*position)++];
+                bufferSize |= context->code[(*position)++] & 0xFF;
             }
 
             if (tokenType == VOXEL_TOKEN_TYPE_BUFFER_EMPTY) {
@@ -2534,7 +2544,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
             for (voxel_Count i = 0; i < 4; i++) {
                 stepSize <<= 8;
-                stepSize |= context->code[(*position)++];
+                stepSize |= context->code[(*position)++] & 0xFF;
             }
 
             token.data = (void*)(voxel_IntPtr)stepSize;
@@ -2722,6 +2732,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             } else if (token->type == VOXEL_TOKEN_TYPE_POS_REF_BACKWARD) {
                 referencedPosition -= (voxel_IntPtr)token->data;
             } else if (token->type == VOXEL_TOKEN_TYPE_POS_REF_FORWARD) {
+                printf("fwd by %d\n", token->data);
                 referencedPosition += (voxel_IntPtr)token->data;
             }
 

@@ -16,6 +16,8 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
     voxel_Bool shouldCreateToken = VOXEL_TRUE;
     voxel_Byte tokenType = context->code[(*position)++];
 
+    // printf("@%x %x %c\n", *position, tokenType, tokenType);
+
     switch (tokenType) {
         case VOXEL_TOKEN_TYPE_NULL:
             token.data = voxel_newNull(context);
@@ -99,7 +101,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
             for (voxel_Count i = 0; i < 4; i++) {
                 bufferSize <<= 8;
-                bufferSize |= context->code[(*position)++];
+                bufferSize |= context->code[(*position)++] & 0xFF;
             }
 
             if (tokenType == VOXEL_TOKEN_TYPE_BUFFER_EMPTY) {
@@ -185,7 +187,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
             for (voxel_Count i = 0; i < 4; i++) {
                 stepSize <<= 8;
-                stepSize |= context->code[(*position)++];
+                stepSize |= context->code[(*position)++] & 0xFF;
             }
 
             token.data = (void*)(voxel_IntPtr)stepSize;

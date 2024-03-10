@@ -27,6 +27,10 @@ voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value) {
 }
 
 voxel_Int voxel_getNumberInt(voxel_Thing* thing) {
+    if (thing->type != VOXEL_TYPE_NUMBER) {
+        return 0;
+    }
+
     voxel_Number* number = thing->value;
 
     switch (number->type) {
@@ -39,6 +43,10 @@ voxel_Int voxel_getNumberInt(voxel_Thing* thing) {
 }
 
 voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
+    if (thing->type != VOXEL_TYPE_NUMBER) {
+        return 0;
+    }
+
     voxel_Number* number = thing->value;
 
     switch (number->type) {

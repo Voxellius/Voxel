@@ -5,12 +5,14 @@ log("This time, it was compiled to a .vxc file and loaded by the runtime!\n");
 
 function hello() {
     log("Hello from another function!\n");
-    log(complexExpression);
-    log("\n");
 }
 
-function test() {
-    log("This is called from a function!\n");
+function test(value, otherValue) {
+    log("This is called from a function with arguments passed: ");
+    log(value);
+    log(" and ");
+    log(otherValue);
+    log("\n");
 
     hello();
 }
@@ -19,4 +21,4 @@ log("Here is the result of a complex expression: ");
 log(complexExpression);
 log("\n");
 
-test();
+test("I am a passed-in value!", 2 + 3);
