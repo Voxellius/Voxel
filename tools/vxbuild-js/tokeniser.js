@@ -86,10 +86,11 @@ export function tokenise(sourceContainer) {
         if (stringLiteralOpener) {
             if (source[0] == stringLiteralOpener) {
                 addToken(StringToken, currentString);
-                
+
                 source = source.substring(1);
                 stringLiteralOpener = null;
                 currentString = null;
+                currentPosition++;
 
                 continue;
             }
@@ -101,6 +102,7 @@ export function tokenise(sourceContainer) {
             }
 
             currentString += source[0];
+            currentPosition++;
             source = source.substring(1);
 
             continue;
