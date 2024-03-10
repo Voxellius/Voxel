@@ -46,29 +46,50 @@ export function join(...arrays) {
 }
 
 export function int8(value) {
+    if (value < 0) {
+        value = 0x100 - value;
+    }
+
     return bytes(
         value & 0xFF
     );
 }
 
 export function int16(value) {
+    if (value < 0) {
+        value = 0x10000 - value;
+    }
+
     return bytes(
-        (bytes >> 8) & 0xFF,
+        (value >> 8) & 0xFF,
         value & 0xFF
     );
 }
 
 export function int32(value) {
+    if (value < 0) {
+        value = 0x100000000 - value;
+    }
+
     return bytes(
-        (bytes >> 24) & 0xFF,
-        (bytes >> 16) & 0xFF,
-        (bytes >> 8) & 0xFF,
+        (value >> 24) & 0xFF,
+        (value >> 16) & 0xFF,
+        (value >> 8) & 0xFF,
         value & 0xFF
     );
 }
 
 export function number(value) {
-    // TODO: Shrink depending on magnitude of value
+    var magnitude = Math.abs(value);
+
+    if (magnitude <= 0x7F) {
+        return join(bytes(vxcTokens.NUMBER_INT_8), int8(value));
+    }
+
+    if (magnitude <= 0x7FFF) {
+        return join(bytes(vxcTokens.NUMBER_INT_16), int16(value));
+    }
+
     return join(bytes(vxcTokens.NUMBER_INT_32), int32(value));
 }
 

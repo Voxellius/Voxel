@@ -48,19 +48,27 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_NUMBER_INT_32:
             VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
-            voxel_Int numberIntValue = context->code[(*position)++];
+            voxel_Int numberIntValue = context->code[(*position)++] & 0xFF;
 
             if (tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_16 || tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_32) {
                 VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
-                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++];
+                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++] & 0xFF;
             }
 
             if (tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_32) {
                 VOXEL_MUST(voxel_safeToRead(context, position, 2));
 
-                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++];
-                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++];
+                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++] & 0xFF;
+                numberIntValue <<= 8; numberIntValue |= context->code[(*position)++] & 0xFF;
+            }
+
+            if (tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_8 && numberIntValue & 0x80) {
+                numberIntValue -= 0x100;
+            } else if (tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_16 && numberIntValue & 0x8000) {
+                numberIntValue -= 0x10000;
+            } else if (tokenType == VOXEL_TOKEN_TYPE_NUMBER_INT_32 && numberIntValue & 0x80000000) {
+                numberIntValue -= 0x100000000;
             }
 
             token.data = voxel_newNumberInt(context, numberIntValue);
