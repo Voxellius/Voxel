@@ -122,7 +122,7 @@ export class ExpressionNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "expression";
 
     static MATCH_QUERIES = [
-        new ast.TokenQuery(tokeniser.KeywordToken, "#syscall"),
+        new ast.TokenQuery(tokeniser.KeywordToken, "syscall"),
         new ast.TokenQuery(tokeniser.KeywordToken, "var"),
         new ast.TokenQuery(tokeniser.BracketToken, "("),
         ...ThingNode.MATCH_QUERIES,
@@ -214,7 +214,7 @@ export class ExpressionLeafNode extends ExpressionNode {
             return instance;
         }
 
-        if (this.want(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "#syscall")])) {
+        if (this.want(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "syscall")])) {
             return SystemCallNode.create(tokens, namespace);
         }
 
@@ -394,7 +394,7 @@ export class SystemCallNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "system call";
 
     static MATCH_QUERIES = [
-        new ast.TokenQuery(tokeniser.KeywordToken, "#syscall")
+        new ast.TokenQuery(tokeniser.KeywordToken, "syscall")
     ];
 
     value = null;

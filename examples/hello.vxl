@@ -1,12 +1,12 @@
 var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 
 function print(value) {
-    #syscall log(value);
+    syscall log(value);
 }
 
 function println(value) {
-    #syscall log(value);
-    #syscall log("\n");
+    syscall log(value);
+    syscall log("\n");
 }
 
 println("This message was from a .vxl file!");
