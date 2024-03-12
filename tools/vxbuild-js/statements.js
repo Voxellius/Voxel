@@ -149,6 +149,7 @@ export class FunctionNode extends ast.AstNode {
     ];
 
     identifierSymbol = null;
+    skipSymbol = null;
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -158,6 +159,7 @@ export class FunctionNode extends ast.AstNode {
         var identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
 
         instance.identifierSymbol = new namespaces.Symbol(namespace, identifier.value);
+        instance.skipSymbol = new namespaces.Symbol(namespace, "#fn");
 
         instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
@@ -175,7 +177,7 @@ export class FunctionNode extends ast.AstNode {
         );
 
         var skipJumpCode = codeGen.join(
-            codeGen.string("_fnskip"),
+            this.skipSymbol.generateCode(),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
         );
 
@@ -186,7 +188,7 @@ export class FunctionNode extends ast.AstNode {
         );
 
         var skipDefinitionCode = codeGen.join(
-            codeGen.string("_fnskip"), // TODO: Use better (perhaps generated) name
+            this.skipSymbol.generateCode(),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
             codeGen.int32(symbolCode.length + storageCode.length + skipJumpCode.length + bodyCode.length)
         );

@@ -34,6 +34,6 @@ export class ModuleNode extends ast.AstNode {
     }
 }
 
-export function parse(tokens) {
-    return ModuleNode.create(tokens, new namespaces.Namespace());
+export function parse(tokens, namespace = new namespaces.Namespace()) {
+    return ModuleNode.create(tokens, namespace);
 }

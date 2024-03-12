@@ -1,6 +1,7 @@
 import {parseArgs} from "https://deno.land/std@0.218.2/cli/parse_args.ts";
 
 import * as sources from "./sources.js";
+import * as namespaces from "./namespaces.js";
 import * as tokeniser from "./tokeniser.js";
 import * as parser from "./parser.js";
 import * as codeGen from "./codegen.js";
@@ -20,9 +21,12 @@ try {
 
     console.log("Parsed tokens:", tokens);
 
-    var ast = parser.parse(tokens);
+    var namespace = new namespaces.Namespace();
+    var ast = parser.parse(tokens, namespace);
 
     console.log("Built AST:", ast);
+
+    namespaces.mangleSymbols([namespace]);
 
     var code = codeGen.join(codeGen.bytes(
         codeGen.byte("V"),
