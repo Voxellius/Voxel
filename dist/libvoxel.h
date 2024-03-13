@@ -328,7 +328,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_EQUAL = '=',
     VOXEL_TOKEN_TYPE_LESS_THAN = '<',
     VOXEL_TOKEN_TYPE_GREATER_THAN = '>',
-    VOXEL_TOKEN_TYPE_NOT = '~',
+    VOXEL_TOKEN_TYPE_NOT = 'N',
     VOXEL_TOKEN_TYPE_AND = '&',
     VOXEL_TOKEN_TYPE_OR = '|'
 } voxel_TokenType;
@@ -2277,14 +2277,6 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
 // src/operations.h
 
 VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing) {
-    if (thing->type == VOXEL_TYPE_BYTE) {
-        return VOXEL_OK_RET(voxel_newByte(context, ~(voxel_Byte)(voxel_IntPtr)thing->value));
-    }
-
-    if (thing->type == VOXEL_TYPE_NUMBER) {
-        return VOXEL_OK_RET(voxel_newNumberInt(context, ~voxel_getNumberInt(thing)));
-    }
-
     return VOXEL_OK_RET(voxel_newBoolean(context, !voxel_thingIsTruthy(thing)));
 }
 

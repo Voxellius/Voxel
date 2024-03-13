@@ -14,7 +14,7 @@ export class StatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [FunctionNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [FunctionNode, IfStatementNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
 
         return instance;
     }
@@ -70,7 +70,7 @@ export class StatementBlockNode extends ast.AstNode {
 }
 
 export class ReturnStatementNode extends ast.AstNode {
-    static HUMAN_READABLE_NAME = "return statement";
+    static HUMAN_READABLE_NAME = "`return` statement";
 
     static MATCH_QUERIES = [
         new ast.TokenQuery(tokeniser.KeywordToken, "return")
@@ -142,7 +142,7 @@ export class FunctionParametersNode extends ast.AstNode {
 }
 
 export class FunctionNode extends ast.AstNode {
-    static HUMAN_READABLE_NAME = "function";
+    static HUMAN_READABLE_NAME = "function declaration";
 
     static MATCH_QUERIES = [
         new ast.TokenQuery(tokeniser.KeywordToken, "function")
@@ -199,6 +199,87 @@ export class FunctionNode extends ast.AstNode {
             storageCode,
             skipJumpCode,
             bodyCode
+        );
+    }
+}
+
+export class IfStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`if` statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "if")
+    ];
+
+    skipTrueSymbol = null;
+    skipFalseSymbol = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens); // `if` keyword
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);
+
+        instance.expectChildByMatching(tokens, [expressions.ExpressionNode], namespace);
+
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
+
+        instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
+
+        instance.skipTrueSymbol = new namespaces.Symbol(namespace, "#t");
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "else")])) {
+            instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
+
+            instance.skipFalseSymbol = new namespaces.Symbol(namespace, "#f");
+        }
+
+        return instance;
+    }
+
+    generateCode() {
+        var notConditionCode = codeGen.join(
+            this.children[0].generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.NOT)
+        );
+
+        var isTrueCode = codeGen.join(
+            this.children[1].generateCode()
+        );
+
+        var isFalseCode = this.skipFalseSymbol ? codeGen.join(
+            this.children[2].generateCode()
+        ) : codeGen.bytes();
+
+        var skipFalseCode = this.skipFalseSymbol ? codeGen.join(
+            this.skipFalseSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        ) : codeGen.bytes(); // Not necessary if we do not need to skip true statement
+
+        var skipTrueCode = codeGen.join(
+            this.skipTrueSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
+        );
+
+        var skipFalseDefinitionCode = this.skipFalseSymbol ? codeGen.join(
+            this.skipFalseSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(notConditionCode.length + skipTrueCode.length + isTrueCode.length + skipFalseCode.length + isFalseCode.length)
+        ) : codeGen.bytes();
+
+        var skipTrueDefinitionCode = codeGen.join(
+            this.skipTrueSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(skipFalseDefinitionCode.length + notConditionCode.length + skipTrueCode.length + isTrueCode.length + skipFalseCode.length)
+        );
+
+        return codeGen.join(
+            skipTrueDefinitionCode,
+            skipFalseDefinitionCode,
+            notConditionCode,
+            skipTrueCode,
+            isTrueCode,
+            skipFalseCode,
+            isFalseCode
         );
     }
 }

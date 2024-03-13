@@ -24,6 +24,7 @@ export class Token {
 }
 
 export class KeywordToken extends Token {static HUMAN_READABLE_NAME = "keyword";}
+export class AtomToken extends Token {static HUMAN_READABLE_NAME = "atom";}
 export class BracketToken extends Token {static HUMAN_READABLE_NAME = "bracket";}
 export class DelimeterToken extends Token {static HUMAN_READABLE_NAME = "delimeter (,)";}
 export class StatementDelimeterToken extends Token {static HUMAN_READABLE_NAME = "statement delimeter (;)";}
@@ -114,8 +115,13 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:syscall|return|function|var)\b/)) {
+        if (matchToken(/^(?:syscall|return|function|var|if|else)\b/)) {
             addToken(KeywordToken);
+            continue;
+        }
+
+        if (matchToken(/^(?:null|true|false)\b/)) {
+            addToken(AtomToken);
             continue;
         }
 

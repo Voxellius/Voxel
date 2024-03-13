@@ -16,7 +16,7 @@ export class TokenQuery {
             return this.tokenType.HUMAN_READABLE_NAME;
         }
 
-        return this.targetValue;
+        return `\`${this.targetValue}\``;
     }
 
     test(token) {
@@ -123,7 +123,7 @@ export class AstNode {
             var tokenHumanReadableName = tokens[0] ? tokens[0].constructor.HUMAN_READABLE_NAME : "nothing";
 
             throw new sources.SourceError(
-                `Expected ${nodeTypes.map((node) => node.HUMAN_READABLE_NAME).join(" or ")} but got ${tokenHumanReadableName}`,
+                `Expected ${nodeTypes.map((node) => node.HUMAN_READABLE_NAME).join(" or ")} but got ${tokenHumanReadableName} instead`,
                 tokens[0]?.sourceContainer,
                 tokens[0]?.location
             );

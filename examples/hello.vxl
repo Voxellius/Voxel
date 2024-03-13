@@ -1,4 +1,5 @@
 var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
+var thisIsAwesome = true;
 
 function print(value) {
     syscall log(value);
@@ -11,6 +12,12 @@ function println(value) {
 
 println("This message was from a .vxl file!");
 println("This time, it was compiled to a .vxc file and loaded by the runtime!");
+
+if (thisIsAwesome) {
+    println("This is awesome!");
+} else {
+    println("This is not awesome!");
+}
 
 function hello() {
     println("Hello from another function!");

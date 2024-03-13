@@ -29,7 +29,7 @@ export const vxcTokens = {
     EQUAL: byte("="),
     LESS_THAN: byte("<"),
     GREATER_THAN: byte(">"),
-    NOT: byte("~"),
+    NOT: byte("N"),
     AND: byte("&"),
     OR: byte("|")
 };
@@ -78,6 +78,10 @@ export function int32(value) {
         (value >> 8) & 0xFF,
         value & 0xFF
     );
+}
+
+export function boolean(value) {
+    return bytes(value ? vxcTokens.BOOLEAN_TRUE : vxcTokens.BOOLEAN_FALSE);
 }
 
 export function number(value) {

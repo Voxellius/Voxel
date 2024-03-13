@@ -8,6 +8,7 @@ export class ThingNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "thing expression";
 
     static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.AtomToken),
         new ast.TokenQuery(tokeniser.IdentifierToken),
         new ast.TokenQuery(tokeniser.StringToken),
         new ast.TokenQuery(tokeniser.NumberToken)
@@ -20,7 +21,13 @@ export class ThingNode extends ast.AstNode {
 
         var token = this.eat(tokens);
 
-        if (token instanceof tokeniser.IdentifierToken) {
+        if (token instanceof tokeniser.AtomToken) {
+            instance.value = {
+                "true": true,
+                "false": false,
+                "null": null
+            }[token.value] || null;
+        } else if (token instanceof tokeniser.IdentifierToken) {
             instance.value = new namespaces.Symbol(namespace, token.value);
         } else if (token instanceof tokeniser.StringToken || token instanceof tokeniser.NumberToken) {
             instance.value = token.value;
@@ -37,6 +44,14 @@ export class ThingNode extends ast.AstNode {
                 this.value.generateCode(),
                 codeGen.bytes(codeGen.vxcTokens.GET)
             );
+        }
+
+        if (this.value == null) {
+            return codeGen.bytes(codeGen.vxcTokens.NULL);
+        }
+
+        if (typeof(this.value) == "boolean") {
+            return codeGen.boolean(this.value);
         }
 
         if (typeof(this.value) == "string") {

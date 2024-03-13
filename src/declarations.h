@@ -133,7 +133,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_EQUAL = '=',
     VOXEL_TOKEN_TYPE_LESS_THAN = '<',
     VOXEL_TOKEN_TYPE_GREATER_THAN = '>',
-    VOXEL_TOKEN_TYPE_NOT = '~',
+    VOXEL_TOKEN_TYPE_NOT = 'N',
     VOXEL_TOKEN_TYPE_AND = '&',
     VOXEL_TOKEN_TYPE_OR = '|'
 } voxel_TokenType;

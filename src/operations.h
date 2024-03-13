@@ -1,12 +1,4 @@
 VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing) {
-    if (thing->type == VOXEL_TYPE_BYTE) {
-        return VOXEL_OK_RET(voxel_newByte(context, ~(voxel_Byte)(voxel_IntPtr)thing->value));
-    }
-
-    if (thing->type == VOXEL_TYPE_NUMBER) {
-        return VOXEL_OK_RET(voxel_newNumberInt(context, ~voxel_getNumberInt(thing)));
-    }
-
     return VOXEL_OK_RET(voxel_newBoolean(context, !voxel_thingIsTruthy(thing)));
 }
 
