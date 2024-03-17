@@ -225,12 +225,12 @@ export class IfStatementNode extends ast.AstNode {
 
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
-        instance.skipTrueSymbol = new namespaces.Symbol(namespace, "#t"); // TODO: Use better, generated name to allow nesting
+        instance.skipTrueSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("if_true"));
 
         if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "else")])) {
             instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
-            instance.skipFalseSymbol = new namespaces.Symbol(namespace, "#f");
+            instance.skipFalseSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("if_false"));
         }
 
         return instance;
@@ -306,8 +306,8 @@ export class WhileLoopNode extends ast.AstNode {
 
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
-        instance.skipLoopSymbol = new namespaces.Symbol(namespace, "#s"); // TODO: Use better, generated name to allow nesting
-        instance.repeatLoopSymbol = new namespaces.Symbol(namespace, "#r");
+        instance.skipLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("while_skip"));
+        instance.repeatLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("while_loop"));
 
         return instance;
     }

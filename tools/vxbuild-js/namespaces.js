@@ -1,5 +1,7 @@
 import * as codeGen from "./codegen.js";
 
+var generatedSymbolIndex = 0;
+
 export class Namespace {
     constructor(name = null) {
         this.name = name;
@@ -36,6 +38,10 @@ export class SystemCall extends Symbol {
     generateCode() {
         return codeGen.systemCall(this.name);
     }
+}
+
+export function generateSymbolName(prefix) {
+    return `#${prefix}_${generatedSymbolIndex++}`;
 }
 
 export function mangleSymbols(namespaces) {
