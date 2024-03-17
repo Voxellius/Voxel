@@ -14,7 +14,7 @@ export class StatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [FunctionNode, IfStatementNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [FunctionNode, IfStatementNode, WhileLoopNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
 
         return instance;
     }
@@ -225,7 +225,7 @@ export class IfStatementNode extends ast.AstNode {
 
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
-        instance.skipTrueSymbol = new namespaces.Symbol(namespace, "#t");
+        instance.skipTrueSymbol = new namespaces.Symbol(namespace, "#t"); // TODO: Use better, generated name to allow nesting
 
         if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "else")])) {
             instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
@@ -280,6 +280,76 @@ export class IfStatementNode extends ast.AstNode {
             isTrueCode,
             skipFalseCode,
             isFalseCode
+        );
+    }
+}
+
+export class WhileLoopNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`while` loop";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "while")
+    ];
+
+    skipLoopSymbol = null;
+    repeatLoopSymbol = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens); // `while` keyword
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);
+
+        instance.expectChildByMatching(tokens, [expressions.ExpressionNode], namespace);
+
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
+
+        instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
+
+        instance.skipLoopSymbol = new namespaces.Symbol(namespace, "#s"); // TODO: Use better, generated name to allow nesting
+        instance.repeatLoopSymbol = new namespaces.Symbol(namespace, "#r");
+
+        return instance;
+    }
+
+    generateCode() {
+        var notConditionCode = codeGen.join(
+            this.children[0].generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.NOT)
+        );
+
+        var loopCode = codeGen.join(
+            this.children[1].generateCode()
+        );
+
+        var skipLoopCode = codeGen.join(
+            this.skipLoopSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
+        );
+
+        var repeatLoopCode = codeGen.join(
+            this.repeatLoopSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        );
+
+        var repeatLoopDefinitionCode = codeGen.join(
+            this.repeatLoopSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_HERE)
+        );
+
+        var skipLoopDefinitionCode = codeGen.join(
+            this.skipLoopSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(repeatLoopDefinitionCode.length + notConditionCode.length + skipLoopCode.length + loopCode.length + repeatLoopCode.length)
+        );
+
+        return codeGen.join(
+            skipLoopDefinitionCode,
+            repeatLoopDefinitionCode,
+            notConditionCode,
+            skipLoopCode,
+            loopCode,
+            repeatLoopCode
         );
     }
 }

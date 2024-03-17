@@ -115,7 +115,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:syscall|return|function|var|if|else)\b/)) {
+        if (matchToken(/^(?:syscall|return|function|var|if|else|while)\b/)) {
             addToken(KeywordToken);
             continue;
         }

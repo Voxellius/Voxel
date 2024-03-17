@@ -398,7 +398,7 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
         ),
         "-": codeGen.join(
             codeGen.number(2),
-            codeGen.systemCall("/")
+            codeGen.systemCall("-")
         )
     };
 

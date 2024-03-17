@@ -19,6 +19,15 @@ if (thisIsAwesome) {
     println("This is not awesome!");
 }
 
+var count = 10;
+
+while (count) {
+    print("Countdown: ");
+    println(count);
+
+    count = count - 1;
+}
+
 function hello() {
     println("Hello from another function!");
 }
