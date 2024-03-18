@@ -36,7 +36,6 @@ try {
     ), ast.generateCode(), codeGen.bytes(0));
 
     console.log("Generated code:", code);
-    console.log("String representation:", JSON.stringify(new TextDecoder().decode(code)));
 
     Deno.writeFile(flags["output"], code);
 
