@@ -193,7 +193,7 @@ VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_FUNCTION: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
         case VOXEL_TYPE_NUMBER: return VOXEL_OK_RET(voxel_copyNumber(context, thing));
         case VOXEL_TYPE_BUFFER: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getBufferSize(thing)));
-        // TODO: Implement string to number conversion
+        case VOXEL_TYPE_STRING: return voxel_stringToNumber(context, thing);
         case VOXEL_TYPE_OBJECT: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getObjectLength(thing)));
         case VOXEL_TYPE_LIST: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getListLength(thing)));
     }

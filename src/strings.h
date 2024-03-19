@@ -51,6 +51,92 @@ voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing) {
     return voxel_newString(context, string->size, string->value);
 }
 
+
+VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing) {
+    voxel_String* string = thing->value;
+
+    voxel_Count i = 0;
+    voxel_Float result = 0;
+    voxel_Float factor = 1;
+    voxel_Float exponent = 0;
+    voxel_Float exponentIsNegative = VOXEL_FALSE;
+
+    if (string->value[0] == '-') {
+        factor = -1;
+        i++;
+    }
+
+    if (i >= string->size) {
+        VOXEL_THROW(VOXEL_ERROR_CANNOT_CONVERT_THING);
+    }
+
+    voxel_Bool afterPoint = VOXEL_FALSE;
+    voxel_Bool hadDigit = VOXEL_FALSE;
+    voxel_Bool afterExponentMark = VOXEL_FALSE;
+    voxel_Bool afterExponentSign = VOXEL_FALSE;
+
+    while (i < string->size) {
+        voxel_Byte character = string->value[i];
+
+        if (character == '.' && !afterPoint) {
+            afterPoint = VOXEL_TRUE;
+        } else if (
+            (character == 'e' || character == 'E') &&
+            !afterExponentMark && hadDigit
+        ) {
+            afterExponentMark = VOXEL_TRUE;
+            hadDigit = VOXEL_FALSE;
+        } else if (
+            (character == '+' || character == '-') &&
+            afterExponentMark && !afterExponentSign && !hadDigit
+        ) {
+            exponentIsNegative = character == '-';
+            afterExponentSign = VOXEL_TRUE;
+        } else if (character >= '0' && character <= '9') {
+            voxel_Int digit = character - '0';
+
+            if (afterExponentMark) {
+                exponent = (exponent * 10.0) + digit;
+            } else {
+                if (afterPoint) {
+                    factor /= 10.0;
+                }
+
+                result = (result * 10.0) + digit;
+            }
+
+            hadDigit = VOXEL_TRUE;
+        } else {
+            VOXEL_THROW(VOXEL_ERROR_CANNOT_CONVERT_THING);
+        }
+
+        i++;
+    }
+
+    if (!afterExponentMark) {
+        exponent = 1;
+    }
+
+    printf("EXPO: %f\n", exponent);
+    if (!exponentIsNegative) {
+        if (exponent == 1) {
+            // Do nothing
+        } else if (exponent == 0) {
+            result = 1;
+        } else {
+            for (voxel_Count i = 0; i < exponent; i++) {
+                result *= 10.0;
+            }
+        }
+    } else {
+        for (voxel_Count i = 0; i < exponent; i++) {
+            result /= 10.0;
+        }
+    }
+
+    return VOXEL_OK_RET(voxel_newNumberFloat(context, result * factor));
+}
+
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_String* string = thing->value;
     voxel_Thing* vxonString = voxel_newStringTerminated(context, "\"");

@@ -449,6 +449,7 @@ voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data)
 VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_stringIsTruthy(voxel_Thing* thing);
 voxel_Count voxel_getStringSize(voxel_Thing* thing);
@@ -868,7 +869,7 @@ VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_FUNCTION: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
         case VOXEL_TYPE_NUMBER: return VOXEL_OK_RET(voxel_copyNumber(context, thing));
         case VOXEL_TYPE_BUFFER: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getBufferSize(thing)));
-        // TODO: Implement string to number conversion
+        case VOXEL_TYPE_STRING: return voxel_stringToNumber(context, thing);
         case VOXEL_TYPE_OBJECT: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getObjectLength(thing)));
         case VOXEL_TYPE_LIST: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getListLength(thing)));
     }
@@ -1504,6 +1505,92 @@ voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing) {
     voxel_String* string = thing->value;
 
     return voxel_newString(context, string->size, string->value);
+}
+
+
+VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing) {
+    voxel_String* string = thing->value;
+
+    voxel_Count i = 0;
+    voxel_Float result = 0;
+    voxel_Float factor = 1;
+    voxel_Float exponent = 0;
+    voxel_Float exponentIsNegative = VOXEL_FALSE;
+
+    if (string->value[0] == '-') {
+        factor = -1;
+        i++;
+    }
+
+    if (i >= string->size) {
+        VOXEL_THROW(VOXEL_ERROR_CANNOT_CONVERT_THING);
+    }
+
+    voxel_Bool afterPoint = VOXEL_FALSE;
+    voxel_Bool hadDigit = VOXEL_FALSE;
+    voxel_Bool afterExponentMark = VOXEL_FALSE;
+    voxel_Bool afterExponentSign = VOXEL_FALSE;
+
+    while (i < string->size) {
+        voxel_Byte character = string->value[i];
+
+        if (character == '.' && !afterPoint) {
+            afterPoint = VOXEL_TRUE;
+        } else if (
+            (character == 'e' || character == 'E') &&
+            !afterExponentMark && hadDigit
+        ) {
+            afterExponentMark = VOXEL_TRUE;
+            hadDigit = VOXEL_FALSE;
+        } else if (
+            (character == '+' || character == '-') &&
+            afterExponentMark && !afterExponentSign && !hadDigit
+        ) {
+            exponentIsNegative = character == '-';
+            afterExponentSign = VOXEL_TRUE;
+        } else if (character >= '0' && character <= '9') {
+            voxel_Int digit = character - '0';
+
+            if (afterExponentMark) {
+                exponent = (exponent * 10.0) + digit;
+            } else {
+                if (afterPoint) {
+                    factor /= 10.0;
+                }
+
+                result = (result * 10.0) + digit;
+            }
+
+            hadDigit = VOXEL_TRUE;
+        } else {
+            VOXEL_THROW(VOXEL_ERROR_CANNOT_CONVERT_THING);
+        }
+
+        i++;
+    }
+
+    if (!afterExponentMark) {
+        exponent = 1;
+    }
+
+    printf("EXPO: %f\n", exponent);
+    if (!exponentIsNegative) {
+        if (exponent == 1) {
+            // Do nothing
+        } else if (exponent == 0) {
+            result = 1;
+        } else {
+            for (voxel_Count i = 0; i < exponent; i++) {
+                result *= 10.0;
+            }
+        }
+    } else {
+        for (voxel_Count i = 0; i < exponent; i++) {
+            result /= 10.0;
+        }
+    }
+
+    return VOXEL_OK_RET(voxel_newNumberFloat(context, result * factor));
 }
 
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
