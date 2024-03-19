@@ -21,7 +21,7 @@ if (thisIsAwesome) {
 
 var count = 10;
 
-while (count) {
+while (count > 0) {
     print("Countdown: ");
     println(count);
 

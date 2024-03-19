@@ -147,7 +147,7 @@ export class ExpressionNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [AdditionSubtractionOperatorExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [EqualityOperatorExpressionNode], namespace);
 
         return instance;
     }
@@ -403,6 +403,46 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = MultiplicationDivisionOperatorExpressionNode;
+}
+
+export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "<="),
+        new ast.TokenQuery(tokeniser.OperatorToken, "<"),
+        new ast.TokenQuery(tokeniser.OperatorToken, ">="),
+        new ast.TokenQuery(tokeniser.OperatorToken, ">"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "!="),
+        new ast.TokenQuery(tokeniser.OperatorToken, "==")
+    ];
+
+    static OPERATOR_CODE = {
+        "<=": codeGen.join(
+            codeGen.number(2),
+            codeGen.systemCall("<=")
+        ),
+        "<": codeGen.join(
+            codeGen.number(2),
+            codeGen.systemCall("<")
+        ),
+        ">=": codeGen.join(
+            codeGen.number(2),
+            codeGen.systemCall(">=")
+        ),
+        ">": codeGen.join(
+            codeGen.number(2),
+            codeGen.systemCall(">")
+        ),
+        "!=": codeGen.join(
+            codeGen.number(2),
+            codeGen.systemCall("!=")
+        ),
+        "==": codeGen.join(
+            codeGen.number(2),
+            codeGen.systemCall("==")
+        )
+    };
+
+    static CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
 }
 
 export class SystemCallNode extends ast.AstNode {
