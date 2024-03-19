@@ -3,9 +3,9 @@
 #include <libvoxel.h>
 
 #define RUNTIME_BUITLIN_NUMBER_OPERATOR(name, operator) void name(voxel_Executor* executor) { \
-        voxel_Thing* argCount = voxel_pop(executor); \
-        voxel_Thing* b = voxel_pop(executor); \
-        voxel_Thing* a = voxel_pop(executor); \
+        voxel_Thing* argCount = voxel_popNumber(executor); \
+        voxel_Thing* b = voxel_popNumber(executor); \
+        voxel_Thing* a = voxel_popNumber(executor); \
 \
         voxel_unreferenceThing(executor->context, argCount); \
 \
@@ -22,7 +22,7 @@
     }
 
 void builtin_log(voxel_Executor* executor) {
-    voxel_Thing* argCount = voxel_pop(executor);
+    voxel_Thing* argCount = voxel_popNumber(executor);
     voxel_Thing* thing = voxel_pop(executor);
 
     voxel_unreferenceThing(executor->context, argCount);
@@ -46,9 +46,9 @@ RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_greaterThanOrEqualTo, >=);
 RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_greaterThan, >);
 
 void builtin_modulo(voxel_Executor* executor) { 
-    voxel_Thing* argCount = voxel_pop(executor);
-    voxel_Thing* b = voxel_pop(executor);
-    voxel_Thing* a = voxel_pop(executor);
+    voxel_Thing* argCount = voxel_popNumber(executor);
+    voxel_Thing* b = voxel_popNumber(executor);
+    voxel_Thing* a = voxel_popNumber(executor);
 
     voxel_unreferenceThing(executor->context, argCount);
 
@@ -65,7 +65,7 @@ void builtin_modulo(voxel_Executor* executor) {
 }
 
 void builtin_equal(voxel_Executor* executor) {
-    voxel_Thing* argCount = voxel_pop(executor);
+    voxel_Thing* argCount = voxel_popNumber(executor);
     voxel_Thing* b = voxel_pop(executor);
     voxel_Thing* a = voxel_pop(executor);
 
@@ -84,7 +84,7 @@ void builtin_equal(voxel_Executor* executor) {
 }
 
 void builtin_notEqual(voxel_Executor* executor) {
-    voxel_Thing* argCount = voxel_pop(executor);
+    voxel_Thing* argCount = voxel_popNumber(executor);
     voxel_Thing* b = voxel_pop(executor);
     voxel_Thing* a = voxel_pop(executor);
 
@@ -103,8 +103,8 @@ void builtin_notEqual(voxel_Executor* executor) {
 }
 
 void builtin_negate(voxel_Executor* executor) {
-    voxel_Thing* argCount = voxel_pop(executor);
-    voxel_Thing* value = voxel_pop(executor);
+    voxel_Thing* argCount = voxel_popNumber(executor);
+    voxel_Thing* value = voxel_popNumber(executor);
 
     voxel_unreferenceThing(executor->context, argCount);
 
@@ -118,8 +118,8 @@ void builtin_negate(voxel_Executor* executor) {
 }
 
 void builtin_params(voxel_Executor* executor) {
-    voxel_Thing* requiredThing = voxel_pop(executor);
-    voxel_Thing* actualThing = voxel_pop(executor);
+    voxel_Thing* requiredThing = voxel_popNumber(executor);
+    voxel_Thing* actualThing = voxel_popNumber(executor);
 
     if (!requiredThing || !actualThing) {
         return;

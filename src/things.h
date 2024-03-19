@@ -187,7 +187,7 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
 
 VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
+        case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 0));
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToNumber(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToNumber(context, thing);
         case VOXEL_TYPE_FUNCTION: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));

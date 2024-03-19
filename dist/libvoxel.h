@@ -862,7 +862,7 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
 
 VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
+        case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 0));
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToNumber(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToNumber(context, thing);
         case VOXEL_TYPE_FUNCTION: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
@@ -2996,6 +2996,28 @@ void voxel_pushNull(voxel_Executor* executor) {
 
 voxel_Thing* voxel_pop(voxel_Executor* executor) {
     VOXEL_ERRORABLE result = voxel_popFromList(executor->context, executor->valueStack);
+
+    if (VOXEL_IS_ERROR(result)) {
+        return VOXEL_NULL;
+    }
+
+    return result.value;
+}
+
+voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
+    voxel_Thing* poppedThing = voxel_pop(executor);
+
+    if (!poppedThing) {
+        return VOXEL_NULL;
+    }
+
+    if (poppedThing->type == VOXEL_TYPE_NUMBER) {
+        return poppedThing; // Saves us from having to copy the thing
+    }
+
+    VOXEL_ERRORABLE result = voxel_thingToNumber(executor->context, poppedThing);
+
+    voxel_unreferenceThing(executor->context, poppedThing);
 
     if (VOXEL_IS_ERROR(result)) {
         return VOXEL_NULL;
