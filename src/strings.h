@@ -51,7 +51,6 @@ voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing) {
     return voxel_newString(context, string->size, string->value);
 }
 
-
 VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing) {
     voxel_String* string = thing->value;
 
