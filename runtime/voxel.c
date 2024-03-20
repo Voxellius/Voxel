@@ -41,9 +41,7 @@ RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_subtract, -);
 RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_multiply, *);
 RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_divide, /);
 RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_lessThanOrEqualTo, <=);
-RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_lessThan, <);
 RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_greaterThanOrEqualTo, >=);
-RUNTIME_BUITLIN_NUMBER_OPERATOR(builtin_greaterThan, >);
 
 void builtin_modulo(voxel_Executor* executor) { 
     voxel_Thing* argCount = voxel_popNumber(executor);
@@ -161,11 +159,7 @@ int main(int argc, char* argv[]) {
     voxel_defineBuiltin(context, ".%", &builtin_modulo);
     voxel_defineBuiltin(context, ".-x", &builtin_negate);
     voxel_defineBuiltin(context, ".<=", &builtin_lessThanOrEqualTo);
-    voxel_defineBuiltin(context, ".<", &builtin_lessThan);
     voxel_defineBuiltin(context, ".>=", &builtin_greaterThanOrEqualTo);
-    voxel_defineBuiltin(context, ".>", &builtin_greaterThan);
-    voxel_defineBuiltin(context, ".==", &builtin_equal);
-    voxel_defineBuiltin(context, ".!=", &builtin_notEqual);
     voxel_defineBuiltin(context, ".P", &builtin_params);
 
     FILE* fp = fopen(argv[1], "r");

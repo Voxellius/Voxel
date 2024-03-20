@@ -427,26 +427,14 @@ export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode
             codeGen.number(2),
             codeGen.systemCall("<=")
         ),
-        "<": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("<")
-        ),
+        "<": codeGen.bytes(codeGen.vxcTokens.LESS_THAN),
         ">=": codeGen.join(
             codeGen.number(2),
             codeGen.systemCall(">=")
         ),
-        ">": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall(">")
-        ),
-        "!=": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("!=")
-        ),
-        "==": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("==")
-        )
+        ">": codeGen.bytes(codeGen.vxcTokens.GREATER_THAN),
+        "!=": codeGen.bytes(codeGen.vxcTokens.EQUAL, codeGen.vxcTokens.NOT),
+        "==": codeGen.bytes(codeGen.vxcTokens.EQUAL)
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
