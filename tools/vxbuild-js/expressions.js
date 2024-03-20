@@ -141,13 +141,14 @@ export class ExpressionNode extends ast.AstNode {
         new ast.TokenQuery(tokeniser.KeywordToken, "var"),
         new ast.TokenQuery(tokeniser.BracketToken, "("),
         ...ThingNode.MATCH_QUERIES,
-        new ast.TokenQuery(tokeniser.OperatorToken, "-")
+        new ast.TokenQuery(tokeniser.OperatorToken, "-"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "!")
     ];
 
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [EqualityOperatorExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [LogicalOperatorExpressionNode], namespace);
 
         return instance;
     }
@@ -225,7 +226,7 @@ export class ExpressionLeafNode extends ExpressionNode {
         var instance = new this();
         var assigningToLocalVariable = false;
 
-        if (instance.addChildByMatching(tokens, [UnaryNegativeOperatorExpressionNode], namespace)) {
+        if (instance.addChildByMatching(tokens, [UnaryNegativeOperatorExpressionNode, UnaryNotOperatorExpressionNode], namespace)) {
             return instance;
         }
 
@@ -320,6 +321,12 @@ export class UnaryNegativeOperatorExpressionNode extends UnaryOperatorExpression
         codeGen.number(1),
         codeGen.systemCall("-x")
     );
+}
+
+export class UnaryNotOperatorExpressionNode extends UnaryOperatorExpressionNode {
+    static MATCH_QUERIES = [new ast.TokenQuery(tokeniser.OperatorToken, "!")];
+
+    static OPERATOR_CODE = codeGen.bytes(codeGen.vxcTokens.NOT);
 }
 
 export class BinaryOperatorExpressionNode extends ExpressionNode {
@@ -443,6 +450,20 @@ export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
+}
+
+export class LogicalOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "&&"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "||")
+    ];
+
+    static OPERATOR_CODE = {
+        "&&": codeGen.bytes(codeGen.vxcTokens.AND),
+        "||": codeGen.bytes(codeGen.vxcTokens.OR)
+    };
+
+    static CHILD_EXPRESSION_NODE_CLASS = EqualityOperatorExpressionNode;
 }
 
 export class SystemCallNode extends ast.AstNode {

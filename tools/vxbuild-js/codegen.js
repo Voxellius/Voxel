@@ -30,8 +30,8 @@ export const vxcTokens = {
     LESS_THAN: byte("<"),
     GREATER_THAN: byte(">"),
     NOT: byte("N"),
-    AND: byte("&"),
-    OR: byte("|")
+    AND: byte("A"),
+    OR: byte("O")
 };
 
 export function byte(char) {

@@ -329,8 +329,8 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_LESS_THAN = '<',
     VOXEL_TOKEN_TYPE_GREATER_THAN = '>',
     VOXEL_TOKEN_TYPE_NOT = 'N',
-    VOXEL_TOKEN_TYPE_AND = '&',
-    VOXEL_TOKEN_TYPE_OR = '|'
+    VOXEL_TOKEN_TYPE_AND = 'A',
+    VOXEL_TOKEN_TYPE_OR = 'O'
 } voxel_TokenType;
 
 typedef struct voxel_Token {
