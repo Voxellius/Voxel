@@ -117,7 +117,6 @@ VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing)
         exponent = 1;
     }
 
-    printf("EXPO: %f\n", exponent);
     if (!exponentIsNegative) {
         if (exponent == 1) {
             // Do nothing
