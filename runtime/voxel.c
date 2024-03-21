@@ -126,6 +126,9 @@ void builtin_params(voxel_Executor* executor) {
     voxel_Int required = voxel_getNumberInt(requiredThing);
     voxel_Int actual = voxel_getNumberInt(actualThing);
 
+    voxel_unreferenceThing(executor->context, requiredThing);
+    voxel_unreferenceThing(executor->context, actualThing);
+
     while (required < actual) {
         voxel_Thing* unusedThing = voxel_pop(executor);
 

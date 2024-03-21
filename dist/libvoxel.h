@@ -1507,7 +1507,7 @@ voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing) {
     return voxel_newString(context, string->size, string->value);
 }
 
-
+// @source https://stackoverflow.com/a/4392789
 VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing) {
     voxel_String* string = thing->value;
 
@@ -1573,7 +1573,6 @@ VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing)
         exponent = 1;
     }
 
-    printf("EXPO: %f\n", exponent);
     if (!exponentIsNegative) {
         if (exponent == 1) {
             // Do nothing
