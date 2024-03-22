@@ -1,7 +1,11 @@
 export class SourceContainer {
-    constructor(source, name) {
+    constructor(source, location) {
         this.source = source;
-        this.name = name;
+        this.location = location;
+    }
+
+    get name() {
+        return this.location;
     }
 
     positionToRowAndCol(position) {

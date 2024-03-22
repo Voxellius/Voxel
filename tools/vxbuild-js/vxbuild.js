@@ -1,3 +1,4 @@
+import * as path from "https://deno.land/std@0.220.1/path/mod.ts";
 import {parseArgs} from "https://deno.land/std@0.218.2/cli/parse_args.ts";
 
 import * as sources from "./sources.js";
@@ -16,26 +17,19 @@ try {
     flags["input"] ??= flags["_"].shift();
 
     var source = await Deno.readTextFile(flags["input"]);
-    var sourceContainer = new sources.SourceContainer(source, flags["input"]);
-    var tokens = tokeniser.tokenise(sourceContainer);
+    var sourceContainer = new sources.SourceContainer(source, path.resolve(flags["input"]));
+    var namespace = new namespaces.Namespace(null, sourceContainer);
 
-    console.log("Parsed tokens:", tokens);
+    console.log("Resolving imports...");
 
-    var namespace = new namespaces.Namespace();
-    var ast = parser.parse(tokens, namespace);
-
-    console.log("Built AST:", ast);
-
-    namespaces.mangleSymbols([namespace]);
+    await namespace.resolveImports();
 
     var code = codeGen.join(codeGen.bytes(
         codeGen.byte("V"),
         codeGen.byte("x"),
         codeGen.byte("C"),
         1
-    ), ast.generateCode(), codeGen.bytes(0));
-
-    console.log("Generated code:", code);
+    ), await namespace.build(true), codeGen.bytes(0));
 
     Deno.writeFile(flags["output"], code);
 

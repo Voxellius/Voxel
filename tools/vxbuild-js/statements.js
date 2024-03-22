@@ -14,7 +14,7 @@ export class StatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [FunctionNode, IfStatementNode, WhileLoopNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [ImportStatementNode, FunctionNode, IfStatementNode, WhileLoopNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
 
         return instance;
     }
@@ -66,6 +66,37 @@ export class StatementBlockNode extends ast.AstNode {
 
     generateCode() {
         return codeGen.join(...this.children.map((child) => child.generateCode()));
+    }
+}
+
+export class ImportStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "import statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "import")
+    ];
+
+    identifierSymbol = null;
+    skipSymbol = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens); // `import` keyword
+
+        var location = this.eat(tokens, [new ast.TokenQuery(tokeniser.StringToken)]).value;
+
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "as")]);
+
+        var identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value;
+
+        namespace.import(location, identifier);
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.bytes();
     }
 }
 
