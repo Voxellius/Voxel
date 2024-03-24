@@ -22,6 +22,8 @@
 
 #endif
 
+#define VOXEL_BUILTINS_CORE
+
 // #define VOXEL_DEBUG
 // #define VOXEL_DEBUG_MEMORY
 // #define VOXEL_DEBUG_THINGS

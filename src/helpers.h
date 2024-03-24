@@ -1,3 +1,17 @@
+#define _VOXEL_HELPER_POP_VALUE(name, type, popCall, getValueCall, defaultValue) type name(voxel_Executor* executor) { \
+        voxel_Thing* thing = popCall(executor); \
+\
+        if (!thing) { \
+            return (defaultValue); \
+        } \
+\
+        type result = getValueCall(thing); \
+\
+        voxel_unreferenceThing(executor->context, thing); \
+\
+        return result; \
+    }
+
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing) {
     voxel_pushOntoList(executor->context, executor->valueStack, thing);
 }
@@ -36,4 +50,25 @@ voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
     }
 
     return result.value;
+}
+
+_VOXEL_HELPER_POP_VALUE(voxel_popNumberInt, voxel_Int, voxel_popNumber, voxel_getNumberInt, 0);
+_VOXEL_HELPER_POP_VALUE(voxel_popNumberFloat, voxel_Float, voxel_popNumber, voxel_getNumberFloat, 0);
+
+voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
+    voxel_Thing* stack = executor->valueStack;
+
+    index = voxel_getListLength(stack) - index - 1;
+
+    if (index < 0) {
+        return VOXEL_NULL;
+    }
+
+    VOXEL_ERRORABLE listItemResult = voxel_getListItem(executor->context, stack, index);
+
+    if (VOXEL_IS_ERROR(listItemResult)) {
+        return VOXEL_NULL;
+    }
+
+    return listItemResult.value;
 }

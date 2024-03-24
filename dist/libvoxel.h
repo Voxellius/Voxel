@@ -523,8 +523,154 @@ VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor);
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
 void voxel_pushNull(voxel_Executor* executor);
 voxel_Thing* voxel_pop(voxel_Executor* executor);
+voxel_Thing* voxel_popNumber(voxel_Executor* executor);
+voxel_Int voxel_popNumberInt(voxel_Executor* executor);
+voxel_Float voxel_popNumberFloat(voxel_Executor* executor);
+voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index);
 
 void voxel_test();
+
+// src/builtins/core/maths.h
+
+#ifdef VOXEL_BUILTINS_CORE
+
+#define _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(name, operator) void name(voxel_Executor* executor) { \
+        voxel_Int argCount = voxel_popNumberInt(executor); \
+        voxel_Thing* b = voxel_popNumber(executor); \
+        voxel_Thing* a = voxel_popNumber(executor); \
+\
+        if (!a || !b) { \
+            voxel_pushNull(executor); \
+\
+            return; \
+        } \
+\
+        voxel_push(executor, voxel_newNumberFloat(executor->context, voxel_getNumberFloat(a) operator voxel_getNumberFloat(b))); \
+\
+        voxel_unreferenceThing(executor->context, a); \
+        voxel_unreferenceThing(executor->context, b); \
+    }
+
+_VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_add, +);
+_VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_subtract, -);
+_VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_multiply, *);
+_VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_divide, /);
+_VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_lessThanOrEqualTo, <=);
+_VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_greaterThanOrEqualTo, >=);
+
+void voxel_builtins_core_modulo(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int b = voxel_popNumberInt(executor);
+    voxel_Int a = voxel_popNumberInt(executor);
+
+    if (b == 0) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newNumberFloat(executor->context, a % b));
+}
+
+void voxel_builtins_core_equal(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* b = voxel_pop(executor);
+    voxel_Thing* a = voxel_pop(executor);
+
+    if (!a || !b) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newBoolean(executor->context, voxel_compareThings(a, b)));
+
+    voxel_unreferenceThing(executor->context, a);
+    voxel_unreferenceThing(executor->context, b);
+}
+
+void voxel_builtins_core_notEqual(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* b = voxel_pop(executor);
+    voxel_Thing* a = voxel_pop(executor);
+
+    if (!a || !b) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newBoolean(executor->context, !voxel_compareThings(a, b)));
+
+    voxel_unreferenceThing(executor->context, a);
+    voxel_unreferenceThing(executor->context, b);
+}
+
+void voxel_builtins_core_negate(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* value = voxel_popNumber(executor);
+
+    if (!value) {
+        voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newNumberFloat(executor->context, -voxel_getNumberFloat(value)));
+
+    voxel_unreferenceThing(executor->context, value);
+}
+
+void voxel_builtins_core_params(voxel_Executor* executor) {
+    voxel_Int required = voxel_popNumberInt(executor);
+    voxel_Int actual = voxel_popNumberInt(executor);
+
+    while (required < actual) {
+        voxel_Thing* unusedThing = voxel_pop(executor);
+
+        voxel_unreferenceThing(executor->context, unusedThing);
+
+        actual--;
+    }
+
+    while (required > actual) {
+        voxel_pushNull(executor);
+
+        actual++;
+    }
+}
+
+#endif
+
+// src/builtins/core/core.h
+
+#ifdef VOXEL_BUILTINS_CORE
+
+void voxel_builtins_core_log(voxel_Executor* executor) {
+    voxel_Thing* argCount = voxel_popNumber(executor);
+    voxel_Thing* thing = voxel_pop(executor);
+
+    voxel_unreferenceThing(executor->context, argCount);
+
+    if (thing) {
+        voxel_logThing(executor->context, thing);
+
+        voxel_unreferenceThing(executor->context, thing);
+    }
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core(voxel_Context* context) {
+    voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
+    voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
+    voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);
+    voxel_defineBuiltin(context, ".*", &voxel_builtins_core_multiply);
+    voxel_defineBuiltin(context, "./", &voxel_builtins_core_divide);
+    voxel_defineBuiltin(context, ".%", &voxel_builtins_core_modulo);
+    voxel_defineBuiltin(context, ".-x", &voxel_builtins_core_negate);
+    voxel_defineBuiltin(context, ".<=", &voxel_builtins_core_lessThanOrEqualTo);
+    voxel_defineBuiltin(context, ".>=", &voxel_builtins_core_greaterThanOrEqualTo);
+    voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
+}
+
+#else
+
+void voxel_builtins_core(voxel_Context* context) {}
+
+#endif
 
 // src/maths.h
 
@@ -599,6 +745,8 @@ voxel_Context* voxel_newContext() {
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
 
     voxel_newExecutor(context);
+
+    voxel_builtins_core(context);
 
     return context;
 }
@@ -3107,6 +3255,20 @@ VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, vo
 
 // src/helpers.h
 
+#define _VOXEL_HELPER_POP_VALUE(name, type, popCall, getValueCall, defaultValue) type name(voxel_Executor* executor) { \
+        voxel_Thing* thing = popCall(executor); \
+\
+        if (!thing) { \
+            return (defaultValue); \
+        } \
+\
+        type result = getValueCall(thing); \
+\
+        voxel_unreferenceThing(executor->context, thing); \
+\
+        return result; \
+    }
+
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing) {
     voxel_pushOntoList(executor->context, executor->valueStack, thing);
 }
@@ -3145,6 +3307,27 @@ voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
     }
 
     return result.value;
+}
+
+_VOXEL_HELPER_POP_VALUE(voxel_popNumberInt, voxel_Int, voxel_popNumber, voxel_getNumberInt, 0);
+_VOXEL_HELPER_POP_VALUE(voxel_popNumberFloat, voxel_Float, voxel_popNumber, voxel_getNumberFloat, 0);
+
+voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
+    voxel_Thing* stack = executor->valueStack;
+
+    index = voxel_getListLength(stack) - index - 1;
+
+    if (index < 0) {
+        return VOXEL_NULL;
+    }
+
+    VOXEL_ERRORABLE listItemResult = voxel_getListItem(executor->context, stack, index);
+
+    if (VOXEL_IS_ERROR(listItemResult)) {
+        return VOXEL_NULL;
+    }
+
+    return listItemResult.value;
 }
 
 // src/voxel.h
