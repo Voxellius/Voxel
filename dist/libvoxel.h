@@ -319,6 +319,8 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_SET = ':',
     VOXEL_TOKEN_TYPE_VAR = 'v',
     VOXEL_TOKEN_TYPE_POP = 'p',
+    VOXEL_TOKEN_TYPE_DUPE = 'd',
+    VOXEL_TOKEN_TYPE_SWAP = 's',
     VOXEL_TOKEN_TYPE_POS_REF_HERE = '@',
     VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE = '#',
     VOXEL_TOKEN_TYPE_POS_REF_BACKWARD = '[',
@@ -2632,6 +2634,8 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_SET:
         case VOXEL_TOKEN_TYPE_VAR:
         case VOXEL_TOKEN_TYPE_POP:
+        case VOXEL_TOKEN_TYPE_DUPE:
+        case VOXEL_TOKEN_TYPE_SWAP:
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_JUMP:
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
@@ -2819,11 +2823,42 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
 
         case VOXEL_TOKEN_TYPE_POP:
-            VOXEL_ERRORABLE popValue = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(popValue);
+            VOXEL_ERRORABLE popResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(popResult);
 
-            VOXEL_ASSERT(popValue.value, VOXEL_ERROR_MISSING_ARG);
+            VOXEL_ASSERT(popResult.value, VOXEL_ERROR_MISSING_ARG);
 
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, popValue.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, popResult.value));
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_DUPE:
+            voxel_Count dupeStackLength = voxel_getListLength(executor->valueStack);
+
+            VOXEL_ASSERT(dupeStackLength > 0, VOXEL_ERROR_INVALID_ARG);
+
+            VOXEL_ERRORABLE dupeListItemResult = voxel_getListItem(executor->context, executor->valueStack, dupeStackLength - 1); VOXEL_MUST(dupeListItemResult);
+            voxel_ListItem* dupeListItem = dupeListItemResult.value;
+            voxel_Thing* dupeThing = dupeListItem->value;
+
+            dupeThing->referenceCount++;
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, dupeThing));
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_SWAP:
+            printf("VS: ");
+            voxel_logThing(executor->context, executor->valueStack);
+            printf("\n");
+
+            VOXEL_ERRORABLE swapBResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(swapBResult);
+            VOXEL_ERRORABLE swapAResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(swapAResult);
+
+            VOXEL_ASSERT(swapAResult.value, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(swapBResult.value, VOXEL_ERROR_INVALID_ARG);
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, swapBResult.value));
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, swapAResult.value));
 
             break;
 

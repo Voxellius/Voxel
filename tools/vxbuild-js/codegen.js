@@ -20,6 +20,8 @@ export const vxcTokens = {
     SET: byte(":"),
     VAR: byte("v"),
     POP: byte("p"),
+    DUPE: byte("d"),
+    SWAP: byte("s"),
     POS_REF_HERE: byte("@"),
     POS_REF_ABSOLUTE: byte("#"),
     POS_REF_BACKWARD: byte("["),

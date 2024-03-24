@@ -29,7 +29,7 @@ try {
         codeGen.byte("x"),
         codeGen.byte("C"),
         1
-    ), await namespace.build(true), codeGen.bytes(0));
+    ), await namespace.build(false), codeGen.bytes(0));
 
     Deno.writeFile(flags["output"], code);
 

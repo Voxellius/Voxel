@@ -26,7 +26,7 @@ export class ThingNode extends ast.AstNode {
                 "true": true,
                 "false": false,
                 "null": null
-            }[token.value] || null;
+            }[token.value] ?? null;
         } else if (token instanceof tokeniser.IdentifierToken) {
             instance.value = new namespaces.Symbol(namespace, token.value);
         } else if (token instanceof tokeniser.StringToken || token instanceof tokeniser.NumberToken) {
@@ -148,7 +148,7 @@ export class ExpressionNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [LogicalOperatorExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [NullishCoalescingOperatorExpressionNode], namespace);
 
         return instance;
     }
@@ -440,18 +440,174 @@ export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode
     static CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
 }
 
-export class LogicalOperatorExpressionNode extends BinaryOperatorExpressionNode {
+export class LogicalEagerAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
     static OPERATOR_TOKEN_QUERIES = [
-        new ast.TokenQuery(tokeniser.OperatorToken, "&&"),
-        new ast.TokenQuery(tokeniser.OperatorToken, "||")
+        new ast.TokenQuery(tokeniser.OperatorToken, "&&&")
     ];
 
     static OPERATOR_CODE = {
-        "&&": codeGen.bytes(codeGen.vxcTokens.AND),
-        "||": codeGen.bytes(codeGen.vxcTokens.OR)
+        "&&&": codeGen.bytes(codeGen.vxcTokens.AND)
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = EqualityOperatorExpressionNode;
+}
+
+export class LogicalEagerOrOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "|||")
+    ];
+
+    static OPERATOR_CODE = {
+        "|||": codeGen.bytes(codeGen.vxcTokens.OR)
+    };
+
+    static CHILD_EXPRESSION_NODE_CLASS = LogicalEagerAndOperatorExpressionNode;
+}
+
+export class LogicalShortCircuitingAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "&&")
+    ];
+
+    static CHILD_EXPRESSION_NODE_CLASS = LogicalEagerOrOperatorExpressionNode;
+
+    static create(tokens, namespace) {
+        var instance = super.create(tokens, namespace);
+
+        instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("and_skip"));
+
+        return instance;
+    }
+
+    generateCode() {
+        if (this.children.length == 1) {
+            return this.children[0].generateCode();
+        }
+
+        var allChildrenCode = this.children.map((child) => child.generateCode());
+        var skipSymbolCode = this.skipSymbol.generateCode();
+        var currentCode = allChildrenCode.pop();
+
+        while (allChildrenCode.length > 0) {
+            var nextChildCode = allChildrenCode.pop();
+
+            currentCode = codeGen.join(
+                nextChildCode,
+                codeGen.bytes(codeGen.vxcTokens.DUPE),
+                codeGen.bytes(codeGen.vxcTokens.NOT),
+                skipSymbolCode,
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY),
+                codeGen.bytes(codeGen.vxcTokens.POP),
+                currentCode
+            );
+        }
+
+        currentCode = codeGen.join(
+            codeGen.bytes(codeGen.vxcTokens.BOOLEAN_FALSE),
+            skipSymbolCode,
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(currentCode.length),
+            currentCode
+        );
+
+        return currentCode;
+    }
+}
+
+export class LogicalShortCircuitingOrOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "||")
+    ];
+
+    static CHILD_EXPRESSION_NODE_CLASS = LogicalShortCircuitingAndOperatorExpressionNode;
+
+    static create(tokens, namespace) {
+        var instance = super.create(tokens, namespace);
+
+        instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("or_skip"));
+
+        return instance;
+    }
+
+    generateCode() {
+        if (this.children.length == 1) {
+            return this.children[0].generateCode();
+        }
+
+        var allChildrenCode = this.children.map((child) => child.generateCode());
+        var skipSymbolCode = this.skipSymbol.generateCode();
+        var currentCode = allChildrenCode.pop();
+
+        while (allChildrenCode.length > 0) {
+            var nextChildCode = allChildrenCode.pop();
+
+            currentCode = codeGen.join(
+                nextChildCode,
+                codeGen.bytes(codeGen.vxcTokens.DUPE),
+                skipSymbolCode,
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY),
+                codeGen.bytes(codeGen.vxcTokens.POP),
+                currentCode
+            );
+        }
+
+        currentCode = codeGen.join(
+            skipSymbolCode,
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(currentCode.length),
+            currentCode
+        );
+
+        return currentCode;
+    }
+}
+
+export class NullishCoalescingOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "??")
+    ];
+
+    static CHILD_EXPRESSION_NODE_CLASS = LogicalShortCircuitingOrOperatorExpressionNode;
+
+    static create(tokens, namespace) {
+        var instance = super.create(tokens, namespace);
+
+        instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("nullish_skip"));
+
+        return instance;
+    }
+
+    generateCode() {
+        if (this.children.length == 1) {
+            return this.children[0].generateCode();
+        }
+
+        var allChildrenCode = this.children.map((child) => child.generateCode());
+        var skipSymbolCode = this.skipSymbol.generateCode();
+        var currentCode = allChildrenCode.pop();
+
+        while (allChildrenCode.length > 0) {
+            var nextChildCode = allChildrenCode.pop();
+
+            currentCode = codeGen.join(
+                nextChildCode,
+                codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.NULL, codeGen.vxcTokens.EQUAL, codeGen.vxcTokens.NOT),
+                skipSymbolCode,
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY),
+                codeGen.bytes(codeGen.vxcTokens.POP),
+                currentCode
+            );
+        }
+
+        currentCode = codeGen.join(
+            skipSymbolCode,
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(currentCode.length),
+            currentCode
+        );
+
+        return currentCode;
+    }
 }
 
 export class SystemCallNode extends ast.AstNode {
