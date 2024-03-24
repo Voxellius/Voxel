@@ -13,6 +13,24 @@ function println(value) {
     syscall log("\n");
 }
 
+function newList() {
+    return syscall L();
+}
+
+function pushOntoList(list, value) {
+    return syscall Lu(value, list);
+}
+
+function popFromList(list) {
+    return syscall Lp(list);
+}
+
+function printList(list) {
+    print("[");
+    print(syscall Lj(list, ", "));
+    println("]");
+}
+
 println("This message was from a .vxl file!");
 println("This time, it was compiled to a .vxc file and loaded by the runtime!");
 
@@ -53,3 +71,23 @@ var returned = test("I am a passed-in value!", 2 + 3);
 
 print("Returned value: ");
 println(returned);
+
+var list = newList();
+
+pushOntoList(list, "a");
+pushOntoList(list, "b");
+pushOntoList(list, "c");
+
+println("Created new list:");
+printList(list);
+
+print("Popping item: ");
+print(popFromList(list));
+println("");
+
+print("Popping item: ");
+print(popFromList(list));
+println("");
+
+println("Remaining list:");
+printList(list);

@@ -331,6 +331,7 @@ voxel_Thing* voxel_pop(voxel_Executor* executor);
 voxel_Thing* voxel_popNumber(voxel_Executor* executor);
 voxel_Int voxel_popNumberInt(voxel_Executor* executor);
 voxel_Float voxel_popNumberFloat(voxel_Executor* executor);
+voxel_Thing* voxel_popString(voxel_Executor* executor);
 voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index);
 
 void voxel_test();

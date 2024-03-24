@@ -13,6 +13,10 @@
     }
 
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing) {
+    if (thing == VOXEL_NULL) {
+        thing = voxel_newNull(executor->context);
+    }
+
     voxel_pushOntoList(executor->context, executor->valueStack, thing);
 }
 
@@ -55,6 +59,28 @@ voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
 _VOXEL_HELPER_POP_VALUE(voxel_popNumberInt, voxel_Int, voxel_popNumber, voxel_getNumberInt, 0);
 _VOXEL_HELPER_POP_VALUE(voxel_popNumberFloat, voxel_Float, voxel_popNumber, voxel_getNumberFloat, 0);
 
+voxel_Thing* voxel_popString(voxel_Executor* executor) {
+    voxel_Thing* poppedThing = voxel_pop(executor);
+
+    if (!poppedThing) {
+        return VOXEL_NULL;
+    }
+
+    if (poppedThing->type == VOXEL_TYPE_STRING) {
+        return poppedThing; // Saves us from having to copy the thing
+    }
+
+    VOXEL_ERRORABLE result = voxel_thingToString(executor->context, poppedThing);
+
+    voxel_unreferenceThing(executor->context, poppedThing);
+
+    if (VOXEL_IS_ERROR(result)) {
+        return VOXEL_NULL;
+    }
+
+    return result.value;
+}
+
 voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
     voxel_Thing* stack = executor->valueStack;
 
@@ -70,5 +96,7 @@ voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
         return VOXEL_NULL;
     }
 
-    return listItemResult.value;
+    voxel_ListItem* listItem = listItemResult.value;
+
+    return listItem->value;
 }

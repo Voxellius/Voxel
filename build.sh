@@ -26,6 +26,7 @@ include src/common.h
 include src/errors.h
 include src/declarations.h
 include src/builtins/core/maths.h
+include src/builtins/core/lists.h
 include src/builtins/core/core.h
 include src/maths.h
 include src/contexts.h

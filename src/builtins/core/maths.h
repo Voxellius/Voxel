@@ -79,23 +79,4 @@ void voxel_builtins_core_negate(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, value);
 }
 
-void voxel_builtins_core_params(voxel_Executor* executor) {
-    voxel_Int required = voxel_popNumberInt(executor);
-    voxel_Int actual = voxel_popNumberInt(executor);
-
-    while (required < actual) {
-        voxel_Thing* unusedThing = voxel_pop(executor);
-
-        voxel_unreferenceThing(executor->context, unusedThing);
-
-        actual--;
-    }
-
-    while (required > actual) {
-        voxel_pushNull(executor);
-
-        actual++;
-    }
-}
-
 #endif

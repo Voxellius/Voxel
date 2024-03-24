@@ -526,6 +526,7 @@ voxel_Thing* voxel_pop(voxel_Executor* executor);
 voxel_Thing* voxel_popNumber(voxel_Executor* executor);
 voxel_Int voxel_popNumberInt(voxel_Executor* executor);
 voxel_Float voxel_popNumberFloat(voxel_Executor* executor);
+voxel_Thing* voxel_popString(voxel_Executor* executor);
 voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index);
 
 void voxel_test();
@@ -613,23 +614,209 @@ void voxel_builtins_core_negate(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, value);
 }
 
-void voxel_builtins_core_params(voxel_Executor* executor) {
-    voxel_Int required = voxel_popNumberInt(executor);
-    voxel_Int actual = voxel_popNumberInt(executor);
+#endif
 
-    while (required < actual) {
-        voxel_Thing* unusedThing = voxel_pop(executor);
+// src/builtins/core/lists.h
 
-        voxel_unreferenceThing(executor->context, unusedThing);
+#ifdef VOXEL_BUILTINS_CORE
 
-        actual--;
+void voxel_builtins_core_newList(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    voxel_push(executor, voxel_newList(executor->context));
+}
+
+void voxel_builtins_core_newListOf(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_newList(executor->context);
+
+    argCount--; // Iterate over all args other than list arg
+
+    for (voxel_Int i = 0; i < argCount; i++) {
+        voxel_Thing* item = voxel_pop(executor);
+
+        if (!item) {
+            break;
+        }
+
+        voxel_insertIntoList(executor->context, list, 0, item);
     }
 
-    while (required > actual) {
-        voxel_pushNull(executor);
+    voxel_push(executor, list);
+}
 
-        actual++;
+void voxel_builtins_core_getListItem(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int index = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_pop(executor);
+
+    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
+        return voxel_pushNull(executor);
     }
+
+    if (index < 0) {
+        index = voxel_getListLength(list) + index;
+    }
+
+    if (index < 0) {
+        return voxel_pushNull(executor);
+    }
+
+    VOXEL_ERRORABLE listItemResult = voxel_getListItem(executor->context, list, index);
+
+    if (VOXEL_IS_ERROR(listItemResult)) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, listItemResult.value);
+
+    voxel_unreferenceThing(executor->context, list);
+}
+
+void voxel_builtins_core_setListItem(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int index = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_pop(executor);
+    voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
+
+    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 3) {
+        return;
+    }
+
+    if (index < 0) {
+        index = voxel_getListLength(list) + index;
+    }
+
+    if (index < 0) {
+        return;
+    }
+
+    if (VOXEL_IS_ERROR(voxel_setListItem(executor->context, list, index, value))) {
+        return;
+    }
+
+    voxel_unreferenceThing(executor->context, list);
+}
+
+void voxel_builtins_core_removeListItem(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int index = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_pop(executor);
+
+    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
+        return voxel_pushNull(executor);
+    }
+
+    if (index < 0) {
+        index = voxel_getListLength(list) + index;
+    }
+
+    if (index < 0) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_removeListItem(executor->context, list, index);
+
+    voxel_unreferenceThing(executor->context, list);
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_pushOntoList(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_pop(executor);
+    voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
+
+    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
+        return voxel_pushNull(executor);
+    }
+
+    if (VOXEL_IS_ERROR(voxel_pushOntoList(executor->context, list, value))) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_unreferenceThing(executor->context, list);
+    voxel_unreferenceThing(executor->context, value);
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
+}
+
+void voxel_builtins_core_popFromList(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_pop(executor);
+
+    if (!list || list->type != VOXEL_TYPE_LIST) {
+        return voxel_pushNull(executor);
+    }
+
+    VOXEL_ERRORABLE result = voxel_popFromList(executor->context, list);
+
+    if (VOXEL_IS_ERROR(result)) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_unreferenceThing(executor->context, list);
+
+    voxel_push(executor, result.value);
+}
+
+void voxel_builtins_core_insertIntoList(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int index = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_pop(executor);
+    voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
+
+    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 3) {
+        return;
+    }
+
+    if (index < 0) {
+        index = voxel_getListLength(list) + index;
+    }
+
+    if (index < 0) {
+        return;
+    }
+
+    if (VOXEL_IS_ERROR(voxel_insertIntoList(executor->context, list, index, value))) {
+        return;
+    }
+
+    voxel_unreferenceThing(executor->context, list);
+}
+
+void voxel_builtins_core_getListLength(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_pop(executor);
+
+    if (!list || list->type != VOXEL_TYPE_LIST) {
+        return;
+    }
+
+    voxel_unreferenceThing(executor->context, list);
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
+}
+
+void voxel_builtins_core_joinList(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* delimeter = voxel_popString(executor);
+    voxel_Thing* list = voxel_pop(executor);
+
+    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
+        return voxel_pushNull(executor);
+    }
+
+    VOXEL_ERRORABLE result = voxel_joinList(executor->context, list, delimeter);
+
+    if (VOXEL_IS_ERROR(result)) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_unreferenceThing(executor->context, list);
+    voxel_unreferenceThing(executor->context, delimeter);
+
+    voxel_push(executor, result.value);
 }
 
 #endif
@@ -653,8 +840,29 @@ void voxel_builtins_core_log(voxel_Executor* executor) {
     voxel_pushNull(executor);
 }
 
+void voxel_builtins_core_params(voxel_Executor* executor) {
+    voxel_Int required = voxel_popNumberInt(executor);
+    voxel_Int actual = voxel_popNumberInt(executor);
+
+    while (required < actual) {
+        voxel_Thing* unusedThing = voxel_pop(executor);
+
+        voxel_unreferenceThing(executor->context, unusedThing);
+
+        actual--;
+    }
+
+    while (required > actual) {
+        voxel_pushNull(executor);
+
+        actual++;
+    }
+}
+
 void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
+    voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
+
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);
     voxel_defineBuiltin(context, ".*", &voxel_builtins_core_multiply);
@@ -663,7 +871,17 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".-x", &voxel_builtins_core_negate);
     voxel_defineBuiltin(context, ".<=", &voxel_builtins_core_lessThanOrEqualTo);
     voxel_defineBuiltin(context, ".>=", &voxel_builtins_core_greaterThanOrEqualTo);
-    voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
+
+    voxel_defineBuiltin(context, ".L", &voxel_builtins_core_newList);
+    voxel_defineBuiltin(context, ".Lo", &voxel_builtins_core_newListOf);
+    voxel_defineBuiltin(context, ".Lg", &voxel_builtins_core_getListItem);
+    voxel_defineBuiltin(context, ".Ls", &voxel_builtins_core_setListItem);
+    voxel_defineBuiltin(context, ".Lr", &voxel_builtins_core_removeListItem);
+    voxel_defineBuiltin(context, ".Lu", &voxel_builtins_core_pushOntoList);
+    voxel_defineBuiltin(context, ".Lp", &voxel_builtins_core_popFromList);
+    voxel_defineBuiltin(context, ".Li", &voxel_builtins_core_insertIntoList);
+    voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
+    voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
 }
 
 #else
@@ -3270,6 +3488,10 @@ VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, vo
     }
 
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing) {
+    if (thing == VOXEL_NULL) {
+        thing = voxel_newNull(executor->context);
+    }
+
     voxel_pushOntoList(executor->context, executor->valueStack, thing);
 }
 
@@ -3312,6 +3534,28 @@ voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
 _VOXEL_HELPER_POP_VALUE(voxel_popNumberInt, voxel_Int, voxel_popNumber, voxel_getNumberInt, 0);
 _VOXEL_HELPER_POP_VALUE(voxel_popNumberFloat, voxel_Float, voxel_popNumber, voxel_getNumberFloat, 0);
 
+voxel_Thing* voxel_popString(voxel_Executor* executor) {
+    voxel_Thing* poppedThing = voxel_pop(executor);
+
+    if (!poppedThing) {
+        return VOXEL_NULL;
+    }
+
+    if (poppedThing->type == VOXEL_TYPE_STRING) {
+        return poppedThing; // Saves us from having to copy the thing
+    }
+
+    VOXEL_ERRORABLE result = voxel_thingToString(executor->context, poppedThing);
+
+    voxel_unreferenceThing(executor->context, poppedThing);
+
+    if (VOXEL_IS_ERROR(result)) {
+        return VOXEL_NULL;
+    }
+
+    return result.value;
+}
+
 voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
     voxel_Thing* stack = executor->valueStack;
 
@@ -3327,7 +3571,9 @@ voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
         return VOXEL_NULL;
     }
 
-    return listItemResult.value;
+    voxel_ListItem* listItem = listItemResult.value;
+
+    return listItem->value;
 }
 
 // src/voxel.h
