@@ -15,6 +15,8 @@ voxel_Context* voxel_newContext() {
 
     voxel_newExecutor(context);
 
+    voxel_builtins_core(context);
+
     return context;
 }
 
