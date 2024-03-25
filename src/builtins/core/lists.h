@@ -17,6 +17,8 @@ void voxel_builtins_core_newListOf(voxel_Executor* executor) {
             break;
         }
 
+        item->referenceCount++;
+
         voxel_insertIntoList(executor->context, list, 0, item);
     }
 
@@ -46,9 +48,19 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_push(executor, listItemResult.value);
+    voxel_ListItem* listItem = listItemResult.value;
+
+    if (!listItem) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Thing* value = listItem->value;
+
+    value->referenceCount += 2;
 
     voxel_unreferenceThing(executor->context, list);
+
+    voxel_push(executor, value);
 }
 
 void voxel_builtins_core_setListItem(voxel_Executor* executor) {
@@ -69,11 +81,28 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
         return;
     }
 
-    if (VOXEL_IS_ERROR(voxel_setListItem(executor->context, list, index, value))) {
-        return;
+    VOXEL_ERRORABLE getListItemResult = voxel_getListItem(executor->context, list, index);
+
+    if (VOXEL_IS_ERROR(getListItemResult)) {
+        return voxel_pushNull(executor);
     }
 
+    voxel_ListItem* listItem = getListItemResult.value;
+
+    if (!listItem) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Thing* currentValue = listItem->value;
+
+    voxel_unreferenceThing(executor->context, currentValue);
+
+    listItem->value = value;
+    value->referenceCount += 2;
+
     voxel_unreferenceThing(executor->context, list);
+
+    voxel_push(executor, value);
 }
 
 void voxel_builtins_core_removeListItem(voxel_Executor* executor) {
@@ -103,7 +132,7 @@ void voxel_builtins_core_removeListItem(voxel_Executor* executor) {
 void voxel_builtins_core_pushOntoList(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
-    voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
+    voxel_Thing* value = voxel_pop(executor);
 
     if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
         return voxel_pushNull(executor);
@@ -114,7 +143,6 @@ void voxel_builtins_core_pushOntoList(voxel_Executor* executor) {
     }
 
     voxel_unreferenceThing(executor->context, list);
-    voxel_unreferenceThing(executor->context, value);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
 }
@@ -127,6 +155,15 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
+    voxel_List* listValue = list->value;
+    voxel_ListItem* lastItem = listValue->lastItem;
+
+    if (!lastItem) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Thing* lastThing = lastItem->value;
+
     VOXEL_ERRORABLE result = voxel_popFromList(executor->context, list);
 
     if (VOXEL_IS_ERROR(result)) {
@@ -135,7 +172,7 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
 
     voxel_unreferenceThing(executor->context, list);
 
-    voxel_push(executor, result.value);
+    voxel_push(executor, lastThing);
 }
 
 void voxel_builtins_core_insertIntoList(voxel_Executor* executor) {

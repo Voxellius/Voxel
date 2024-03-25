@@ -72,6 +72,12 @@ var returned = test("I am a passed-in value!", 2 + 3);
 print("Returned value: ");
 println(returned);
 
+var someList = [5, 7, 9];
+
+function getSomeList() {
+    return someList;
+}
+
 var list = ["a", "b", "c"];
 
 println("Created new list:");
@@ -81,13 +87,27 @@ print("Pushing item; new length is: ");
 print(pushOntoList(list, "d"));
 println("");
 
+printList(list);
+
+print("Getting item 2: ");
+print(list[2]);
+println("");
+
 print("Popping item: ");
 print(popFromList(list));
 println("");
 
-print("Popping item: ");
+print("Popping item again: ");
 print(popFromList(list));
 println("");
 
 println("Remaining list:");
 printList(list);
+
+print("Some list: ");
+printList(getSomeList());
+
+getSomeList()[1] = 8;
+
+print("Some list again: ");
+printList(getSomeList());

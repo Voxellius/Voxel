@@ -177,6 +177,45 @@ export class FunctionCallNode extends ast.AstNode {
     }
 }
 
+export class IndexAccessorNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "index accessor";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.BracketToken, "[")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "]")]);
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(
+            this.children[0].generateCode(),
+            codeGen.number(2),
+            codeGen.systemCall("Lg")
+        );
+    }
+
+    generateSetterCode(listCode, valueCode) {
+        return codeGen.join(
+            valueCode,
+            listCode,
+            this.children[0].generateCode(),
+            codeGen.number(3),
+            codeGen.systemCall("Ls"),
+            codeGen.bytes(codeGen.vxcTokens.POP)
+        );
+    }
+}
+
 export class ExpressionNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "expression";
 
@@ -226,16 +265,19 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     }
 
     generateCode() {
-        var currentCode = codeGen.bytes();
+        var valueCode = this.children.length > 0 ? this.children[0].generateCode() : codeGen.bytes(codeGen.vxcTokens.NULL);
         var target = this.targetInstance.children.pop();
 
         if (this.targetInstance.children.length > 0) {
-            currentCode = currentCode.join(this.targetInstance.generateCode());
+            if (target instanceof IndexAccessorNode) {
+                return target.generateSetterCode(
+                    this.targetInstance.generateCode(),
+                    valueCode
+                );
+            }
 
-            console.log("Accessor parent's code:", currentCode);
-
-            // TODO: Implement setting object and list items in bytecode
-            throw new Error("Not implemented yet");
+            // TODO: Specify token
+            throw new sources.SourceError("Cannot set a value for this type of accessor");
         }
 
         if (!(target instanceof ThingNode)) {
@@ -248,8 +290,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         }
 
         return codeGen.join(
-            currentCode,
-            this.children.length > 0 ? this.children[0].generateCode() : codeGen.bytes(codeGen.vxcTokens.NULL),
+            valueCode,
             target.value.generateCode(),
             codeGen.bytes(this.isLocal ? codeGen.vxcTokens.VAR : codeGen.vxcTokens.SET)
         );
@@ -259,7 +300,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
 export class ExpressionLeafNode extends ExpressionNode {
     static maybeAddAccessors(instance, tokens, namespace) {
         while (true) {
-            if (instance.addChildByMatching(tokens, [FunctionCallNode], namespace)) {
+            if (instance.addChildByMatching(tokens, [FunctionCallNode, IndexAccessorNode], namespace)) {
                 continue;
             }
 

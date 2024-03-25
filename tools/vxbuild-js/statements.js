@@ -82,7 +82,7 @@ export class ImportStatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        this.eat(tokens); // `import` keyword
+        this.eat(tokens);
 
         var location = this.eat(tokens, [new ast.TokenQuery(tokeniser.StringToken)]).value;
 
@@ -185,7 +185,7 @@ export class FunctionNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        this.eat(tokens); // `function` keyword
+        this.eat(tokens);
 
         var identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
 
@@ -247,7 +247,7 @@ export class IfStatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        this.eat(tokens); // `if` keyword
+        this.eat(tokens);
         this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);
 
         instance.expectChildByMatching(tokens, [expressions.ExpressionNode], namespace);
@@ -268,6 +268,8 @@ export class IfStatementNode extends ast.AstNode {
     }
 
     generateCode() {
+        // FIXME: Memory leak when in a loop — same with logical short-circuiting operators
+
         var notConditionCode = codeGen.join(
             this.children[0].generateCode(),
             codeGen.bytes(codeGen.vxcTokens.NOT)
@@ -328,7 +330,7 @@ export class WhileLoopNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        this.eat(tokens); // `while` keyword
+        this.eat(tokens);
         this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);
 
         instance.expectChildByMatching(tokens, [expressions.ExpressionNode], namespace);
