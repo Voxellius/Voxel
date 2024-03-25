@@ -72,14 +72,14 @@ var returned = test("I am a passed-in value!", 2 + 3);
 print("Returned value: ");
 println(returned);
 
-var list = newList();
-
-pushOntoList(list, "a");
-pushOntoList(list, "b");
-pushOntoList(list, "c");
+var list = ["a", "b", "c"];
 
 println("Created new list:");
 printList(list);
+
+print("Pushing item; new length is: ");
+print(pushOntoList(list, "d"));
+println("");
 
 print("Popping item: ");
 print(popFromList(list));

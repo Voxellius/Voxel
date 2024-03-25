@@ -66,6 +66,50 @@ export class ThingNode extends ast.AstNode {
     }
 }
 
+export class ListNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "list";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.BracketToken, "[")
+    ];
+
+    arguments = [];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        var addedFirstItem = false;
+
+        while (true) {
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "]")])) {
+                break;
+            }
+
+            if (addedFirstItem) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
+            }
+
+            instance.arguments.push(
+                instance.expectChildByMatching(tokens, [ExpressionNode], namespace)
+            );
+
+            addedFirstItem = true;
+        }
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(
+            ...this.children.map((child) => child.generateCode()),
+            codeGen.number(this.children.length),
+            codeGen.systemCall("Lo")
+        );
+    }
+}
+
 export class FunctionArgumentsNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "argument list";
 
@@ -141,6 +185,7 @@ export class ExpressionNode extends ast.AstNode {
         new ast.TokenQuery(tokeniser.KeywordToken, "var"),
         new ast.TokenQuery(tokeniser.BracketToken, "("),
         ...ThingNode.MATCH_QUERIES,
+        ...ListNode.MATCH_QUERIES,
         new ast.TokenQuery(tokeniser.OperatorToken, "-"),
         new ast.TokenQuery(tokeniser.OperatorToken, "!")
     ];
@@ -281,13 +326,14 @@ export class ExpressionLeafNode extends ExpressionNode {
 
 export class ExpressionThingNode extends ExpressionLeafNode {
     static MATCH_QUERIES = [
-        ...ThingNode.MATCH_QUERIES
+        ...ThingNode.MATCH_QUERIES,
+        ...ListNode.MATCH_QUERIES
     ];
 
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ThingNode], namespace);
+        instance.expectChildByMatching(tokens, [ThingNode, ListNode], namespace);
 
         this.maybeAddAccessors(instance, tokens, namespace);
 
