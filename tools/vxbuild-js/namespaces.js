@@ -6,13 +6,16 @@ import * as parser from "./parser.js";
 import * as codeGen from "./codegen.js";
 
 var generatedSymbolIndex = 0;
+var namespaceIndex = 0;
 var existingNamespaces = {};
 
+export var coreNamespace = null;
+
 export class Namespace {
-    constructor(name = null, sourceContainer = null) {
-        this.name = name;
+    constructor(sourceContainer = null) {
         this.sourceContainer = sourceContainer;
 
+        this.id = String(namespaceIndex++);
         this.symbols = {};
         this.importsToResolve = {};
         this.imports = {};
@@ -36,7 +39,7 @@ export class Namespace {
 
             var source = await Deno.readTextFile(location);
             var sourceContainer = new sources.SourceContainer(source, location);
-            var namespace = new Namespace(identifier, sourceContainer);
+            var namespace = new Namespace(sourceContainer);
 
             this.imports[identifier] = namespace;
         }
@@ -65,7 +68,11 @@ export class Namespace {
                 return;
             }
 
-            console.log(`Parsing \`${namespace.sourceContainer.name}\`...`);
+            if (namespace == coreNamespace) {
+                console.log("Parsing core namespace...");
+            } else {
+                console.log(`Parsing \`${namespace.sourceContainer.name}\`...`);
+            }
 
             var ast = namespace.generateAst();
 
@@ -83,6 +90,7 @@ export class Namespace {
             asts.push(ast);
         }
 
+        await processNamespace(coreNamespace);
         await processNamespace(this);
 
         if (mangle) {
@@ -93,7 +101,11 @@ export class Namespace {
             var namespace = processedNamespaces[i];
             var ast = asts[i];
 
-            console.log(`Generating VxC code for \`${namespace.sourceContainer.name}\`...`);
+            if (namespace == coreNamespace) {
+                console.log("Generating VxC code for core namespace...");
+            } else {
+                console.log(`Generating VxC code for \`${namespace.sourceContainer.name}\`...`);
+            }
 
             code.push(ast.generateCode());
         }
@@ -114,11 +126,11 @@ export class Symbol {
     }
 
     get id() {
-        if (this.namespace.name == null) {
-            return this.name;
+        if (this.namespace == coreNamespace) {
+            return `#core:${this.name}`;
         }
 
-        return `${this.namespace.name}:${this.name}`;
+        return `${this.namespace.id}:${this.name}`;
     }
 
     generateCode() {
@@ -152,4 +164,12 @@ export function mangleSymbols(namespaces) {
 
         i++;
     }
+}
+
+export async function init() {
+    var location = path.resolve(path.dirname(path.fromFileUrl(Deno.mainModule)), "core.vxl");
+    var source = await Deno.readTextFile(path.resolve(location));
+    var sourceContainer = new sources.SourceContainer(source, path.resolve(location));
+
+    coreNamespace = new Namespace(sourceContainer);
 }

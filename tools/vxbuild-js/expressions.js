@@ -216,6 +216,36 @@ export class IndexAccessorNode extends ast.AstNode {
     }
 }
 
+export class PropertyAccessorNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "property accessor";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.PropertyAccessorToken)
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        instance.getPropertySymbol = new namespaces.Symbol(namespaces.coreNamespace, "getProperty");
+
+        // TODO: Create a special symbol class for properties so that they are not confined to namespaces
+        instance.property = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value;
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(
+            codeGen.string(this.property),
+            codeGen.number(2),
+            this.getPropertySymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
+        );
+    }
+}
+
 export class ExpressionNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "expression";
 
@@ -300,7 +330,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
 export class ExpressionLeafNode extends ExpressionNode {
     static maybeAddAccessors(instance, tokens, namespace) {
         while (true) {
-            if (instance.addChildByMatching(tokens, [FunctionCallNode, IndexAccessorNode], namespace)) {
+            if (instance.addChildByMatching(tokens, [FunctionCallNode, IndexAccessorNode, PropertyAccessorNode], namespace)) {
                 continue;
             }
 

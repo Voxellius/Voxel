@@ -127,3 +127,9 @@ getSomeList()[1] = 8;
 
 print("Some list again: ");
 printList(getSomeList());
+
+print("List length: ");
+println(list.length);
+
+print("Some list length: ");
+println(getSomeList().length);

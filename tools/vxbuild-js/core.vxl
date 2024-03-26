@@ -1,0 +1,7 @@
+function getProperty(thing, property) {
+    if (property == "length") {
+        return syscall Ll(thing);
+    }
+
+    return null;
+}

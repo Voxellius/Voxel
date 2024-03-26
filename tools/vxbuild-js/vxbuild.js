@@ -16,9 +16,11 @@ try {
 
     flags["input"] ??= flags["_"].shift();
 
+    await namespaces.init();
+
     var source = await Deno.readTextFile(flags["input"]);
     var sourceContainer = new sources.SourceContainer(source, path.resolve(flags["input"]));
-    var namespace = new namespaces.Namespace(null, sourceContainer);
+    var namespace = new namespaces.Namespace(sourceContainer);
 
     console.log("Resolving imports...");
 

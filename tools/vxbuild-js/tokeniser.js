@@ -28,6 +28,7 @@ export class AtomToken extends Token {static HUMAN_READABLE_NAME = "atom";}
 export class BracketToken extends Token {static HUMAN_READABLE_NAME = "bracket";}
 export class DelimeterToken extends Token {static HUMAN_READABLE_NAME = "delimeter (,)";}
 export class StatementDelimeterToken extends Token {static HUMAN_READABLE_NAME = "statement delimeter (;)";}
+export class PropertyAccessorToken extends Token {static HUMAN_READABLE_NAME = "property accessor (.)";}
 export class OperatorToken extends Token {static HUMAN_READABLE_NAME = "operator";}
 export class IdentifierToken extends Token {static HUMAN_READABLE_NAME = "identifier";}
 
@@ -137,6 +138,11 @@ export function tokenise(sourceContainer) {
 
         if (matchToken(/^;/)) {
             addToken(StatementDelimeterToken);
+            continue;
+        }
+
+        if (matchToken(/^\./)) {
+            addToken(PropertyAccessorToken);
             continue;
         }
 
