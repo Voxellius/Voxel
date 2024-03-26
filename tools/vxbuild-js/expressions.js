@@ -462,7 +462,8 @@ export class BinaryOperatorExpressionNode extends ExpressionNode {
 export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperatorExpressionNode {
     static OPERATOR_TOKEN_QUERIES = [
         new ast.TokenQuery(tokeniser.OperatorToken, "*"),
-        new ast.TokenQuery(tokeniser.OperatorToken, "/")
+        new ast.TokenQuery(tokeniser.OperatorToken, "/"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "%")
     ];
 
     static OPERATOR_CODE = {
@@ -473,6 +474,10 @@ export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperator
         "/": codeGen.join(
             codeGen.number(2),
             codeGen.systemCall("/")
+        ),
+        "%": codeGen.join(
+            codeGen.number(2),
+            codeGen.systemCall("%")
         )
     };
 
@@ -590,7 +595,6 @@ export class LogicalShortCircuitingAndOperatorExpressionNode extends BinaryOpera
         }
 
         currentCode = codeGen.join(
-            codeGen.bytes(codeGen.vxcTokens.BOOLEAN_FALSE),
             skipSymbolCode,
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
             codeGen.int32(currentCode.length),

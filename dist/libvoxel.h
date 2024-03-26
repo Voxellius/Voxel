@@ -630,16 +630,15 @@ void voxel_builtins_core_newListOf(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_newList(executor->context);
 
-    for (voxel_Int i = 0; i < argCount; i++) {
+    for (voxel_Count i = 0; i < argCount; i++) {
         voxel_Thing* item = voxel_pop(executor);
 
         if (!item) {
             break;
         }
 
-        item->referenceCount++;
-
         voxel_insertIntoList(executor->context, list, 0, item);
+        voxel_unreferenceThing(executor->context, item);
     }
 
     voxel_push(executor, list);
@@ -3285,6 +3284,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_MUST(voxel_setScopeItem(executor->scope, posRefKey.value, function));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, posRefKey.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, function));
 
             break;
 

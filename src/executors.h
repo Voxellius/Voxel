@@ -195,6 +195,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_MUST(voxel_setScopeItem(executor->scope, posRefKey.value, function));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, posRefKey.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, function));
 
             break;
 

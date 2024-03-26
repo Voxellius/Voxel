@@ -166,7 +166,7 @@ export class FunctionParametersNode extends ast.AstNode {
             codeGen.systemCall("P"),
             ...this.parameters.reverse().map((symbol) => codeGen.join(
                 symbol.generateCode(),
-                codeGen.bytes(codeGen.vxcTokens.SET, codeGen.vxcTokens.POP)
+                codeGen.bytes(codeGen.vxcTokens.VAR, codeGen.vxcTokens.POP)
             ))
         );
     }
