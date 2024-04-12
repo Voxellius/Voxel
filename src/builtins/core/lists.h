@@ -207,9 +207,9 @@ void voxel_builtins_core_getListLength(voxel_Executor* executor) {
         return;
     }
 
-    voxel_unreferenceThing(executor->context, list);
-
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
+
+    voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_joinList(voxel_Executor* executor) {

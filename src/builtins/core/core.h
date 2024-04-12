@@ -57,6 +57,12 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Li", &voxel_builtins_core_insertIntoList);
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
+
+    voxel_defineBuiltin(context, ".O", &voxel_builtins_core_newObject);
+    voxel_defineBuiltin(context, ".Og", &voxel_builtins_core_getObjectItem);
+    voxel_defineBuiltin(context, ".Os", &voxel_builtins_core_setObjectItem);
+    voxel_defineBuiltin(context, ".Or", &voxel_builtins_core_removeObjectItem);
+    voxel_defineBuiltin(context, ".Ol", &voxel_builtins_core_getObjectLength);
 }
 
 #else

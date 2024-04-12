@@ -475,7 +475,7 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing);
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
-VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
+VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
 voxel_Count voxel_getObjectLength(voxel_Thing* thing);
 
 voxel_Thing* voxel_newList(voxel_Context* context);
@@ -827,9 +827,9 @@ void voxel_builtins_core_getListLength(voxel_Executor* executor) {
         return;
     }
 
-    voxel_unreferenceThing(executor->context, list);
-
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
+
+    voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_joinList(voxel_Executor* executor) {
@@ -851,6 +851,92 @@ void voxel_builtins_core_joinList(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, delimeter);
 
     voxel_push(executor, result.value);
+}
+
+#endif
+
+// src/builtins/core/objects.h
+
+#ifdef VOXEL_BUILTINS_CORE
+
+void voxel_builtins_core_newObject(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    voxel_push(executor, voxel_newObject(executor->context));
+}
+
+void voxel_builtins_core_getObjectItem(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* key = voxel_pop(executor);
+    voxel_Thing* object = voxel_pop(executor);
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
+
+    if (!objectItem) {
+        voxel_unreferenceThing(executor->context, key);
+        voxel_unreferenceThing(executor->context, object);
+
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Thing* value = objectItem->value;
+
+    value->referenceCount += 2;
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
+
+    voxel_push(executor, value);
+}
+
+void voxel_builtins_core_setObjectItem(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* key = voxel_pop(executor);
+    voxel_Thing* object = voxel_pop(executor);
+    voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+        return;
+    }
+
+    voxel_setObjectItem(executor->context, object, key, value);
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
+}
+
+void voxel_builtins_core_removeObjectItem(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* key = voxel_pop(executor);
+    voxel_Thing* object = voxel_pop(executor);
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_removeObjectItem(executor->context, object, key);
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_getObjectLength(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* object = voxel_pop(executor);
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT) {
+        return;
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getObjectLength(object)));
+
+    voxel_unreferenceThing(executor->context, object);
 }
 
 #endif
@@ -916,6 +1002,12 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Li", &voxel_builtins_core_insertIntoList);
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
+
+    voxel_defineBuiltin(context, ".O", &voxel_builtins_core_newObject);
+    voxel_defineBuiltin(context, ".Og", &voxel_builtins_core_getObjectItem);
+    voxel_defineBuiltin(context, ".Os", &voxel_builtins_core_setObjectItem);
+    voxel_defineBuiltin(context, ".Or", &voxel_builtins_core_removeObjectItem);
+    voxel_defineBuiltin(context, ".Ol", &voxel_builtins_core_getObjectLength);
 }
 
 #else
@@ -2385,7 +2477,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
+VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_Object* object = thing->value;
@@ -2394,7 +2486,7 @@ VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, vox
 
     while (VOXEL_TRUE) {
         if (!currentItem) {
-            VOXEL_THROW(VOXEL_ERROR_THING_LOCKED);
+            return VOXEL_OK;
         }
 
         if (voxel_compareThings(currentItem->key, key)) {

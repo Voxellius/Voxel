@@ -31,6 +31,26 @@ function printList(list) {
     println("]");
 }
 
+function newObject() {
+    return syscall O();
+}
+
+function getObjectItem(object, key) {
+    return syscall Og(object, key);
+}
+
+function setObjectItem(object, key, value) {
+    return syscall Os(value, object, key);
+}
+
+function removeObjectItem(object, key) {
+    return syscall Or(object, key);
+}
+
+function getObjectLength(object) {
+    return syscall Ol(object);
+}
+
 println("This message was from a .vxl file!");
 println("This time, it was compiled to a .vxc file and loaded by the runtime!");
 
@@ -133,3 +153,40 @@ println(list.length);
 
 print("Some list length: ");
 println(getSomeList().length);
+
+var object = newObject();
+
+print("Created new object: ");
+println(object);
+
+print("Getting object length: ");
+println(getObjectLength(object));
+
+setObjectItem(object, "test", "hello");
+setObjectItem(object, "number", 123);
+setObjectItem(object, "isWorking", true);
+
+print("Set some values: ");
+println(object);
+
+print("Getting number: ");
+println(getObjectItem(object, "number"));
+
+print("Getting item not in object: ");
+println(getObjectItem(object, "nothing"));
+
+print("Getting object length: ");
+println(getObjectLength(object));
+
+setObjectItem(object, "number", 456);
+
+print("Setting number: ");
+println(object);
+
+removeObjectItem(object, "number");
+
+print("Getting object length: ");
+println(getObjectLength(object));
+
+print("Removing number: ");
+println(object);

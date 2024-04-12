@@ -198,7 +198,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
+VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_Object* object = thing->value;
@@ -207,7 +207,7 @@ VOXEL_ERRORABLE removeObjectItem(voxel_Context* context, voxel_Thing* thing, vox
 
     while (VOXEL_TRUE) {
         if (!currentItem) {
-            VOXEL_THROW(VOXEL_ERROR_THING_LOCKED);
+            return VOXEL_OK;
         }
 
         if (voxel_compareThings(currentItem->key, key)) {
