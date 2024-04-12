@@ -200,17 +200,17 @@ export class IndexAccessorNode extends ast.AstNode {
         return codeGen.join(
             this.children[0].generateCode(),
             codeGen.number(2),
-            codeGen.systemCall("Lg")
+            codeGen.systemCall("Tg")
         );
     }
 
-    generateSetterCode(listCode, valueCode) {
+    generateSetterCode(targetCode, valueCode) {
         return codeGen.join(
             valueCode,
-            listCode,
+            targetCode,
             this.children[0].generateCode(),
             codeGen.number(3),
-            codeGen.systemCall("Ls"),
+            codeGen.systemCall("Ts"),
             codeGen.bytes(codeGen.vxcTokens.POP)
         );
     }
@@ -244,6 +244,8 @@ export class PropertyAccessorNode extends ast.AstNode {
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
         );
     }
+
+    // TODO: Allow setting by property accessor
 }
 
 export class ExpressionNode extends ast.AstNode {

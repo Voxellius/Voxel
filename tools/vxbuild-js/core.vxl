@@ -1,6 +1,16 @@
 function getProperty(thing, property) {
-    if (property == "length") {
+    if (property == "length" && syscall T(thing) == "L") {
         return syscall Ll(thing);
+    }
+
+    if (syscall T(thing) == "O") {
+        var value = syscall Og(thing, property);
+
+        if (property == "length" && value == null) {
+            return syscall Ol(thing);
+        }
+
+        return value;
     }
 
     return null;

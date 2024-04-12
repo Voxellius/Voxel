@@ -48,6 +48,10 @@ void voxel_builtins_core_setObjectItem(voxel_Executor* executor) {
 
     voxel_unreferenceThing(executor->context, key);
     voxel_unreferenceThing(executor->context, object);
+
+    value->referenceCount++;
+
+    voxel_push(executor, value);
 }
 
 void voxel_builtins_core_removeObjectItem(voxel_Executor* executor) {

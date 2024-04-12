@@ -34,6 +34,10 @@ voxel_Thing* voxel_pop(voxel_Executor* executor) {
     return result.value;
 }
 
+void voxel_popVoid(voxel_Executor* executor) {
+    voxel_unreferenceThing(executor->context, voxel_pop(executor));
+}
+
 voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
     voxel_Thing* poppedThing = voxel_pop(executor);
 

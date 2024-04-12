@@ -328,6 +328,7 @@ VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor);
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
 void voxel_pushNull(voxel_Executor* executor);
 voxel_Thing* voxel_pop(voxel_Executor* executor);
+void voxel_popVoid(voxel_Executor* executor);
 voxel_Thing* voxel_popNumber(voxel_Executor* executor);
 voxel_Int voxel_popNumberInt(voxel_Executor* executor);
 voxel_Float voxel_popNumberFloat(voxel_Executor* executor);
