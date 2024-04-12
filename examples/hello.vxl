@@ -164,7 +164,8 @@ println(object.length);
 
 object["test"] = "hello";
 object["number"] = 123;
-object["isWorking"] = true;
+
+object.isWorking = true;
 
 print("Set some values: ");
 println(object);

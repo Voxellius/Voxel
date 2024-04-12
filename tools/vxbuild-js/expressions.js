@@ -245,7 +245,16 @@ export class PropertyAccessorNode extends ast.AstNode {
         );
     }
 
-    // TODO: Allow setting by property accessor
+    generateSetterCode(targetCode, valueCode) {
+        return codeGen.join(
+            valueCode,
+            targetCode,
+            codeGen.string(this.property),
+            codeGen.number(3),
+            codeGen.systemCall("Ts"),
+            codeGen.bytes(codeGen.vxcTokens.POP)
+        );
+    }
 }
 
 export class ExpressionNode extends ast.AstNode {
@@ -301,7 +310,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         var target = this.targetInstance.children.pop();
 
         if (this.targetInstance.children.length > 0) {
-            if (target instanceof IndexAccessorNode) {
+            if (target instanceof IndexAccessorNode || target instanceof PropertyAccessorNode) {
                 return target.generateSetterCode(
                     this.targetInstance.generateCode(),
                     valueCode
