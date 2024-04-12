@@ -268,8 +268,6 @@ export class IfStatementNode extends ast.AstNode {
     }
 
     generateCode() {
-        // FIXME: Memory leak when in a loop — same with logical short-circuiting operators
-
         var notConditionCode = codeGen.join(
             this.children[0].generateCode(),
             codeGen.bytes(codeGen.vxcTokens.NOT)
