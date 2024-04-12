@@ -162,9 +162,9 @@ println(object);
 print("Getting object length: ");
 println(object.length);
 
-setObjectItem(object, "test", "hello");
-setObjectItem(object, "number", 123);
-setObjectItem(object, "isWorking", true);
+object["test"] = "hello";
+object["number"] = 123;
+object["isWorking"] = true;
 
 print("Set some values: ");
 println(object);

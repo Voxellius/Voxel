@@ -647,7 +647,7 @@ void voxel_builtins_core_getObjectItem(voxel_Executor* executor) {
 
     voxel_Thing* value = objectItem->value;
 
-    value->referenceCount += 2;
+    value->referenceCount++;
 
     voxel_unreferenceThing(executor->context, key);
     voxel_unreferenceThing(executor->context, object);
