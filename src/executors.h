@@ -159,10 +159,6 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
 
         case VOXEL_TOKEN_TYPE_SWAP:
-            printf("VS: ");
-            voxel_logThing(executor->context, executor->valueStack);
-            printf("\n");
-
             VOXEL_ERRORABLE swapBResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(swapBResult);
             VOXEL_ERRORABLE swapAResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(swapAResult);
 

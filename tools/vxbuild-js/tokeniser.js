@@ -29,6 +29,7 @@ export class BracketToken extends Token {static HUMAN_READABLE_NAME = "bracket";
 export class DelimeterToken extends Token {static HUMAN_READABLE_NAME = "delimeter (,)";}
 export class StatementDelimeterToken extends Token {static HUMAN_READABLE_NAME = "statement delimeter (;)";}
 export class PropertyAccessorToken extends Token {static HUMAN_READABLE_NAME = "property accessor (.)";}
+export class PropertyDefinerToken extends Token {static HUMAN_READABLE_NAME = "property definer (:)";}
 export class OperatorToken extends Token {static HUMAN_READABLE_NAME = "operator";}
 export class IdentifierToken extends Token {static HUMAN_READABLE_NAME = "identifier";}
 
@@ -143,6 +144,11 @@ export function tokenise(sourceContainer) {
 
         if (matchToken(/^\./)) {
             addToken(PropertyAccessorToken);
+            continue;
+        }
+
+        if (matchToken(/^:/)) {
+            addToken(PropertyDefinerToken);
             continue;
         }
 

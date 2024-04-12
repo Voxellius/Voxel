@@ -66,14 +66,70 @@ export class ThingNode extends ast.AstNode {
     }
 }
 
+export class ObjectNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "object";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.BracketToken, "{")
+    ];
+
+    propertyNames = [];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        var addedFirstItem = false;
+
+        while (true) {
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "}")])) {
+                break;
+            }
+
+            if (addedFirstItem) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
+            }
+
+            instance.propertyNames.push(this.eat(tokens, [
+                new ast.TokenQuery(tokeniser.IdentifierToken),
+                new ast.TokenQuery(tokeniser.StringToken)
+            ]));
+            
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.PropertyDefinerToken)]);
+            
+            instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+            addedFirstItem = true;
+        }
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(
+            codeGen.number(0),
+            codeGen.systemCall("O"),
+            ...this.children.map((child, i) => codeGen.join(
+                codeGen.bytes(codeGen.vxcTokens.DUPE),
+                child.generateCode(),
+                codeGen.bytes(codeGen.vxcTokens.SWAP),
+                codeGen.string(this.propertyNames[i].value),
+                codeGen.number(3),
+                codeGen.systemCall("Os"),
+                codeGen.bytes(codeGen.vxcTokens.POP),
+                codeGen.bytes(codeGen.vxcTokens.POP)
+            ))
+        );
+    }
+}
+
 export class ListNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "list";
 
     static MATCH_QUERIES = [
         new ast.TokenQuery(tokeniser.BracketToken, "[")
     ];
-
-    arguments = [];
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -91,9 +147,7 @@ export class ListNode extends ast.AstNode {
                 this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
             }
 
-            instance.arguments.push(
-                instance.expectChildByMatching(tokens, [ExpressionNode], namespace)
-            );
+            instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
 
             addedFirstItem = true;
         }
@@ -265,6 +319,7 @@ export class ExpressionNode extends ast.AstNode {
         new ast.TokenQuery(tokeniser.KeywordToken, "var"),
         new ast.TokenQuery(tokeniser.BracketToken, "("),
         ...ThingNode.MATCH_QUERIES,
+        ...ObjectNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
         new ast.TokenQuery(tokeniser.OperatorToken, "-"),
         new ast.TokenQuery(tokeniser.OperatorToken, "!")
@@ -409,13 +464,14 @@ export class ExpressionLeafNode extends ExpressionNode {
 export class ExpressionThingNode extends ExpressionLeafNode {
     static MATCH_QUERIES = [
         ...ThingNode.MATCH_QUERIES,
+        ...ObjectNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES
     ];
 
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ThingNode, ListNode], namespace);
+        instance.expectChildByMatching(tokens, [ThingNode, ObjectNode, ListNode], namespace);
 
         this.maybeAddAccessors(instance, tokens, namespace);
 

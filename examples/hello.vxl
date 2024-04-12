@@ -31,24 +31,8 @@ function printList(list) {
     println("]");
 }
 
-function newObject() {
-    return syscall O();
-}
-
-function getObjectItem(object, key) {
-    return syscall Og(object, key);
-}
-
-function setObjectItem(object, key, value) {
-    return syscall Os(value, object, key);
-}
-
 function removeObjectItem(object, key) {
     return syscall Or(object, key);
-}
-
-function getObjectLength(object) {
-    return syscall Ol(object);
 }
 
 println("This message was from a .vxl file!");
@@ -154,7 +138,7 @@ println(list.length);
 print("Some list length: ");
 println(getSomeList().length);
 
-var object = newObject();
+var object = {};
 
 print("Created new object: ");
 println(object);
@@ -194,3 +178,15 @@ println(object.length);
 
 print("Removing number: ");
 println(object);
+
+var structured = {
+    hello: {
+        this: "is",
+        an: "object",
+        that: ["contains", "an", "array"]
+    },
+    "number of items in array": 3
+};
+
+print("Object initialiser syntax: ");
+println(structured);
