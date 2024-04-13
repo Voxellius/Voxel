@@ -46,9 +46,9 @@ function pushThis() {
 }
 
 function popThis() {
-    syscall Lp(thisStack);
+    nextThis = syscall Lp(thisStack);
 }
 
 function getThis() {
-    return thisStack[-1];
+    return nextThis;
 }
