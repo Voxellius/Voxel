@@ -198,7 +198,6 @@ print("Object initialiser syntax: ");
 println(structured);
 
 function method() {
-    println(this);
     print("Object value: ");
     println(this.value);
 
