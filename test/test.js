@@ -44,6 +44,7 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
         continue;
     }
 
+    const TEST_NAME = entry.name;
     const TEST_PATH = path.join(TEST_DIR, entry.name);
 
     var mainCode = await Deno.readTextFile(path.join(TEST_PATH, "main.vxl"));
@@ -67,14 +68,14 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
 
         if (output.stdout != expected) {
             console.error(
-                `TEST FAIL: ${entry.name}\n` +
+                `TEST FAIL: ${TEST_NAME}\n` +
                 `Expected:\n` +
                 expected + `\n` +
                 `Got:\n` +
                 output.stdout
             );
 
-            return Promise.resolve({test: entry.name, result: "fail", reason: "unexpectedOutput", expected, got: output.stdout});
+            return Promise.resolve({test: TEST_NAME, result: "fail", reason: "unexpectedOutput", expected, got: output.stdout});
         }
 
         await $("deno", [
@@ -87,7 +88,7 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
             path.join(TEST_PATH, "main.vxc")
         ]);
 
-        var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.vxc")]});
+        var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.vxc")], stdout: "null"});
         var process = command.spawn();
 
         await delay(1_000);
@@ -102,14 +103,14 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
 
         if (before != after) {
             console.error(
-                `TEST FAIL: ${entry.name}\n` +
+                `TEST FAIL: ${TEST_NAME}\n` +
                 `Memory leak: ${before} KiB before; ${after} KiB after (delta ${after - before} KiB)\n`
             );
 
-            return Promise.resolve({test: entry.name, result: "fail", reason: "memoryLeak", before, after});
+            return Promise.resolve({test: TEST_NAME, result: "fail", reason: "memoryLeak", before, after});
         }
 
-        return Promise.resolve({test: entry.name, result: "pass"});
+        return Promise.resolve({test: TEST_NAME, result: "pass"});
     }));
 }
 

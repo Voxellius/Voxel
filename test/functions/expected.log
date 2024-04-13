@@ -1,0 +1,25 @@
+Void return called
+Value return called
+2
+Local value return called: local
+local
+Global value return called: global
+global
+Global value before: global
+Global value after: mutated
+Global value in global scope: mutated
+Local value before: mutated
+Local value before: mutated
+Global value in global scope: mutated
+argument 1
+argument 2
+Add arguments: 5
+Argument before: original
+Argument after: mutated
+Argument in global scope: original
+Value of shadowed global value: shadowed
+Calling other functions:
+Void return called
+Value return called
+2
+55
