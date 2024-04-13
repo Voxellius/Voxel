@@ -911,7 +911,7 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
 
     voxel_Thing* value = listItem->value;
 
-    value->referenceCount += 2;
+    value->referenceCount++;
 
     voxel_unreferenceThing(executor->context, list);
 
@@ -997,6 +997,8 @@ void voxel_builtins_core_pushOntoList(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
+    value->referenceCount--;
+
     voxel_unreferenceThing(executor->context, list);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
@@ -1018,6 +1020,8 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
     }
 
     voxel_Thing* lastThing = lastItem->value;
+
+    lastThing->referenceCount++;
 
     VOXEL_ERRORABLE result = voxel_popFromList(executor->context, list);
 
@@ -1051,6 +1055,8 @@ void voxel_builtins_core_insertIntoList(voxel_Executor* executor) {
     if (VOXEL_IS_ERROR(voxel_insertIntoList(executor->context, list, index, value))) {
         return;
     }
+
+    value->referenceCount--;
 
     voxel_unreferenceThing(executor->context, list);
 }

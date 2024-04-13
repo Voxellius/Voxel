@@ -1,6 +1,8 @@
 import "imported.vxl" as imported;
 import "another.vxl" as another;
 
+while (true) {
+
 var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 var thisIsAwesome = true;
 
@@ -212,3 +214,5 @@ structured.method();
 
 print("New value: ");
 println(structured.value);
+
+}
