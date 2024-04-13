@@ -282,8 +282,14 @@ typedef struct voxel_Object {
 typedef struct voxel_ObjectItem {
     voxel_Thing* key;
     voxel_Thing* value;
+    struct voxel_ObjectItemDescriptor* descriptor;
     struct voxel_ObjectItem* nextItem;
 } voxel_ObjectItem;
+
+typedef struct voxel_ObjectItemDescriptor {
+    voxel_Thing* getterFunction;
+    voxel_Thing* setterFunction;
+} voxel_ObjectItemDescriptor;
 
 typedef struct voxel_List {
     voxel_Count length;
@@ -476,6 +482,7 @@ voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing);
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
+voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* context, voxel_ObjectItem* objectItem);
 voxel_Count voxel_getObjectLength(voxel_Thing* thing);
 
 voxel_Thing* voxel_newList(voxel_Context* context);
@@ -690,6 +697,144 @@ void voxel_builtins_core_removeObjectItem(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, object);
 
     voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_getObjectItemGetter(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* key = voxel_pop(executor);
+    voxel_Thing* object = voxel_pop(executor);
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
+        return;
+    }
+
+    voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
+
+    if (!objectItem) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_ObjectItemDescriptor* descriptor = objectItem->descriptor;
+
+    if (!descriptor || !descriptor->getterFunction) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Thing* getterFunction = descriptor->getterFunction;
+
+    getterFunction->referenceCount++;
+
+    voxel_push(executor, getterFunction);
+}
+
+void voxel_builtins_core_setObjectItemGetter(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* key = voxel_pop(executor);
+    voxel_Thing* object = voxel_pop(executor);
+    voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+        return;
+    }
+
+    voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
+
+    if (!objectItem) {
+        VOXEL_ERRORABLE objectItemResult = voxel_setObjectItem(executor->context, object, key, voxel_newNull(executor->context));
+
+        if (VOXEL_IS_ERROR(objectItemResult)) {
+            return voxel_pushNull(executor);
+        }
+
+        objectItem = objectItemResult.value;
+    }
+
+    voxel_ObjectItemDescriptor* descriptor = voxel_ensureObjectItemDescriptor(executor->context, objectItem);
+
+    if (descriptor->getterFunction) {
+        voxel_unreferenceThing(executor->context, descriptor->getterFunction);
+    }
+
+    descriptor->getterFunction = value;
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
+
+    value->referenceCount++;
+
+    voxel_push(executor, value);
+}
+
+void voxel_builtins_core_getObjectItemSetter(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* key = voxel_pop(executor);
+    voxel_Thing* object = voxel_pop(executor);
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
+        return;
+    }
+
+    voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
+
+    if (!objectItem) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_ObjectItemDescriptor* descriptor = objectItem->descriptor;
+
+    if (!descriptor || !descriptor->setterFunction) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Thing* setterFunction = descriptor->setterFunction;
+
+    setterFunction->referenceCount++;
+
+    voxel_push(executor, setterFunction);
+}
+
+void voxel_builtins_core_setObjectItemSetter(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* key = voxel_pop(executor);
+    voxel_Thing* object = voxel_pop(executor);
+    voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+        return;
+    }
+
+    voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
+
+    if (!objectItem) {
+        VOXEL_ERRORABLE objectItemResult = voxel_setObjectItem(executor->context, object, key, voxel_newNull(executor->context));
+
+        if (VOXEL_IS_ERROR(objectItemResult)) {
+            return voxel_pushNull(executor);
+        }
+
+        objectItem = objectItemResult.value;
+    }
+
+    voxel_ObjectItemDescriptor* descriptor = voxel_ensureObjectItemDescriptor(executor->context, objectItem);
+
+    if (descriptor->setterFunction) {
+        voxel_unreferenceThing(executor->context, descriptor->setterFunction);
+    }
+
+    descriptor->setterFunction = value;
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
+
+    value->referenceCount++;
+
+    voxel_push(executor, value);
 }
 
 void voxel_builtins_core_getObjectLength(voxel_Executor* executor) {
@@ -1114,6 +1259,10 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Og", &voxel_builtins_core_getObjectItem);
     voxel_defineBuiltin(context, ".Os", &voxel_builtins_core_setObjectItem);
     voxel_defineBuiltin(context, ".Or", &voxel_builtins_core_removeObjectItem);
+    voxel_defineBuiltin(context, ".Ogg", &voxel_builtins_core_getObjectItemGetter);
+    voxel_defineBuiltin(context, ".Osg", &voxel_builtins_core_setObjectItemGetter);
+    voxel_defineBuiltin(context, ".Ogs", &voxel_builtins_core_getObjectItemSetter);
+    voxel_defineBuiltin(context, ".Oss", &voxel_builtins_core_setObjectItemSetter);
     voxel_defineBuiltin(context, ".Ol", &voxel_builtins_core_getObjectLength);
 
     voxel_defineBuiltin(context, ".L", &voxel_builtins_core_newList);
@@ -2418,8 +2567,17 @@ VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) 
     voxel_ObjectItem* nextItem;
 
     while (currentItem) {
+        voxel_ObjectItemDescriptor* descriptor = currentItem->descriptor;
+
         VOXEL_MUST(voxel_unreferenceThing(context, currentItem->key));
         VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
+
+        if (descriptor) {
+            VOXEL_MUST(voxel_unreferenceThing(context, descriptor->getterFunction));
+            VOXEL_MUST(voxel_unreferenceThing(context, descriptor->setterFunction));
+
+            VOXEL_FREE(descriptor); VOXEL_TAG_FREE(voxel_ObjectItemDescriptor);
+        }
 
         nextItem = currentItem->nextItem;
 
@@ -2566,7 +2724,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
         objectItem->value = value;
         value->referenceCount++;
 
-        return VOXEL_OK;
+        return VOXEL_OK_RET(objectItem);
     }
 
     voxel_lockThing(key);
@@ -2579,6 +2737,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
     objectItem->value = value;
     value->referenceCount++;
 
+    objectItem->descriptor = VOXEL_NULL;
     objectItem->nextItem = VOXEL_NULL;
 
     if (!object->firstItem) {
@@ -2592,7 +2751,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
     object->length++;
     object->lastItem = objectItem;
 
-    return VOXEL_OK;
+    return VOXEL_OK_RET(objectItem);
 }
 
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
@@ -2631,6 +2790,21 @@ VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thin
         previousItem = currentItem;
         currentItem = currentItem->nextItem;
     }
+}
+
+voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* context, voxel_ObjectItem* objectItem) {
+    if (objectItem->descriptor) {
+        return objectItem->descriptor;
+    }
+
+    voxel_ObjectItemDescriptor* descriptor = VOXEL_MALLOC(sizeof(voxel_ObjectItemDescriptor)); VOXEL_TAG_MALLOC(voxel_ObjectItemDescriptor);
+
+    descriptor->getterFunction = VOXEL_NULL;
+    descriptor->setterFunction = VOXEL_NULL;
+
+    objectItem->descriptor = descriptor;
+
+    return descriptor;
 }
 
 voxel_Count voxel_getObjectLength(voxel_Thing* thing) {

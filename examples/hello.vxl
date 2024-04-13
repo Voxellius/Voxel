@@ -168,7 +168,12 @@ println(object.length);
 
 object["number"] = 456;
 
-print("Setting number: ");
+print("Setting number using index accessor: ");
+println(object);
+
+object.number = 789;
+
+print("Setting number using property accessor: ");
 println(object);
 
 removeObjectItem(object, "number");

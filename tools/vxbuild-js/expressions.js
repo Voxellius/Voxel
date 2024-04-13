@@ -283,6 +283,7 @@ export class PropertyAccessorNode extends ast.AstNode {
         this.eat(tokens);
 
         instance.getPropertySymbol = new namespaces.Symbol(namespaces.coreNamespace, "getProperty");
+        instance.setPropertySymbol = new namespaces.Symbol(namespaces.coreNamespace, "setProperty");
 
         // TODO: Create a special symbol class for properties so that they can be mangled but are not confined to namespaces
         instance.property = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value;
@@ -301,12 +302,12 @@ export class PropertyAccessorNode extends ast.AstNode {
 
     generateSetterCode(targetCode, valueCode) {
         return codeGen.join(
-            valueCode,
             targetCode,
             codeGen.string(this.property),
+            valueCode,
             codeGen.number(3),
-            codeGen.systemCall("Ts"),
-            codeGen.bytes(codeGen.vxcTokens.POP)
+            this.setPropertySymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
         );
     }
 }

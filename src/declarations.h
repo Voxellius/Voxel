@@ -87,8 +87,14 @@ typedef struct voxel_Object {
 typedef struct voxel_ObjectItem {
     voxel_Thing* key;
     voxel_Thing* value;
+    struct voxel_ObjectItemDescriptor* descriptor;
     struct voxel_ObjectItem* nextItem;
 } voxel_ObjectItem;
+
+typedef struct voxel_ObjectItemDescriptor {
+    voxel_Thing* getterFunction;
+    voxel_Thing* setterFunction;
+} voxel_ObjectItemDescriptor;
 
 typedef struct voxel_List {
     voxel_Count length;
@@ -281,6 +287,7 @@ voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing);
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
+voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* context, voxel_ObjectItem* objectItem);
 voxel_Count voxel_getObjectLength(voxel_Thing* thing);
 
 voxel_Thing* voxel_newList(voxel_Context* context);

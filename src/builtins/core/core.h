@@ -164,6 +164,10 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Og", &voxel_builtins_core_getObjectItem);
     voxel_defineBuiltin(context, ".Os", &voxel_builtins_core_setObjectItem);
     voxel_defineBuiltin(context, ".Or", &voxel_builtins_core_removeObjectItem);
+    voxel_defineBuiltin(context, ".Ogg", &voxel_builtins_core_getObjectItemGetter);
+    voxel_defineBuiltin(context, ".Osg", &voxel_builtins_core_setObjectItemGetter);
+    voxel_defineBuiltin(context, ".Ogs", &voxel_builtins_core_getObjectItemSetter);
+    voxel_defineBuiltin(context, ".Oss", &voxel_builtins_core_setObjectItemSetter);
     voxel_defineBuiltin(context, ".Ol", &voxel_builtins_core_getObjectLength);
 
     voxel_defineBuiltin(context, ".L", &voxel_builtins_core_newList);

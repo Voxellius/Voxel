@@ -21,8 +21,17 @@ VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) 
     voxel_ObjectItem* nextItem;
 
     while (currentItem) {
+        voxel_ObjectItemDescriptor* descriptor = currentItem->descriptor;
+
         VOXEL_MUST(voxel_unreferenceThing(context, currentItem->key));
         VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
+
+        if (descriptor) {
+            VOXEL_MUST(voxel_unreferenceThing(context, descriptor->getterFunction));
+            VOXEL_MUST(voxel_unreferenceThing(context, descriptor->setterFunction));
+
+            VOXEL_FREE(descriptor); VOXEL_TAG_FREE(voxel_ObjectItemDescriptor);
+        }
 
         nextItem = currentItem->nextItem;
 
@@ -169,7 +178,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
         objectItem->value = value;
         value->referenceCount++;
 
-        return VOXEL_OK;
+        return VOXEL_OK_RET(objectItem);
     }
 
     voxel_lockThing(key);
@@ -182,6 +191,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
     objectItem->value = value;
     value->referenceCount++;
 
+    objectItem->descriptor = VOXEL_NULL;
     objectItem->nextItem = VOXEL_NULL;
 
     if (!object->firstItem) {
@@ -195,7 +205,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
     object->length++;
     object->lastItem = objectItem;
 
-    return VOXEL_OK;
+    return VOXEL_OK_RET(objectItem);
 }
 
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
@@ -234,6 +244,21 @@ VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thin
         previousItem = currentItem;
         currentItem = currentItem->nextItem;
     }
+}
+
+voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* context, voxel_ObjectItem* objectItem) {
+    if (objectItem->descriptor) {
+        return objectItem->descriptor;
+    }
+
+    voxel_ObjectItemDescriptor* descriptor = VOXEL_MALLOC(sizeof(voxel_ObjectItemDescriptor)); VOXEL_TAG_MALLOC(voxel_ObjectItemDescriptor);
+
+    descriptor->getterFunction = VOXEL_NULL;
+    descriptor->setterFunction = VOXEL_NULL;
+
+    objectItem->descriptor = descriptor;
+
+    return descriptor;
 }
 
 voxel_Count voxel_getObjectLength(voxel_Thing* thing) {

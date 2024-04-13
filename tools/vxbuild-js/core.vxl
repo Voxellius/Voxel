@@ -4,6 +4,12 @@ function getProperty(thing, property) {
     }
 
     if (syscall T(thing) == "O") {
+        var getter = syscall Ogg(thing, property);
+
+        if (getter) {
+            return getter();
+        }
+
         var value = syscall Og(thing, property);
 
         if (property == "length" && value == null) {
@@ -14,4 +20,18 @@ function getProperty(thing, property) {
     }
 
     return null;
+}
+
+function setProperty(thing, property, value) {
+    if (syscall T(thing) == "O") {
+        var setter = syscall Ogs(thing, property);
+
+        if (setter) {
+            setter(value);
+
+            return value;
+        }
+    }
+
+    return syscall Ts(value, thing, property);
 }
