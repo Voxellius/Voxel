@@ -1607,6 +1607,7 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_BYTE: return voxel_byteToVxon(context, thing);
 
         case VOXEL_TYPE_FUNCTION:
+            break; // TODO: Remove
             #ifdef VOXEL_DEBUG_EXECUTORS
                 break;
             #else

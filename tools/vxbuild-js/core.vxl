@@ -1,9 +1,14 @@
+var thisStack = [];
+var nextThis = null;
+
 function getProperty(thing, property) {
     if (property == "length" && syscall T(thing) == "L") {
         return syscall Ll(thing);
     }
 
     if (syscall T(thing) == "O") {
+        nextThis = thing;
+
         var getter = syscall Ogg(thing, property);
 
         if (getter) {
@@ -34,4 +39,16 @@ function setProperty(thing, property, value) {
     }
 
     return syscall Ts(value, thing, property);
+}
+
+function pushThis() {
+    syscall Lu(nextThis, thisStack);
+}
+
+function popThis() {
+    syscall Lp(thisStack);
+}
+
+function getThis() {
+    return thisStack[-1];
 }

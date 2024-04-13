@@ -186,12 +186,30 @@ println(object);
 
 var structured = {
     hello: {
-        this: "is",
+        "this": "is",
         an: "object",
         that: ["contains", "an", "array"]
     },
-    "number of items in array": 3
+    "number of items in array": 3,
+    value: 4
 };
 
 print("Object initialiser syntax: ");
 println(structured);
+
+function method() {
+    println(this);
+    print("Object value: ");
+    println(this.value);
+
+    this.value = 5;
+}
+
+structured.method = method;
+
+println("Calling method within object:");
+
+structured.method();
+
+print("New value: ");
+println(structured.value);

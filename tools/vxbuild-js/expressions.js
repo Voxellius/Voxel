@@ -4,6 +4,32 @@ import * as tokeniser from "./tokeniser.js";
 import * as ast from "./ast.js";
 import * as codeGen from "./codegen.js";
 
+export class ThisNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`this`";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "this")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.getThisSymbol = new namespaces.Symbol(namespaces.coreNamespace, "getThis");
+
+        this.eat(tokens);
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(
+            codeGen.number(0),
+            this.getThisSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
+        );
+    }
+};
+
 export class ThingNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "thing expression";
 
@@ -217,12 +243,29 @@ export class FunctionCallNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
+        instance.pushThisSymbol = new namespaces.Symbol(namespaces.coreNamespace, "pushThis");
+        instance.popThisSymbol = new namespaces.Symbol(namespaces.coreNamespace, "popThis");
+
         instance.expectChildByMatching(tokens, [FunctionArgumentsNode], namespace);
 
         return instance;
     }
 
-    generateCode(expressionCode) {
+    generateCode(expressionCode, calledAsMethod) {
+        if (calledAsMethod) {
+            return codeGen.join(
+                this.children[0].generateCode(),
+                expressionCode,
+                codeGen.number(0),
+                this.pushThisSymbol.generateCode(),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP),
+                codeGen.bytes(codeGen.vxcTokens.CALL),
+                codeGen.number(0),
+                this.popThisSymbol.generateCode(),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
+            );
+        }
+
         return codeGen.join(
             this.children[0].generateCode(),
             expressionCode,
@@ -319,6 +362,7 @@ export class ExpressionNode extends ast.AstNode {
         new ast.TokenQuery(tokeniser.KeywordToken, "syscall"),
         new ast.TokenQuery(tokeniser.KeywordToken, "var"),
         new ast.TokenQuery(tokeniser.BracketToken, "("),
+        ...ThisNode.MATCH_QUERIES,
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
@@ -377,8 +421,8 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             throw new sources.SourceError("Cannot set a value for this type of accessor");
         }
 
-        if (!(target instanceof ThingNode)) {
-            throw new Error("Trap: setter target is not a `ThingNode`");
+        if (!(target instanceof ThisNode || target instanceof ThingNode)) {
+            throw new Error("Trap: setter target is not a `ThisNode` or `ThingNode`");
         }
 
         if (!(target.value instanceof namespaces.Symbol)) {
@@ -446,16 +490,18 @@ export class ExpressionLeafNode extends ExpressionNode {
 
     generateCode() {
         var currentCode = codeGen.bytes();
+        var lastNodeWasPropertyAccessor = false;
 
         for (var child of this.children) {
             if (child instanceof FunctionCallNode) {
                 // Function calls need to push the arguments passed to the function first before the function thing is pushed on
-                currentCode = child.generateCode(currentCode);
+                currentCode = child.generateCode(currentCode, lastNodeWasPropertyAccessor);
 
                 continue;
             }
 
             currentCode = codeGen.join(currentCode, child.generateCode());
+            lastNodeWasPropertyAccessor = child instanceof PropertyAccessorNode;
         }
 
         return currentCode;
@@ -464,6 +510,7 @@ export class ExpressionLeafNode extends ExpressionNode {
 
 export class ExpressionThingNode extends ExpressionLeafNode {
     static MATCH_QUERIES = [
+        ...ThisNode.MATCH_QUERIES,
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES
@@ -472,7 +519,7 @@ export class ExpressionThingNode extends ExpressionLeafNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ThingNode, ObjectNode, ListNode], namespace);
+        instance.expectChildByMatching(tokens, [ThisNode, ThingNode, ObjectNode, ListNode], namespace);
 
         this.maybeAddAccessors(instance, tokens, namespace);
 
