@@ -1,0 +1,72 @@
+var object = {
+    key: 123,
+    nestedObject: {
+        key1: "value1",
+        key2: "value2",
+        anotherNestedObject: {key: "value"}
+    },
+    list: ["a", "b", "c"],
+    "quoted key value": true
+};
+
+syscall log("Define object: ");
+syscall log(object);
+syscall log("\n");
+
+syscall log("Get value: ");
+syscall log(object["key"]);
+syscall log("\n");
+
+syscall log("Get value using property accessor: ");
+syscall log(object.key);
+syscall log("\n");
+
+syscall log("Get value not in object: ");
+syscall log(object["missing"]);
+syscall log("\n");
+
+syscall log("Get value not in object using proeprty accessor: ");
+syscall log(object.missing);
+syscall log("\n");
+
+syscall log("Get nested object value: ");
+syscall log(object["nestedObject"]["key2"]);
+syscall log("\n");
+
+syscall log("Get nested object value using property accessor: ");
+syscall log(object.nestedObject.key2);
+syscall log("\n");
+
+object["key"] = 456;
+
+syscall log("Set existing property value: ");
+syscall log(object);
+syscall log("\n");
+
+object["newKey"] = 789;
+
+syscall log("Set new property value: ");
+syscall log(object);
+syscall log("\n");
+
+object.key = 321;
+
+syscall log("Set existing property value using property accessor: ");
+syscall log(object);
+syscall log("\n");
+
+object.anotherNewKey = 654;
+
+syscall log("Set new property value using property accessor: ");
+syscall log(object);
+syscall log("\n");
+
+syscall log("Get object length: ");
+syscall log(object.length);
+syscall log("\n");
+
+syscall Or(object, "nestedObject");
+
+syscall log("Removing nested object: ");
+syscall log(object);
+syscall log("\n");

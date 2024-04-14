@@ -188,9 +188,9 @@ var structured = {
     hello: {
         "this": "is",
         an: "object",
-        that: ["contains", "an", "array"]
+        that: ["contains", "a", "list"]
     },
-    "number of items in array": 3,
+    "number of items in list": 3,
     value: 4
 };
 
