@@ -1,0 +1,85 @@
+var list = ["a", "b", "c"];
+
+syscall log("Define list: ");
+syscall log(list);
+syscall log("\n");
+
+syscall Lu("d", list);
+
+syscall log("Push d: ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Get list length: ");
+syscall log(list.length);
+syscall log("\n");
+
+syscall log("Get item at index 0 from list: ");
+syscall log(list[0]);
+syscall log("\n");
+
+syscall log("Get item at index 2 from list: ");
+syscall log(list[2]);
+syscall log("\n");
+
+syscall log("Get item at index 4 from list: ");
+syscall log(list[4]);
+syscall log("\n");
+
+syscall log("Get item at index -1 from list: ");
+syscall log(list[-1]);
+syscall log("\n");
+
+syscall log("Get item at index -2 from list: ");
+syscall log(list-[-2]);
+syscall log("\n");
+
+syscall log("Get item at index -4 from list: ");
+syscall log(list[-4]);
+syscall log("\n");
+
+list[2] = 123;
+
+syscall log("Set item at index 2 in list: ");
+syscall log(list);
+syscall log("\n");
+
+list[-1] = true;
+
+syscall log("Set item at index -1 in list: ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Popping item from list: ");
+syscall log(syscall Lp(list));
+syscall log(" => ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Popping item from list: ");
+syscall log(syscall Lp(list));
+syscall log(" => ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Popping item from list: ");
+syscall log(syscall Lp(list));
+syscall log(" => ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Popping item from list: ");
+syscall log(syscall Lp(list));
+syscall log(" => ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Popping item from list: ");
+syscall log(syscall Lp(list));
+syscall log(" => ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Get list length: ");
+syscall log(list.length);
+syscall log("\n");

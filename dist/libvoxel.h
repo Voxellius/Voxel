@@ -889,11 +889,15 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
+    voxel_List* listValue = list->value;
+
     if (index < 0) {
         index = voxel_getListLength(list) + index;
     }
 
-    if (index < 0) {
+    if (index < 0 || index >= listValue->length) {
+        voxel_unreferenceThing(executor->context, list);
+
         return voxel_pushNull(executor);
     }
 
@@ -1016,6 +1020,8 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
     voxel_ListItem* lastItem = listValue->lastItem;
 
     if (!lastItem) {
+        voxel_unreferenceThing(executor->context, list);
+
         return voxel_pushNull(executor);
     }
 
