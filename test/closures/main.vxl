@@ -1,0 +1,12 @@
+function outer(a) {
+    function inner(b) {
+        return a + b;
+    }
+
+    return inner.toClosure({a: a});
+}
+
+var one = outer(1);
+
+syscall log(one(1));
+syscall log("\n");

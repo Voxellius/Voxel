@@ -185,6 +185,8 @@ export class FunctionNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
+        // TODO: Allow creation of closure functions using `uses` keyword followed by symbols
+
         this.eat(tokens);
 
         var identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);

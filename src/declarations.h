@@ -34,6 +34,7 @@ typedef enum {
     VOXEL_TYPE_BOOLEAN,
     VOXEL_TYPE_BYTE,
     VOXEL_TYPE_FUNCTION,
+    VOXEL_TYPE_CLOSURE,
     VOXEL_TYPE_NUMBER,
     VOXEL_TYPE_BUFFER,
     VOXEL_TYPE_STRING,
@@ -59,6 +60,11 @@ typedef enum {
     VOXEL_NUMBER_TYPE_INT,
     VOXEL_NUMBER_TYPE_FLOAT
 } voxel_NumberType;
+
+typedef struct voxel_Closure {
+    voxel_Position position;
+    voxel_Thing* environment;
+} voxel_Closure;
 
 typedef struct voxel_Number {
     voxel_NumberType type;
@@ -233,8 +239,15 @@ VOXEL_ERRORABLE voxel_destroyFunction(voxel_Thing* thing);
 voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyFunction(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thing);
-voxel_Bool voxel_functionIsTruthy(voxel_Thing* thing);
 voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_functionIsTruthy(voxel_Thing* thing);
+
+voxel_Thing* voxel_newClosure(voxel_Context* context, voxel_Position positionReference, voxel_Thing* environment);
+VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_compareClosures(voxel_Thing* a, voxel_Thing* b);
+voxel_Thing* voxel_copyClosure(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_closureToString(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_closureIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value);

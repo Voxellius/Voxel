@@ -229,6 +229,7 @@ typedef enum {
     VOXEL_TYPE_BOOLEAN,
     VOXEL_TYPE_BYTE,
     VOXEL_TYPE_FUNCTION,
+    VOXEL_TYPE_CLOSURE,
     VOXEL_TYPE_NUMBER,
     VOXEL_TYPE_BUFFER,
     VOXEL_TYPE_STRING,
@@ -254,6 +255,11 @@ typedef enum {
     VOXEL_NUMBER_TYPE_INT,
     VOXEL_NUMBER_TYPE_FLOAT
 } voxel_NumberType;
+
+typedef struct voxel_Closure {
+    voxel_Position position;
+    voxel_Thing* environment;
+} voxel_Closure;
 
 typedef struct voxel_Number {
     voxel_NumberType type;
@@ -428,8 +434,15 @@ VOXEL_ERRORABLE voxel_destroyFunction(voxel_Thing* thing);
 voxel_Bool voxel_compareFunctions(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyFunction(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thing);
-voxel_Bool voxel_functionIsTruthy(voxel_Thing* thing);
 voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_functionIsTruthy(voxel_Thing* thing);
+
+voxel_Thing* voxel_newClosure(voxel_Context* context, voxel_Position positionReference, voxel_Thing* environment);
+VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_compareClosures(voxel_Thing* a, voxel_Thing* b);
+voxel_Thing* voxel_copyClosure(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_closureToString(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_closureIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value);
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value);
@@ -1152,6 +1165,7 @@ void voxel_builtins_core_getType(voxel_Executor* executor) {
         case VOXEL_TYPE_BOOLEAN: thingType[0] = 't'; break;
         case VOXEL_TYPE_BYTE: thingType[0] = 'b'; break;
         case VOXEL_TYPE_FUNCTION: thingType[0] = '@'; break;
+        case VOXEL_TYPE_CLOSURE: thingType[0] = 'C'; break;
         case VOXEL_TYPE_NUMBER: thingType[0] = '%'; break;
         case VOXEL_TYPE_BUFFER: thingType[0] = 'B'; break;
         case VOXEL_TYPE_STRING: thingType[0] = '"'; break;
@@ -1162,6 +1176,32 @@ void voxel_builtins_core_getType(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, thing);
 
     voxel_push(executor, voxel_newStringTerminated(executor->context, thingType));
+}
+
+void voxel_builtins_core_toClosure(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* environment = voxel_pop(executor);
+    voxel_Thing* function = voxel_pop(executor);
+
+    if (
+        !environment || environment->type != VOXEL_TYPE_OBJECT ||
+        !function || function->type != VOXEL_TYPE_FUNCTION ||
+        argCount < 2
+    ) {
+        return voxel_pushNull(executor);
+    }
+
+    if (voxel_getFunctionType(executor->context, function) != VOXEL_FUNCTION_TYPE_POS_REF) {
+        voxel_unreferenceThing(executor->context, environment);
+        voxel_unreferenceThing(executor->context, function);
+
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(
+        executor,
+        voxel_newClosure(executor->context, (voxel_Position)(voxel_IntPtr)function->value, environment)
+    );
 }
 
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
@@ -1252,6 +1292,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
+    voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
 
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);
@@ -1476,6 +1517,7 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_BOOLEAN: return voxel_destroyBoolean(thing);
         case VOXEL_TYPE_BYTE: return voxel_destroyByte(thing);
         case VOXEL_TYPE_FUNCTION: return voxel_destroyFunction(thing);
+        case VOXEL_TYPE_CLOSURE: return voxel_destroyClosure(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_destroyNumber(thing);
         case VOXEL_TYPE_BUFFER: return voxel_destroyBuffer(thing);
         case VOXEL_TYPE_STRING: return voxel_destroyString(thing);
@@ -1554,6 +1596,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_BOOLEAN: return voxel_compareBooleans(a, b);
         case VOXEL_TYPE_BYTE: return voxel_compareBytes(a, b);
         case VOXEL_TYPE_FUNCTION: return voxel_compareFunctions(a, b);
+        case VOXEL_TYPE_CLOSURE: return voxel_compareClosures(a, b);
         case VOXEL_TYPE_NUMBER: return voxel_compareNumbers(a, b);
         case VOXEL_TYPE_BUFFER: return voxel_compareBuffers(a, b);
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
@@ -1586,6 +1629,7 @@ voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_BOOLEAN: return voxel_copyBoolean(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_copyByte(context, thing);
         case VOXEL_TYPE_FUNCTION: return voxel_copyFunction(context, thing);
+        case VOXEL_TYPE_CLOSURE: return voxel_copyClosure(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_copyNumber(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_copyBuffer(context, thing);
         case VOXEL_TYPE_STRING: return voxel_copyString(context, thing);
@@ -1604,6 +1648,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToString(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToString(context, thing);
         case VOXEL_TYPE_FUNCTION: return voxel_functionToString(context, thing);
+        case VOXEL_TYPE_CLOSURE: return voxel_closureToString(context, thing);
         case VOXEL_TYPE_NUMBER: return voxel_numberToString(context, thing);
         case VOXEL_TYPE_BUFFER: return voxel_bufferToString(context, thing);
         case VOXEL_TYPE_STRING: return VOXEL_OK_RET(voxel_copyString(context, thing));
@@ -1639,7 +1684,7 @@ VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 0));
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToNumber(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToNumber(context, thing);
-        case VOXEL_TYPE_FUNCTION: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
+        case VOXEL_TYPE_FUNCTION: case VOXEL_TYPE_CLOSURE: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
         case VOXEL_TYPE_NUMBER: return VOXEL_OK_RET(voxel_copyNumber(context, thing));
         case VOXEL_TYPE_BUFFER: return VOXEL_OK_RET(voxel_newNumberInt(context, voxel_getBufferSize(thing)));
         case VOXEL_TYPE_STRING: return voxel_stringToNumber(context, thing);
@@ -1666,6 +1711,7 @@ voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanIsTruthy(thing);
         case VOXEL_TYPE_BYTE: return voxel_byteIsTruthy(thing);
         case VOXEL_TYPE_FUNCTION: return voxel_functionIsTruthy(thing);
+        case VOXEL_TYPE_CLOSURE: return voxel_closureIsTruthy(thing);
         case VOXEL_TYPE_NUMBER: return voxel_numberIsTruthy(thing);
         case VOXEL_TYPE_BUFFER: return voxel_bufferIsTruthy(thing);
         case VOXEL_TYPE_STRING: return voxel_stringIsTruthy(thing);
@@ -1870,6 +1916,61 @@ voxel_FunctionType voxel_getFunctionType(voxel_Context* context, voxel_Thing* th
 }
 
 voxel_Bool voxel_functionIsTruthy(voxel_Thing* thing) {
+    return VOXEL_TRUE;
+}
+
+// src/closures.h
+
+voxel_Thing* voxel_newClosure(voxel_Context* context, voxel_Position positionReference, voxel_Thing* environment) {
+    voxel_Closure* closure = VOXEL_MALLOC(sizeof(voxel_Closure)); VOXEL_TAG_MALLOC(voxel_Closure);
+
+    closure->position = positionReference;
+    closure->environment = environment;
+
+    environment->referenceCount++;
+
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_CLOSURE);
+
+    thing->type = VOXEL_TYPE_CLOSURE;
+    thing->value = closure;
+
+    return thing;
+}
+
+VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing) {
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_CLOSURE);
+
+    voxel_Closure* closure = thing->value;
+
+    VOXEL_MUST(voxel_unreferenceThing(context, closure->environment));
+
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
+
+    return VOXEL_OK;
+}
+
+voxel_Bool voxel_compareClosures(voxel_Thing* a, voxel_Thing* b) {
+    voxel_Closure* aClosure = a->value;
+    voxel_Closure* bClosure = b->value;
+
+    if (aClosure->position != bClosure->position) {
+        return VOXEL_FALSE;
+    }
+
+    return voxel_compareObjects(aClosure->environment, bClosure->environment);
+}
+
+voxel_Thing* voxel_copyClosure(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Closure* closure = thing->value;
+
+    return voxel_newClosure(context, closure->position, closure->environment);
+}
+
+VOXEL_ERRORABLE voxel_closureToString(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newStringTerminated(context, "(closure function)"));
+}
+
+voxel_Bool voxel_closureIsTruthy(voxel_Thing* thing) {
     return VOXEL_TRUE;
 }
 
@@ -3533,35 +3634,53 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
     switch (token->type) {
         case VOXEL_TOKEN_TYPE_CALL:
-            VOXEL_ERRORABLE callFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(callFunctionResult);
-            voxel_Thing* callFunction = callFunctionResult.value;
+            VOXEL_ERRORABLE callThingResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(callThingResult);
+            voxel_Thing* callThing = callThingResult.value;
 
-            VOXEL_ASSERT(callFunction, VOXEL_ERROR_MISSING_ARG);
-            VOXEL_ASSERT(callFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_CANNOT_CALL_THING);
+            VOXEL_ASSERT(callThing, VOXEL_ERROR_MISSING_ARG);
 
-            voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callFunction);
+            if (callThing->type == VOXEL_TYPE_FUNCTION) {
+                voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callThing);
 
-            if (functionType == VOXEL_FUNCTION_TYPE_BUILTIN) {
-                voxel_Count builtinFunctionIndex = (voxel_IntPtr)callFunction->value;
+                if (functionType == VOXEL_FUNCTION_TYPE_BUILTIN) {
+                    voxel_Count builtinFunctionIndex = (voxel_IntPtr)callThing->value;
 
-                builtinFunctionIndex *= -1;
-                builtinFunctionIndex--;
+                    builtinFunctionIndex *= -1;
+                    builtinFunctionIndex--;
 
-                VOXEL_ASSERT(
-                    builtinFunctionIndex >= 0 && builtinFunctionIndex < executor->context->builtinCount,
-                    VOXEL_ERROR_INVALID_BUILTIN
-                );
+                    VOXEL_ASSERT(
+                        builtinFunctionIndex >= 0 && builtinFunctionIndex < executor->context->builtinCount,
+                        VOXEL_ERROR_INVALID_BUILTIN
+                    );
 
-                voxel_Builtin builtin = executor->context->builtins[builtinFunctionIndex];
+                    voxel_Builtin builtin = executor->context->builtins[builtinFunctionIndex];
 
-                (*builtin)(executor);
+                    (*builtin)(executor);
 
-                break;
+                    break;
+                }
+
+                voxel_stepInExecutor(executor, (voxel_Position)(voxel_IntPtr)callThing->value);
+            } else if (callThing->type == VOXEL_TYPE_CLOSURE) {
+                voxel_Closure* closure = callThing->value;
+
+                voxel_stepInExecutor(executor, closure->position);
+
+                voxel_Scope* scope = executor->scope;
+                voxel_Thing* environment = closure->environment;
+                voxel_Object* environmentObject = environment->value;
+                voxel_ObjectItem* currentItem = environmentObject->firstItem;
+
+                while (currentItem) {
+                    voxel_setObjectItem(executor->context, scope->things, currentItem->key, currentItem->value);
+
+                    currentItem = currentItem->nextItem;
+                }
+            } else {
+                VOXEL_THROW(VOXEL_ERROR_CANNOT_CALL_THING);
             }
 
-            voxel_stepInExecutor(executor, (voxel_Position)(voxel_IntPtr)callFunction->value);
-
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, callFunction));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, callThing));
 
             break;
 

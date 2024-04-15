@@ -52,7 +52,7 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
     Deno.writeTextFile(path.join(TEST_PATH, "main.loop.vxl"), `while (true) {\n\n` + mainCode + `\n\n}`);
 
     promises.push(Promise.resolve().then(async function() {
-        await $("deno", [
+        var buildOutput = await $("deno", [
             "run",
             "--allow-read",
             "--allow-write",
@@ -61,6 +61,10 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
             "-o",
             path.join(TEST_PATH, "main.vxc")
         ]);
+
+        if (buildOutput.stderr) {
+            console.error(buildOutput.stderr);
+        }
 
         var output = await $(VOXEL_FILE, [path.join(TEST_PATH, "main.vxc")]);
 

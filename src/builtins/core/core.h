@@ -45,6 +45,7 @@ void voxel_builtins_core_getType(voxel_Executor* executor) {
         case VOXEL_TYPE_BOOLEAN: thingType[0] = 't'; break;
         case VOXEL_TYPE_BYTE: thingType[0] = 'b'; break;
         case VOXEL_TYPE_FUNCTION: thingType[0] = '@'; break;
+        case VOXEL_TYPE_CLOSURE: thingType[0] = 'C'; break;
         case VOXEL_TYPE_NUMBER: thingType[0] = '%'; break;
         case VOXEL_TYPE_BUFFER: thingType[0] = 'B'; break;
         case VOXEL_TYPE_STRING: thingType[0] = '"'; break;
@@ -55,6 +56,32 @@ void voxel_builtins_core_getType(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, thing);
 
     voxel_push(executor, voxel_newStringTerminated(executor->context, thingType));
+}
+
+void voxel_builtins_core_toClosure(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* environment = voxel_pop(executor);
+    voxel_Thing* function = voxel_pop(executor);
+
+    if (
+        !environment || environment->type != VOXEL_TYPE_OBJECT ||
+        !function || function->type != VOXEL_TYPE_FUNCTION ||
+        argCount < 2
+    ) {
+        return voxel_pushNull(executor);
+    }
+
+    if (voxel_getFunctionType(executor->context, function) != VOXEL_FUNCTION_TYPE_POS_REF) {
+        voxel_unreferenceThing(executor->context, environment);
+        voxel_unreferenceThing(executor->context, function);
+
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(
+        executor,
+        voxel_newClosure(executor->context, (voxel_Position)(voxel_IntPtr)function->value, environment)
+    );
 }
 
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
@@ -145,6 +172,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
+    voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
 
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);

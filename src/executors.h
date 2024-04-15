@@ -48,35 +48,53 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
     switch (token->type) {
         case VOXEL_TOKEN_TYPE_CALL:
-            VOXEL_ERRORABLE callFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(callFunctionResult);
-            voxel_Thing* callFunction = callFunctionResult.value;
+            VOXEL_ERRORABLE callThingResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(callThingResult);
+            voxel_Thing* callThing = callThingResult.value;
 
-            VOXEL_ASSERT(callFunction, VOXEL_ERROR_MISSING_ARG);
-            VOXEL_ASSERT(callFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_CANNOT_CALL_THING);
+            VOXEL_ASSERT(callThing, VOXEL_ERROR_MISSING_ARG);
 
-            voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callFunction);
+            if (callThing->type == VOXEL_TYPE_FUNCTION) {
+                voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callThing);
 
-            if (functionType == VOXEL_FUNCTION_TYPE_BUILTIN) {
-                voxel_Count builtinFunctionIndex = (voxel_IntPtr)callFunction->value;
+                if (functionType == VOXEL_FUNCTION_TYPE_BUILTIN) {
+                    voxel_Count builtinFunctionIndex = (voxel_IntPtr)callThing->value;
 
-                builtinFunctionIndex *= -1;
-                builtinFunctionIndex--;
+                    builtinFunctionIndex *= -1;
+                    builtinFunctionIndex--;
 
-                VOXEL_ASSERT(
-                    builtinFunctionIndex >= 0 && builtinFunctionIndex < executor->context->builtinCount,
-                    VOXEL_ERROR_INVALID_BUILTIN
-                );
+                    VOXEL_ASSERT(
+                        builtinFunctionIndex >= 0 && builtinFunctionIndex < executor->context->builtinCount,
+                        VOXEL_ERROR_INVALID_BUILTIN
+                    );
 
-                voxel_Builtin builtin = executor->context->builtins[builtinFunctionIndex];
+                    voxel_Builtin builtin = executor->context->builtins[builtinFunctionIndex];
 
-                (*builtin)(executor);
+                    (*builtin)(executor);
 
-                break;
+                    break;
+                }
+
+                voxel_stepInExecutor(executor, (voxel_Position)(voxel_IntPtr)callThing->value);
+            } else if (callThing->type == VOXEL_TYPE_CLOSURE) {
+                voxel_Closure* closure = callThing->value;
+
+                voxel_stepInExecutor(executor, closure->position);
+
+                voxel_Scope* scope = executor->scope;
+                voxel_Thing* environment = closure->environment;
+                voxel_Object* environmentObject = environment->value;
+                voxel_ObjectItem* currentItem = environmentObject->firstItem;
+
+                while (currentItem) {
+                    voxel_setObjectItem(executor->context, scope->things, currentItem->key, currentItem->value);
+
+                    currentItem = currentItem->nextItem;
+                }
+            } else {
+                VOXEL_THROW(VOXEL_ERROR_CANNOT_CALL_THING);
             }
 
-            voxel_stepInExecutor(executor, (voxel_Position)(voxel_IntPtr)callFunction->value);
-
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, callFunction));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, callThing));
 
             break;
 
