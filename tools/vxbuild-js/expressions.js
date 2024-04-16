@@ -143,8 +143,7 @@ export class ObjectNode extends ast.AstNode {
                 codeGen.string(this.propertyNames[i].value),
                 codeGen.number(3),
                 codeGen.systemCall("Os"),
-                codeGen.bytes(codeGen.vxcTokens.POP),
-                codeGen.bytes(codeGen.vxcTokens.POP)
+                codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
             ))
         );
     }

@@ -181,11 +181,10 @@ export class FunctionNode extends ast.AstNode {
 
     identifierSymbol = null;
     skipSymbol = null;
+    capturedSymbols = [];
 
     static create(tokens, namespace) {
         var instance = new this();
-
-        // TODO: Allow creation of closure functions using `uses` keyword followed by symbols
 
         this.eat(tokens);
 
@@ -195,6 +194,19 @@ export class FunctionNode extends ast.AstNode {
         instance.skipSymbol = new namespaces.Symbol(namespace, "#fn");
 
         instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "captures")])) {
+            while (true) {
+                var capturedIdentifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+                instance.capturedSymbols.push(new namespaces.Symbol(namespace, capturedIdentifier.value));
+
+                if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)])) {
+                    break;
+                }
+            }
+        }
+
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
         return instance;
@@ -226,12 +238,37 @@ export class FunctionNode extends ast.AstNode {
             codeGen.int32(symbolCode.length + storageCode.length + skipJumpCode.length + bodyCode.length)
         );
 
+        var toClosureCode = codeGen.bytes();
+
+        if (this.capturedSymbols.length > 0) {
+            toClosureCode = codeGen.join(
+                symbolCode,
+                codeGen.bytes(codeGen.vxcTokens.GET),
+                codeGen.number(0),
+                codeGen.systemCall("O"),
+                ...this.capturedSymbols.map((symbol) => codeGen.join(
+                    codeGen.bytes(codeGen.vxcTokens.DUPE),
+                    symbol.generateCode(),
+                    codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.SWAP),
+                    symbol.generateCode(),
+                    codeGen.number(3),
+                    codeGen.systemCall("Os"),
+                    codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
+                )),
+                codeGen.number(2),
+                codeGen.systemCall("C"),
+                symbolCode,
+                codeGen.bytes(codeGen.vxcTokens.SET, codeGen.vxcTokens.POP)
+            );
+        }
+
         return codeGen.join(
             skipDefinitionCode,
             symbolCode,
             storageCode,
             skipJumpCode,
-            bodyCode
+            bodyCode,
+            toClosureCode
         );
     }
 }

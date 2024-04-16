@@ -1,12 +1,26 @@
 function outer(a) {
-    function inner(b) {
+    function inner(b) captures a {
         return a + b;
     }
 
-    return inner.toClosure({a: a});
+    return inner;
 }
 
 var one = outer(1);
 
 syscall log(one(1));
+syscall log("\n");
+
+syscall log(one(2));
+syscall log("\n");
+
+var two = outer(2);
+
+syscall log(two(1));
+syscall log("\n");
+
+syscall log(two(2));
+syscall log("\n");
+
+syscall log(outer(3)(2));
 syscall log("\n");

@@ -1202,6 +1202,9 @@ void voxel_builtins_core_toClosure(voxel_Executor* executor) {
         executor,
         voxel_newClosure(executor->context, (voxel_Position)(voxel_IntPtr)function->value, environment)
     );
+
+    voxel_unreferenceThing(executor->context, environment);
+    voxel_unreferenceThing(executor->context, function);
 }
 
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
@@ -1944,6 +1947,7 @@ VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing)
 
     VOXEL_MUST(voxel_unreferenceThing(context, closure->environment));
 
+    VOXEL_FREE(closure); VOXEL_TAG_FREE(voxel_Closure);
     VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;

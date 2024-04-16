@@ -89,10 +89,10 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
             VXBUILD_FILE,
             path.join(TEST_PATH, "main.loop.vxl"),
             "-o",
-            path.join(TEST_PATH, "main.vxc")
+            path.join(TEST_PATH, "main.loop.vxc")
         ]);
 
-        var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.vxc")], stdout: "null"});
+        var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.loop.vxc")], stdout: "null"});
         var process = command.spawn();
 
         await delay(1_000);

@@ -1,3 +1,4 @@
 build
 *.loop.vxl
 test/*/main.vxc
+test/*/main.loop.vxc

@@ -82,6 +82,9 @@ void voxel_builtins_core_toClosure(voxel_Executor* executor) {
         executor,
         voxel_newClosure(executor->context, (voxel_Position)(voxel_IntPtr)function->value, environment)
     );
+
+    voxel_unreferenceThing(executor->context, environment);
+    voxel_unreferenceThing(executor->context, function);
 }
 
 void voxel_builtins_core_getItem(voxel_Executor* executor) {

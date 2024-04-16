@@ -21,6 +21,7 @@ VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing)
 
     VOXEL_MUST(voxel_unreferenceThing(context, closure->environment));
 
+    VOXEL_FREE(closure); VOXEL_TAG_FREE(voxel_Closure);
     VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
 
     return VOXEL_OK;
