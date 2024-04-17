@@ -14,7 +14,7 @@ export class StatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ImportStatementNode, FunctionNode, IfStatementNode, WhileLoopNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [ImportStatementNode, FunctionNode, IfStatementNode, WhileLoopNode, ForLoopNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
 
         return instance;
     }
@@ -383,13 +383,16 @@ export class WhileLoopNode extends ast.AstNode {
     }
 
     generateCode() {
+        var loopCondition = this.children[0];
+        var loopStatementBlock = this.children[1];
+
         var notConditionCode = codeGen.join(
-            this.children[0].generateCode(),
+            loopCondition.generateCode(),
             codeGen.bytes(codeGen.vxcTokens.NOT)
         );
 
         var loopCode = codeGen.join(
-            this.children[1].generateCode()
+            loopStatementBlock.generateCode()
         );
 
         var skipLoopCode = codeGen.join(
@@ -419,6 +422,105 @@ export class WhileLoopNode extends ast.AstNode {
             notConditionCode,
             skipLoopCode,
             loopCode,
+            repeatLoopCode
+        );
+    }
+}
+
+export class ForLoopNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`for` loop";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "for")
+    ];
+
+    skipLoopSymbol = null;
+    repeatLoopSymbol = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);
+
+        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)])) {
+            instance.expectChildByMatching(tokens, [StatementNode], namespace);
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)]);
+        } else {
+            instance.children.push(expressions.ThingNode.createByValue(null));
+        }
+
+        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)])) {
+            instance.expectChildByMatching(tokens, [expressions.ExpressionNode], namespace);
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)]);
+        } else {
+            instance.children.push(expressions.ThingNode.createByValue(true));
+        }
+
+        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")])) {
+            instance.expectChildByMatching(tokens, [StatementNode], namespace);
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
+        } else {
+            instance.children.push(expressions.ThingNode.createByValue(null));
+        }
+
+
+        instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
+
+        instance.skipLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("while_skip"));
+        instance.repeatLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("while_loop"));
+
+        return instance;
+    }
+
+    generateCode() {
+        var startStatement = this.children[0];
+        var stopCondition = this.children[1];
+        var stepStatement = this.children[2];
+        var loopStatementBlock = this.children[3];
+
+        var startCode = startStatement.generateCode();
+
+        var notConditionCode = codeGen.join(
+            stopCondition.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.NOT)
+        );
+
+        var loopCode = codeGen.join(
+            loopStatementBlock.generateCode()
+        );
+
+        var stepCode = stepStatement.generateCode();
+
+        var skipLoopCode = codeGen.join(
+            this.skipLoopSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
+        );
+
+        var repeatLoopCode = codeGen.join(
+            this.repeatLoopSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        );
+
+        var repeatLoopDefinitionCode = codeGen.join(
+            this.repeatLoopSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_HERE)
+        );
+
+        var skipLoopDefinitionCode = codeGen.join(
+            this.skipLoopSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(repeatLoopDefinitionCode.length + notConditionCode.length + skipLoopCode.length + loopCode.length + stepCode.length + repeatLoopCode.length)
+        );
+
+        return codeGen.join(
+            startCode,
+            skipLoopDefinitionCode,
+            repeatLoopDefinitionCode,
+            notConditionCode,
+            skipLoopCode,
+            loopCode,
+            stepCode,
             repeatLoopCode
         );
     }

@@ -64,6 +64,14 @@ export class ThingNode extends ast.AstNode {
         return instance;
     }
 
+    static createByValue(value) {
+        var instance = new this();
+
+        instance.value = value;
+
+        return instance;
+    }
+
     generateCode() {
         if (this.value instanceof namespaces.Symbol) {
             return codeGen.join(

@@ -1,0 +1,28 @@
+for (var i = 0; i < 5; i = i + 1) {
+    syscall log(i);
+    syscall log("\n");
+}
+
+syscall log("\n");
+
+for (var y = 0; y < 4; y = y + 1) {
+    for (var x = 0; x < 4; x = x + 1) {
+        syscall log("x: ");
+        syscall log(x);
+        syscall log(", y: ");
+        syscall log(y);
+        syscall log("\n");
+    }
+}
+
+syscall log("\n");
+
+var a = 0;
+var b = 10;
+
+for (; a < b; a = a + 1) {
+    syscall log(a);
+    syscall log("\n");
+
+    b = b - 1;
+}
