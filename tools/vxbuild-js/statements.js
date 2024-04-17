@@ -464,7 +464,6 @@ export class ForLoopNode extends ast.AstNode {
             instance.children.push(expressions.ThingNode.createByValue(null));
         }
 
-
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
         instance.skipLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("while_skip"));
