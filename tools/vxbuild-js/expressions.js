@@ -264,7 +264,6 @@ export class FunctionNode extends ast.AstNode {
         var identifier = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
 
         instance.identifierSymbol = new namespaces.Symbol(namespace, identifier != null ? identifier.value : namespaces.generateSymbolName("anonfn"));
-
         instance.skipSymbol = new namespaces.Symbol(namespace, "#fn");
 
         instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
