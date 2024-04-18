@@ -24,3 +24,19 @@ syscall log("\n");
 
 syscall log(outer(3)(2));
 syscall log("\n");
+
+var anonymousOuter = function(a) {
+    return function(b) captures a {
+        return a + b;
+    };
+}
+
+var three = anonymousOuter(3);
+
+syscall log(three(1));
+syscall log("\n");
+
+var four = anonymousOuter(4);
+
+syscall log(four(1));
+syscall log("\n");

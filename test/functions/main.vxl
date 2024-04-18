@@ -154,3 +154,16 @@ var fibonacciResult = fibonacci(10);
 
 syscall log(fibonacciResult);
 syscall log("\n");
+
+var namedFunction = function named() {
+    syscall log("Named function called\n");
+}
+
+named();
+namedFunction();
+
+var anonymousFunction = function() {
+    syscall log("Anonymous function called\n");
+}
+
+anonymousFunction();

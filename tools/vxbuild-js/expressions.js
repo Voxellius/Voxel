@@ -3,6 +3,7 @@ import * as namespaces from "./namespaces.js";
 import * as tokeniser from "./tokeniser.js";
 import * as ast from "./ast.js";
 import * as codeGen from "./codegen.js";
+import * as statements from "./statements.js";
 
 export class ThisNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "`this`";
@@ -197,6 +198,162 @@ export class ListNode extends ast.AstNode {
     }
 }
 
+export class FunctionParametersNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "parameter list";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.BracketToken, "(")
+    ];
+
+    parameters = [];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        var addedFirstParameter = false;
+
+        while (true) {
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")])) {
+                break;
+            }
+
+            if (addedFirstParameter) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
+            }
+
+            instance.parameters.push(
+                new namespaces.Symbol(namespace, this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value)
+            );
+
+            addedFirstParameter = true;
+        }
+
+        return instance;
+    }
+
+    generateCode() {
+        return codeGen.join(
+            codeGen.number(this.parameters.length),
+            codeGen.systemCall("P"),
+            ...this.parameters.reverse().map((symbol) => codeGen.join(
+                symbol.generateCode(),
+                codeGen.bytes(codeGen.vxcTokens.VAR, codeGen.vxcTokens.POP)
+            ))
+        );
+    }
+}
+
+export class FunctionNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "function declaration";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "function")
+    ];
+
+    identifierSymbol = null;
+    skipSymbol = null;
+    capturedSymbols = [];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        var identifier = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+        instance.identifierSymbol = new namespaces.Symbol(namespace, identifier != null ? identifier.value : namespaces.generateSymbolName("anonfn"));
+
+        instance.skipSymbol = new namespaces.Symbol(namespace, "#fn");
+
+        instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "captures")])) {
+            while (true) {
+                var capturedIdentifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+                instance.capturedSymbols.push(new namespaces.Symbol(namespace, capturedIdentifier.value));
+
+                if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)])) {
+                    break;
+                }
+            }
+        }
+
+        instance.expectChildByMatching(tokens, [statements.StatementBlockNode], namespace);
+
+        return instance;
+    }
+
+    generateCode() {
+        var symbolCode = this.identifierSymbol.generateCode();
+
+        var bodyCode = codeGen.join(
+            this.children[0].generateCode(), // Function parameters
+            this.children[1].generateCode(), // Function statement block
+            codeGen.bytes(codeGen.vxcTokens.NULL, codeGen.vxcTokens.RETURN)
+        );
+
+        var skipJumpCode = codeGen.join(
+            this.skipSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        );
+
+        var storageCode = codeGen.join(
+            symbolCode,
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(skipJumpCode.length)
+        );
+
+        var skipDefinitionCode = codeGen.join(
+            this.skipSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(symbolCode.length + storageCode.length + skipJumpCode.length + bodyCode.length)
+        );
+
+        var toClosureCode = codeGen.bytes();
+
+        var returnCode = codeGen.join(
+            codeGen.bytes(codeGen.vxcTokens.POP),
+            symbolCode,
+            codeGen.bytes(codeGen.vxcTokens.GET)
+        );
+
+        if (this.capturedSymbols.length > 0) {
+            toClosureCode = codeGen.join(
+                symbolCode,
+                codeGen.bytes(codeGen.vxcTokens.GET),
+                codeGen.number(0),
+                codeGen.systemCall("O"),
+                ...this.capturedSymbols.map((symbol) => codeGen.join(
+                    codeGen.bytes(codeGen.vxcTokens.DUPE),
+                    symbol.generateCode(),
+                    codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.SWAP),
+                    symbol.generateCode(),
+                    codeGen.number(3),
+                    codeGen.systemCall("Os"),
+                    codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
+                )),
+                codeGen.number(2),
+                codeGen.systemCall("C"),
+                symbolCode,
+                codeGen.bytes(codeGen.vxcTokens.SET, codeGen.vxcTokens.POP)
+            );
+        }
+
+        return codeGen.join(
+            skipDefinitionCode,
+            symbolCode,
+            storageCode,
+            skipJumpCode,
+            bodyCode,
+            toClosureCode,
+            returnCode
+        );
+    }
+}
+
 export class FunctionArgumentsNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "argument list";
 
@@ -373,6 +530,7 @@ export class ExpressionNode extends ast.AstNode {
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
+        ...FunctionNode.MATCH_QUERIES,
         new ast.TokenQuery(tokeniser.OperatorToken, "-"),
         new ast.TokenQuery(tokeniser.OperatorToken, "!")
     ];
@@ -520,13 +678,14 @@ export class ExpressionThingNode extends ExpressionLeafNode {
         ...ThisNode.MATCH_QUERIES,
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
-        ...ListNode.MATCH_QUERIES
+        ...ListNode.MATCH_QUERIES,
+        ...FunctionNode.MATCH_QUERIES
     ];
 
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ThisNode, ThingNode, ObjectNode, ListNode], namespace);
+        instance.expectChildByMatching(tokens, [ThisNode, ThingNode, ObjectNode, ListNode, FunctionNode], namespace);
 
         this.maybeAddAccessors(instance, tokens, namespace);
 
