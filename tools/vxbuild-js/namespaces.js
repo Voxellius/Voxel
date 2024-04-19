@@ -19,12 +19,17 @@ export class Namespace {
         this.symbols = {};
         this.importsToResolve = {};
         this.imports = {};
+        this.foreignSymbolsToResolve = [];
 
         existingNamespaces[this.sourceContainer.location] = this;
     }
 
     import(location, identifier) {
         this.importsToResolve[identifier] = path.resolve(path.dirname(this.sourceContainer.location), location);
+    }
+
+    hasImport(namespaceIdentifier) {
+        return this.importsToResolve[namespaceIdentifier] || this.imports[namespaceIdentifier];
     }
 
     async resolveImports() {
@@ -45,6 +50,10 @@ export class Namespace {
         }
 
         this.importsToResolve = {};
+
+        for (var symbolReference of this.foreignSymbolsToResolve) {
+            symbolReference.resolveSymbol();
+        }
     }
 
     generateAst() {
@@ -135,7 +144,30 @@ export class Symbol {
 
     generateCode() {
         return this.code;
-        // return codeGen.string(`${this.namespace.name}_${this.name}`);
+    }
+}
+
+export class ForeignSymbolReference {
+    constructor(receiverNamespace, subjectNamespaceIdentifier, symbolName) {
+        this.receiverNamespace = receiverNamespace;
+        this.subjectNamespaceIdentifier = subjectNamespaceIdentifier;
+        this.symbolName = symbolName;
+
+        this.symbol = null;
+
+        this.receiverNamespace.foreignSymbolsToResolve.push(this);
+    }
+
+    resolveSymbol() {
+        if (this.symbol != null) {
+            return;
+        }
+
+        this.symbol = new Symbol(this.receiverNamespace.imports[this.subjectNamespaceIdentifier], this.symbolName);
+    }
+
+    generateCode() {
+        return this.symbol.generateCode();
     }
 }
 

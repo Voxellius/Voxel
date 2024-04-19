@@ -1,0 +1,10 @@
+Module B imported
+Module A imported
+Module B test function called
+Module A test function called
+Main module begins
+Module A value: value in module A
+Module A count: 2
+Module A test function called
+Module B test function called
+Module A test function called

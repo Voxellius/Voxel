@@ -1,0 +1,15 @@
+import "a.vxl" as a;
+
+syscall log("Main module begins\n");
+
+syscall log("Module A value: ");
+syscall log(a.value);
+syscall log("\n");
+
+syscall log("Module A count: ");
+syscall log(a.count);
+syscall log("\n");
+
+a.test();
+
+a.callBTest();

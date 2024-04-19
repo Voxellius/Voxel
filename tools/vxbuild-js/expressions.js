@@ -55,7 +55,15 @@ export class ThingNode extends ast.AstNode {
                 "null": null
             }[token.value] ?? null;
         } else if (token instanceof tokeniser.IdentifierToken) {
-            instance.value = new namespaces.Symbol(namespace, token.value);
+            if (namespace.hasImport(token.value)) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.PropertyAccessorToken)]);
+
+                var foreignSymbolToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+                instance.value = new namespaces.ForeignSymbolReference(namespace, token.value, foreignSymbolToken.value);
+            } else {
+                instance.value = new namespaces.Symbol(namespace, token.value);
+            }
         } else if (token instanceof tokeniser.StringToken || token instanceof tokeniser.NumberToken) {
             instance.value = token.value;
         } else {
@@ -74,7 +82,10 @@ export class ThingNode extends ast.AstNode {
     }
 
     generateCode() {
-        if (this.value instanceof namespaces.Symbol) {
+        if (
+            this.value instanceof namespaces.Symbol ||
+            this.value instanceof namespaces.ForeignSymbolReference
+        ) {
             return codeGen.join(
                 this.value.generateCode(),
                 codeGen.bytes(codeGen.vxcTokens.GET)

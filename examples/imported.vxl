@@ -1,3 +1,10 @@
 import "another.vxl" as another;
+import "hello.vxl" as hello;
 
 syscall log("This was imported!\n");
+
+var valueFromImport = "this value has been exported";
+
+function functionFromImport() {
+    hello.println("This function was called from an imported module!");
+}

@@ -1,0 +1,16 @@
+import "b.vxl" as b;
+
+var value = "value in module A";
+var count = 1 + b.count;
+
+function test() {
+    syscall log("Module A test function called\n");
+}
+
+function callBTest() {
+    b.test();
+}
+
+syscall log("Module A imported\n");
+
+callBTest();
