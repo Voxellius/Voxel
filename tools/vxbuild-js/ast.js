@@ -64,6 +64,7 @@ export class AstNode {
 
     constructor() {
         this.children = [];
+        this.scope = null;
     }
 
     static matches(tokens) {
@@ -127,6 +128,18 @@ export class AstNode {
                 tokens[0]?.sourceContainer,
                 tokens[0]?.location
             );
+        }
+    }
+
+    checkSymbolUsage(scope, createChildScope = false) {
+        this.scope = scope;
+
+        if (createChildScope) {
+            scope = scope.createChildScope();
+        }
+
+        for (var child of this.children) {
+            child.checkSymbolUsage(scope);
         }
     }
 

@@ -29,6 +29,12 @@ export class ModuleNode extends ast.AstNode {
         return instance;
     }
 
+    checkSymbolUsage() {
+        this.scope = new namespaces.Scope();
+
+        super.checkSymbolUsage(this.scope);
+    }
+
     generateCode() {
         return codeGen.join(...this.children.map((child) => child.generateCode()));
     }

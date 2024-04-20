@@ -22,6 +22,12 @@ export class ThisNode extends ast.AstNode {
         return instance;
     }
 
+    checkSymbolUsage(scope) {
+        scope.addCoreNamespaceSymbol(this.getThisSymbol);
+
+        super.checkSymbolUsage(scope);
+    }
+
     generateCode() {
         return codeGen.join(
             codeGen.number(0),
@@ -79,6 +85,20 @@ export class ThingNode extends ast.AstNode {
         instance.value = value;
 
         return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        scope.addSymbol(this.value);
+
+        if (this.value instanceof namespaces.ForeignSymbolReference) {
+            var usage = new namespaces.ForeignSymbolUsage(this.value.symbolName, this.value.subjectNamespaceIdentifier);
+
+            usage.everRead = true;
+
+            scope.foreignSymbolUses.push(usage);
+        }
+
+        super.checkSymbolUsage(scope);
     }
 
     generateCode() {
@@ -151,6 +171,8 @@ export class ObjectNode extends ast.AstNode {
 
         return instance;
     }
+
+    // TODO: Allow symbol usage to be tracked for object keys
 
     generateCode() {
         return codeGen.join(
@@ -244,6 +266,14 @@ export class FunctionParametersNode extends ast.AstNode {
         return instance;
     }
 
+    checkSymbolUsage(scope) {
+        for (var parameter of this.parameters) {
+            scope.addSymbol(parameter, false, true);
+        }
+
+        super.checkSymbolUsage(scope);
+    }
+
     generateCode() {
         return codeGen.join(
             codeGen.number(this.parameters.length),
@@ -294,6 +324,16 @@ export class FunctionNode extends ast.AstNode {
         instance.expectChildByMatching(tokens, [statements.StatementBlockNode], namespace);
 
         return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        scope.addSymbol(this.identifierSymbol, false, true);
+
+        for (var capturedSymbol of this.capturedSymbols) {
+            scope.addSymbol(capturedSymbol);
+        }
+
+        super.checkSymbolUsage(scope, true);
     }
 
     generateCode() {
@@ -425,6 +465,13 @@ export class FunctionCallNode extends ast.AstNode {
         return instance;
     }
 
+    checkSymbolUsage(scope) {
+        scope.addCoreNamespaceSymbol(this.pushThisSymbol);
+        scope.addCoreNamespaceSymbol(this.popThisSymbol);
+
+        super.checkSymbolUsage(scope);
+    }
+
     generateCode(expressionCode, calledAsMethod) {
         if (calledAsMethod) {
             return codeGen.join(
@@ -508,6 +555,13 @@ export class PropertyAccessorNode extends ast.AstNode {
         return instance;
     }
 
+    checkSymbolUsage(scope) {
+        scope.addCoreNamespaceSymbol(this.getPropertySymbol);
+        scope.addCoreNamespaceSymbol(this.setPropertySymbol);
+
+        super.checkSymbolUsage(scope);
+    }
+
     generateCode() {
         return codeGen.join(
             codeGen.string(this.property),
@@ -578,6 +632,18 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         instance.addChildByMatching(tokens, [ExpressionNode], namespace);
 
         return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        var target = this.targetInstance.children[0];
+
+        if (target.value instanceof namespaces.Symbol) {
+            var usage = scope.getSymbolById(target.value.id, true);
+
+            usage.everDefined = true;
+        }
+
+        super.checkSymbolUsage(scope);
     }
 
     generateCode() {

@@ -20,6 +20,7 @@ export class Namespace {
         this.importsToResolve = {};
         this.imports = {};
         this.foreignSymbolsToResolve = [];
+        this.scope = null;
 
         existingNamespaces[this.sourceContainer.location] = this;
     }
@@ -111,6 +112,47 @@ export class Namespace {
             var ast = asts[i];
 
             if (namespace == coreNamespace) {
+                console.log("Performing static code analysis for core namespace...");
+            } else {
+                console.log(`Performing static code analysis for \`${namespace.sourceContainer.name}\`...`);
+            }
+
+            ast.checkSymbolUsage();
+
+            namespace.scope = ast.scope;
+        }
+
+        console.log("Resolving foreign symbol usage...");
+
+        for (var i = 0; i < processedNamespaces.length; i++) {
+            var namespace = processedNamespaces[i];
+
+            function resolveForeignSymbolUsesForScope(scope) {
+                for (var foreignSymbolUsage of scope.foreignSymbolUses) {
+                    var subjectNamespace = (
+                        foreignSymbolUsage.foreignNamespaceIdentifier ?
+                        namespace.imports[foreignSymbolUsage.foreignNamespaceIdentifier] :
+                        coreNamespace
+                    );
+    
+                    var usage = subjectNamespace.scope.getSymbolById(Symbol.generateId(subjectNamespace, foreignSymbolUsage.name));
+    
+                    usage.everRead = true;
+                }
+
+                for (var childScope of scope.childScopes) {
+                    resolveForeignSymbolUsesForScope(childScope);
+                }
+            }
+
+            resolveForeignSymbolUsesForScope(namespace.scope);
+        }
+
+        for (var i = 0; i < processedNamespaces.length; i++) {
+            var namespace = processedNamespaces[i];
+            var ast = asts[i];
+
+            if (namespace == coreNamespace) {
                 console.log("Generating VxC code for core namespace...");
             } else {
                 console.log(`Generating VxC code for \`${namespace.sourceContainer.name}\`...`);
@@ -134,12 +176,16 @@ export class Symbol {
         namespace.symbols[name].push(this);
     }
 
-    get id() {
-        if (this.namespace == coreNamespace) {
-            return `#core:${this.name}`;
+    static generateId(namespace, name) {
+        if (namespace == coreNamespace) {
+            return `#core:${name}`;
         }
 
-        return `${this.namespace.id}:${this.name}`;
+        return `${namespace.id}:${name}`;
+    }
+
+    get id() {
+        return this.constructor.generateId(this.namespace, this.name);
     }
 
     generateCode() {
@@ -174,6 +220,108 @@ export class ForeignSymbolReference {
 
     generateCode() {
         return this.symbol.generateCode();
+    }
+}
+
+export class SymbolUsage {
+    constructor(id) {
+        this.id = id;
+
+        this.everDefined = false;
+        this.everRead = false;
+        this.truthiness = null;
+    }
+
+    updateTruthiness(truthiness) {
+        if (!this.everDefined && !this.everRead) {
+            this.everDefined = true;
+            this.truthiness = truthiness;
+        }
+
+        if (this.truthiness == null) {
+            return;
+        }
+
+        if (this.truthiness != truthiness) {
+            this.truthiness = null;
+        }
+    }
+}
+
+export class ForeignSymbolUsage {
+    constructor(name, foreignNamespaceIdentifier = null) {
+        this.name = name;
+        this.foreignNamespaceIdentifier = foreignNamespaceIdentifier;
+    }
+}
+
+export class Scope {
+    constructor() {
+        this.parentScope = null;
+        this.childScopes = [];
+        this.symbolUses = [];
+        this.foreignSymbolUses = [];
+    }
+
+    getSymbolById(id, defining = false) {
+        var usage = this.symbolUses.find((usage) => usage.id == id);
+
+        if (!usage && !defining && this.parentScope != null) {
+            usage = this.parentScope.getSymbolById(id);
+        }
+
+        if (usage) {
+            return usage;
+        }
+
+        if (!defining) {
+            console.warn(`Undefined symbol: ${id}`);
+        }
+
+        usage = new SymbolUsage(id);
+
+        this.symbolUses.push(usage);
+
+        return usage;
+    }
+
+    addSymbol(symbol, reading = true, defining = false) {
+        if (!(symbol instanceof Symbol)) {
+            return false;
+        }
+
+        var usage = this.getSymbolById(symbol.id, defining);
+
+        usage.everRead ||= reading;
+        usage.everDefined ||= defining;
+
+        return true;
+    }
+
+    addCoreNamespaceSymbol(symbol) {
+        if (!(symbol instanceof Symbol)) {
+            return false;
+        }
+
+        if (this.foreignSymbolUses.find((usage) => usage.name == symbol.name && usage.foreignNamespaceIdentifier == null)) {
+            return true;
+        }
+
+        var usage = new ForeignSymbolUsage(symbol.name);
+
+        this.foreignSymbolUses.push(usage);
+
+        return true;
+    }
+
+    createChildScope() {
+        var instance = new this.constructor();
+
+        instance.parentScope = this;
+
+        this.childScopes.push(instance);
+
+        return instance;
     }
 }
 
