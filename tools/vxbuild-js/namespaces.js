@@ -147,6 +147,12 @@ export class Symbol {
     }
 }
 
+export class SystemCall extends Symbol {
+    generateCode() {
+        return codeGen.systemCall(this.name);
+    }
+}
+
 export class ForeignSymbolReference {
     constructor(receiverNamespace, subjectNamespaceIdentifier, symbolName) {
         this.receiverNamespace = receiverNamespace;
@@ -168,12 +174,6 @@ export class ForeignSymbolReference {
 
     generateCode() {
         return this.symbol.generateCode();
-    }
-}
-
-export class SystemCall extends Symbol {
-    generateCode() {
-        return codeGen.systemCall(this.name);
     }
 }
 
