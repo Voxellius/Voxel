@@ -147,7 +147,39 @@ export class AstNode {
         return null;
     }
 
-    generateCode() {
+    generateCode(options) {
         throw new Error("Not implemented in base class");
+    }
+
+    describe() {
+        return "";
+    }
+
+    analyse() {
+        var estimatedTruthiness = this.estimateTruthiness();
+        var truthiness = "unknown";
+
+        if (estimatedTruthiness == true) {
+            truthiness = "truthy";
+        }
+
+        if (estimatedTruthiness == false) {
+            truthiness = "falsy";
+        }
+
+        var nodeInfo = `${this.constructor.name} (${this.describe()}${truthiness})`;
+
+        if (this.children.length == 0) {
+            return `${nodeInfo};`;
+        }
+
+        return (
+            `${nodeInfo}:\n` +
+            this.children.map((child) => child.analyse()
+                .split("\n")
+                .map((line) => `  ${line}`)
+                .join("\n")
+            ).join("\n")
+        );
     }
 }

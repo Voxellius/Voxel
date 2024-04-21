@@ -19,12 +19,12 @@ export class StatementNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
         if (this.children[0] instanceof expressions.ExpressionNode) {
-            return codeGen.join(this.children[0].generateCode(), codeGen.bytes(codeGen.vxcTokens.POP));
+            return codeGen.join(this.children[0].generateCode(options), codeGen.bytes(codeGen.vxcTokens.POP));
         }
 
-        return this.children[0].generateCode();
+        return this.children[0].generateCode(options);
     }
 }
 
@@ -61,8 +61,8 @@ export class StatementBlockNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
-        return codeGen.join(...this.children.map((child) => child.generateCode()));
+    generateCode(options) {
+        return codeGen.join(...this.children.map((child) => child.generateCode(options)));
     }
 }
 
@@ -92,7 +92,7 @@ export class ImportStatementNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.bytes();
     }
 }
@@ -114,9 +114,9 @@ export class ReturnStatementNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
-            this.children[0] ? this.children[0].generateCode() : codeGen.bytes(codeGen.vxcTokens.NULL),
+            this.children[0] ? this.children[0].generateCode(options) : codeGen.bytes(codeGen.vxcTokens.NULL),
             codeGen.bytes(codeGen.vxcTokens.RETURN)
         );
     }
@@ -155,38 +155,56 @@ export class IfStatementNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
+        if (options.removeDeadCode) {
+            var conditionTruthiness = this.children[0].estimateTruthiness();
+
+            if (conditionTruthiness != null) {
+                return codeGen.join(
+                    this.children[0].generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.POP),
+                    conditionTruthiness ? (
+                        this.children[1].generateCode(options)
+                    ) : (
+                        this.skipFalseSymbol ?
+                        this.children[2].generateCode(options) :
+                        codeGen.bytes()
+                    )
+                );
+            }
+        }
+
         var notConditionCode = codeGen.join(
-            this.children[0].generateCode(),
+            this.children[0].generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.NOT)
         );
 
         var isTrueCode = codeGen.join(
-            this.children[1].generateCode()
+            this.children[1].generateCode(options)
         );
 
         var isFalseCode = this.skipFalseSymbol ? codeGen.join(
-            this.children[2].generateCode()
+            this.children[2].generateCode(options)
         ) : codeGen.bytes();
 
         var skipFalseCode = this.skipFalseSymbol ? codeGen.join(
-            this.skipFalseSymbol.generateCode(),
+            this.skipFalseSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
         ) : codeGen.bytes(); // Not necessary if we do not need to skip true statement
 
         var skipTrueCode = codeGen.join(
-            this.skipTrueSymbol.generateCode(),
+            this.skipTrueSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
         );
 
         var skipFalseDefinitionCode = this.skipFalseSymbol ? codeGen.join(
-            this.skipFalseSymbol.generateCode(),
+            this.skipFalseSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
             codeGen.int32(notConditionCode.length + skipTrueCode.length + isTrueCode.length + skipFalseCode.length + isFalseCode.length)
         ) : codeGen.bytes();
 
         var skipTrueDefinitionCode = codeGen.join(
-            this.skipTrueSymbol.generateCode(),
+            this.skipTrueSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
             codeGen.int32(skipFalseDefinitionCode.length + notConditionCode.length + skipTrueCode.length + isTrueCode.length + skipFalseCode.length)
         );
@@ -231,36 +249,47 @@ export class WhileLoopNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
         var loopCondition = this.children[0];
         var loopStatementBlock = this.children[1];
 
+        if (options.removeDeadCode) {
+            var conditionTruthiness = loopCondition.estimateTruthiness();
+
+            if (conditionTruthiness == false) {
+                return codeGen.join(
+                    loopCondition.generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.POP)
+                );
+            }
+        }
+
         var notConditionCode = codeGen.join(
-            loopCondition.generateCode(),
+            loopCondition.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.NOT)
         );
 
         var loopCode = codeGen.join(
-            loopStatementBlock.generateCode()
+            loopStatementBlock.generateCode(options)
         );
 
         var skipLoopCode = codeGen.join(
-            this.skipLoopSymbol.generateCode(),
+            this.skipLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
         );
 
         var repeatLoopCode = codeGen.join(
-            this.repeatLoopSymbol.generateCode(),
+            this.repeatLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
         );
 
         var repeatLoopDefinitionCode = codeGen.join(
-            this.repeatLoopSymbol.generateCode(),
+            this.repeatLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_HERE)
         );
 
         var skipLoopDefinitionCode = codeGen.join(
-            this.skipLoopSymbol.generateCode(),
+            this.skipLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
             codeGen.int32(repeatLoopDefinitionCode.length + notConditionCode.length + skipLoopCode.length + loopCode.length + repeatLoopCode.length)
         );
@@ -321,42 +350,55 @@ export class ForLoopNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
         var startStatement = this.children[0];
         var stopCondition = this.children[1];
         var stepStatement = this.children[2];
         var loopStatementBlock = this.children[3];
 
-        var startCode = startStatement.generateCode();
+        if (options.removeDeadCode) {
+            var conditionTruthiness = stopCondition.estimateTruthiness();
+
+            if (conditionTruthiness == false) {
+                return codeGen.join(
+                    startStatement.generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.POP),
+                    stopCondition.generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.POP)
+                );
+            }
+        }
+
+        var startCode = startStatement.generateCode(options);
 
         var notConditionCode = codeGen.join(
-            stopCondition.generateCode(),
+            stopCondition.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.NOT)
         );
 
         var loopCode = codeGen.join(
-            loopStatementBlock.generateCode()
+            loopStatementBlock.generateCode(options)
         );
 
-        var stepCode = stepStatement.generateCode();
+        var stepCode = stepStatement.generateCode(options);
 
         var skipLoopCode = codeGen.join(
-            this.skipLoopSymbol.generateCode(),
+            this.skipLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
         );
 
         var repeatLoopCode = codeGen.join(
-            this.repeatLoopSymbol.generateCode(),
+            this.repeatLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
         );
 
         var repeatLoopDefinitionCode = codeGen.join(
-            this.repeatLoopSymbol.generateCode(),
+            this.repeatLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_HERE)
         );
 
         var skipLoopDefinitionCode = codeGen.join(
-            this.skipLoopSymbol.generateCode(),
+            this.skipLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
             codeGen.int32(repeatLoopDefinitionCode.length + notConditionCode.length + skipLoopCode.length + loopCode.length + stepCode.length + repeatLoopCode.length)
         );

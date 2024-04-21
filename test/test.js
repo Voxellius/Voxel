@@ -79,7 +79,33 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
                 output.stdout
             );
 
-            return Promise.resolve({test: TEST_NAME, result: "fail", reason: "unexpectedOutput", expected, got: output.stdout});
+            return Promise.resolve({
+                test: TEST_NAME,
+                result: "fail",
+                reason: "unexpectedOutput",
+                expected,
+                got: output.stdout
+            });
+        }
+
+        var isTestFailure = false;
+
+        try {
+            var test = await import(path.join(TEST_PATH, "test.js"));
+
+            await test.test().catch(function(error) {
+                isTestFailure = true;
+
+                return Promise.reject(error);
+            });
+        } catch (e) {
+            if (isTestFailure) {
+                return Promise.resolve(e);
+            }
+
+            if (e.code != "ERR_MODULE_NOT_FOUND") {
+                console.warn(e);
+            }
         }
 
         await $("deno", [
@@ -111,7 +137,13 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
                 `Memory leak: ${before} KiB before; ${after} KiB after (delta ${after - before} KiB)\n`
             );
 
-            return Promise.resolve({test: TEST_NAME, result: "fail", reason: "memoryLeak", before, after});
+            return Promise.resolve({
+                test: TEST_NAME,
+                result: "fail",
+                reason: "memoryLeak",
+                before,
+                after
+            });
         }
 
         return Promise.resolve({test: TEST_NAME, result: "pass"});

@@ -31,7 +31,11 @@ try {
         codeGen.byte("x"),
         codeGen.byte("C"),
         1
-    ), await namespace.build(!flags["no-mangle"]), codeGen.bytes(0));
+    ), await namespace.build({
+        mangle: !flags["no-mangle"],
+        removeDeadCode: !flags["no-dce"],
+        analyseAst: !!flags["analyse-ast"]
+    }), codeGen.bytes(0));
 
     Deno.writeFile(flags["output"], code);
 

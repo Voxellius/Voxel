@@ -35,8 +35,8 @@ export class ModuleNode extends ast.AstNode {
         super.checkSymbolUsage(this.scope);
     }
 
-    generateCode() {
-        return codeGen.join(...this.children.map((child) => child.generateCode()));
+    generateCode(options) {
+        return codeGen.join(...this.children.map((child) => child.generateCode(options)));
     }
 }
 

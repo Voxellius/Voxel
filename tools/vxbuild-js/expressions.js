@@ -28,10 +28,10 @@ export class ThisNode extends ast.AstNode {
         super.checkSymbolUsage(scope);
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
             codeGen.number(0),
-            this.getThisSymbol.generateCode(),
+            this.getThisSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
         );
     }
@@ -128,13 +128,13 @@ export class ThingNode extends ast.AstNode {
         return null;
     }
 
-    generateCode() {
+    generateCode(options) {
         if (
             this.value instanceof namespaces.Symbol ||
             this.value instanceof namespaces.ForeignSymbolReference
         ) {
             return codeGen.join(
-                this.value.generateCode(),
+                this.value.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.GET)
             );
         }
@@ -205,13 +205,13 @@ export class ObjectNode extends ast.AstNode {
         return this.propertyNames.length > 0;
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
             codeGen.number(0),
             codeGen.systemCall("O"),
             ...this.children.map((child, i) => codeGen.join(
                 codeGen.bytes(codeGen.vxcTokens.DUPE),
-                child.generateCode(),
+                child.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.SWAP),
                 codeGen.string(this.propertyNames[i].value),
                 codeGen.number(3),
@@ -257,9 +257,9 @@ export class ListNode extends ast.AstNode {
         return this.children.length > 0;
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
-            ...this.children.map((child) => child.generateCode()),
+            ...this.children.map((child) => child.generateCode(options)),
             codeGen.number(this.children.length),
             codeGen.systemCall("Lo")
         );
@@ -309,12 +309,12 @@ export class FunctionParametersNode extends ast.AstNode {
         super.checkSymbolUsage(scope);
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
             codeGen.number(this.parameters.length),
             codeGen.systemCall("P"),
             ...this.parameters.reverse().map((symbol) => codeGen.join(
-                symbol.generateCode(),
+                symbol.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.VAR, codeGen.vxcTokens.POP)
             ))
         );
@@ -377,17 +377,17 @@ export class FunctionNode extends ast.AstNode {
         return true;
     }
 
-    generateCode() {
-        var symbolCode = this.identifierSymbol.generateCode();
+    generateCode(options) {
+        var symbolCode = this.identifierSymbol.generateCode(options);
 
         var bodyCode = codeGen.join(
-            this.children[0].generateCode(), // Function parameters
-            this.children[1].generateCode(), // Function statement block
+            this.children[0].generateCode(options), // Function parameters
+            this.children[1].generateCode(options), // Function statement block
             codeGen.bytes(codeGen.vxcTokens.NULL, codeGen.vxcTokens.RETURN)
         );
 
         var skipJumpCode = codeGen.join(
-            this.skipSymbol.generateCode(),
+            this.skipSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
         );
 
@@ -398,7 +398,7 @@ export class FunctionNode extends ast.AstNode {
         );
 
         var skipDefinitionCode = codeGen.join(
-            this.skipSymbol.generateCode(),
+            this.skipSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
             codeGen.int32(symbolCode.length + storageCode.length + skipJumpCode.length + bodyCode.length)
         );
@@ -419,9 +419,9 @@ export class FunctionNode extends ast.AstNode {
                 codeGen.systemCall("O"),
                 ...this.capturedSymbols.map((symbol) => codeGen.join(
                     codeGen.bytes(codeGen.vxcTokens.DUPE),
-                    symbol.generateCode(),
+                    symbol.generateCode(options),
                     codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.SWAP),
-                    symbol.generateCode(),
+                    symbol.generateCode(options),
                     codeGen.number(3),
                     codeGen.systemCall("Os"),
                     codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
@@ -480,9 +480,9 @@ export class FunctionArgumentsNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
-            ...this.children.map((child) => child.generateCode()),
+            ...this.children.map((child) => child.generateCode(options)),
             codeGen.number(this.children.length)
         );
     }
@@ -513,23 +513,23 @@ export class FunctionCallNode extends ast.AstNode {
         super.checkSymbolUsage(scope);
     }
 
-    generateCode(expressionCode, calledAsMethod) {
+    generateCode(expressionCode, calledAsMethod, options) {
         if (calledAsMethod) {
             return codeGen.join(
-                this.children[0].generateCode(),
+                this.children[0].generateCode(options),
                 expressionCode,
                 codeGen.number(0),
-                this.pushThisSymbol.generateCode(),
+                this.pushThisSymbol.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP),
                 codeGen.bytes(codeGen.vxcTokens.CALL),
                 codeGen.number(0),
-                this.popThisSymbol.generateCode(),
+                this.popThisSymbol.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
             );
         }
 
         return codeGen.join(
-            this.children[0].generateCode(),
+            this.children[0].generateCode(options),
             expressionCode,
             codeGen.bytes(codeGen.vxcTokens.CALL)
         );
@@ -555,19 +555,19 @@ export class IndexAccessorNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
-            this.children[0].generateCode(),
+            this.children[0].generateCode(options),
             codeGen.number(2),
             codeGen.systemCall("Tg")
         );
     }
 
-    generateSetterCode(targetCode, valueCode) {
+    generateSetterCode(targetCode, valueCode, options) {
         return codeGen.join(
             valueCode,
             targetCode,
-            this.children[0].generateCode(),
+            this.children[0].generateCode(options),
             codeGen.number(3),
             codeGen.systemCall("Ts"),
             codeGen.bytes(codeGen.vxcTokens.POP)
@@ -603,22 +603,22 @@ export class PropertyAccessorNode extends ast.AstNode {
         super.checkSymbolUsage(scope);
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
             codeGen.string(this.property),
             codeGen.number(2),
-            this.getPropertySymbol.generateCode(),
+            this.getPropertySymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
         );
     }
 
-    generateSetterCode(targetCode, valueCode) {
+    generateSetterCode(targetCode, valueCode, options) {
         return codeGen.join(
             targetCode,
             codeGen.string(this.property),
             valueCode,
             codeGen.number(3),
-            this.setPropertySymbol.generateCode(),
+            this.setPropertySymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
         );
     }
@@ -652,8 +652,8 @@ export class ExpressionNode extends ast.AstNode {
         return this.children[0]?.estimateTruthiness() ?? null;
     }
 
-    generateCode() {
-        return codeGen.join(...this.children.map((child) => child.generateCode()));
+    generateCode(options) {
+        return codeGen.join(...this.children.map((child) => child.generateCode(options)));
     }
 }
 
@@ -700,15 +700,16 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         return null;
     }
 
-    generateCode() {
-        var valueCode = this.children.length > 0 ? this.children[0].generateCode() : codeGen.bytes(codeGen.vxcTokens.NULL);
+    generateCode(options) {
+        var valueCode = this.children.length > 0 ? this.children[0].generateCode(options) : codeGen.bytes(codeGen.vxcTokens.NULL);
         var target = this.targetInstance.children.pop();
 
         if (this.targetInstance.children.length > 0) {
             if (target instanceof IndexAccessorNode || target instanceof PropertyAccessorNode) {
                 return target.generateSetterCode(
-                    this.targetInstance.generateCode(),
-                    valueCode
+                    this.targetInstance.generateCode(options),
+                    valueCode,
+                    options
                 );
             }
 
@@ -727,9 +728,19 @@ export class ExpressionAssignmentNode extends ast.AstNode {
 
         return codeGen.join(
             valueCode,
-            target.value.generateCode(),
+            target.value.generateCode(options),
             codeGen.bytes(this.isLocal ? codeGen.vxcTokens.VAR : codeGen.vxcTokens.SET)
         );
+    }
+
+    describe() {
+        var target = this.targetInstance.children[0];
+
+        if (target.value instanceof namespaces.Symbol) {
+            return `assign to \`${target.value.id}\`, `;
+        }
+
+        return "";
     }
 }
 
@@ -783,19 +794,23 @@ export class ExpressionLeafNode extends ExpressionNode {
         return instance;
     }
 
-    generateCode() {
+    estimateTruthiness() {
+        return this.children.at(-1).estimateTruthiness();
+    }
+
+    generateCode(options) {
         var currentCode = codeGen.bytes();
         var lastNodeWasPropertyAccessor = false;
 
         for (var child of this.children) {
             if (child instanceof FunctionCallNode) {
                 // Function calls need to push the arguments passed to the function first before the function thing is pushed on
-                currentCode = child.generateCode(currentCode, lastNodeWasPropertyAccessor);
+                currentCode = child.generateCode(currentCode, lastNodeWasPropertyAccessor, options);
 
                 continue;
             }
 
-            currentCode = codeGen.join(currentCode, child.generateCode());
+            currentCode = codeGen.join(currentCode, child.generateCode(options));
             lastNodeWasPropertyAccessor = child instanceof PropertyAccessorNode;
         }
 
@@ -837,8 +852,8 @@ export class UnaryOperatorExpressionNode extends ExpressionNode {
         return instance;
     }
 
-    generateCode() {
-        return codeGen.join(this.children[0].generateCode(), this.constructor.OPERATOR_CODE);
+    generateCode(options) {
+        return codeGen.join(this.children[0].generateCode(options), this.constructor.OPERATOR_CODE);
     }
 }
 
@@ -896,8 +911,8 @@ export class BinaryOperatorExpressionNode extends ExpressionNode {
         return instance;
     }
 
-    generateCode() {
-        var currentCode = this.children[0].generateCode();
+    generateCode(options) {
+        var currentCode = this.children[0].generateCode(options);
 
         for (var i = 1; i < this.children.length; i++) {
             var child = this.children[i];
@@ -905,7 +920,7 @@ export class BinaryOperatorExpressionNode extends ExpressionNode {
 
             currentCode = codeGen.join(
                 currentCode,
-                child.generateCode(),
+                child.generateCode(options),
                 this.constructor.OPERATOR_CODE[operator.value]
             );
         }
@@ -1116,13 +1131,13 @@ export class LogicalShortCircuitingAndOperatorExpressionNode extends BinaryOpera
         return anyUnknown ? null : true;
     }
 
-    generateCode() {
+    generateCode(options) {
         if (this.children.length == 1) {
-            return this.children[0].generateCode();
+            return this.children[0].generateCode(options);
         }
 
-        var allChildrenCode = this.children.map((child) => child.generateCode());
-        var skipSymbolCode = this.skipSymbol.generateCode();
+        var allChildrenCode = this.children.map((child) => child.generateCode(options));
+        var skipSymbolCode = this.skipSymbol.generateCode(options);
         var currentCode = allChildrenCode.pop();
 
         while (allChildrenCode.length > 0) {
@@ -1183,13 +1198,13 @@ export class LogicalShortCircuitingOrOperatorExpressionNode extends BinaryOperat
         return anyUnknown ? null : false;
     }
 
-    generateCode() {
+    generateCode(options) {
         if (this.children.length == 1) {
-            return this.children[0].generateCode();
+            return this.children[0].generateCode(options);
         }
 
-        var allChildrenCode = this.children.map((child) => child.generateCode());
-        var skipSymbolCode = this.skipSymbol.generateCode();
+        var allChildrenCode = this.children.map((child) => child.generateCode(options));
+        var skipSymbolCode = this.skipSymbol.generateCode(options);
         var currentCode = allChildrenCode.pop();
 
         while (allChildrenCode.length > 0) {
@@ -1249,13 +1264,13 @@ export class NullishCoalescingOperatorExpressionNode extends BinaryOperatorExpre
         return anyUnknown ? null : false;
     }
 
-    generateCode() {
+    generateCode(options) {
         if (this.children.length == 1) {
-            return this.children[0].generateCode();
+            return this.children[0].generateCode(options);
         }
 
-        var allChildrenCode = this.children.map((child) => child.generateCode());
-        var skipSymbolCode = this.skipSymbol.generateCode();
+        var allChildrenCode = this.children.map((child) => child.generateCode(options));
+        var skipSymbolCode = this.skipSymbol.generateCode(options);
         var currentCode = allChildrenCode.pop();
 
         while (allChildrenCode.length > 0) {
@@ -1303,10 +1318,10 @@ export class SystemCallNode extends ast.AstNode {
         return instance;
     }
 
-    generateCode() {
+    generateCode(options) {
         return codeGen.join(
-            this.children[0].generateCode(),
-            this.value.generateCode()
+            this.children[0].generateCode(options),
+            this.value.generateCode(options)
         );
     }
 }

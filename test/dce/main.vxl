@@ -1,0 +1,65 @@
+function unknownReturner() {
+    return 1 + 1;
+}
+
+var alwaysTruthy = true;
+var alwaysFalsy = false;
+var alwaysUnknown = unknownReturner();
+
+if (alwaysTruthy) {
+    "PASS if alwaysTruthy";
+} else {
+    "FAIL";
+}
+
+if (alwaysFalsy) {
+    "FAIL";
+} else {
+    "PASS else alwaysFalsy";
+}
+
+if (alwaysUnknown) {
+    "PASS if alwaysUnknown";
+} else {
+    "PASS else alwaysUnknown";
+}
+
+if (!alwaysTruthy) {
+    "FAIL";
+}
+
+if (!alwaysFalsy) {
+    "PASS if !alwaysFalsy";
+}
+
+if (!alwaysUnknown) {
+    "PASS if !alwaysUnknown";
+}
+
+if (true && alwaysTruthy) {
+    "PASS if true && alwaysTruthy";
+}
+
+if (alwaysTruthy && alwaysFalsy) {
+    "FAIL";
+}
+
+if (alwaysTruthy && alwaysUnknown) {
+    "PASS if alwaysTruthy && alwaysUnknown";
+}
+
+if (alwaysFalsy || alwaysTruthy) {
+    "PASS if alwaysFalsy || alwaysTruthy";
+}
+
+if (alwaysFalsy || alwaysUnknown) {
+    "PASS if alwaysFalsy || alwaysUnknown";
+}
+
+while (alwaysFalsy) {
+    "FAIL";
+}
+
+for (; alwaysFalsy;) {
+    "FAIL";
+}

@@ -67,7 +67,7 @@ export class Namespace {
         return [...new Set(Object.values(this.imports))];
     }
 
-    async build(mangle = false) {
+    async build(options) {
         var processedNamespaces = [];
         var allDiscoveredNamespaces = [];
         var asts = [];
@@ -103,7 +103,7 @@ export class Namespace {
         await processNamespace(coreNamespace);
         await processNamespace(this);
 
-        if (mangle) {
+        if (options.mangle) {
             mangleSymbols(processedNamespaces);
         }
 
@@ -152,13 +152,17 @@ export class Namespace {
             var namespace = processedNamespaces[i];
             var ast = asts[i];
 
+            if (options.analyseAst) {
+                console.log("Analysed AST:", ast.analyse());
+            }
+
             if (namespace == coreNamespace) {
                 console.log("Generating VxC code for core namespace...");
             } else {
                 console.log(`Generating VxC code for \`${namespace.sourceContainer.name}\`...`);
             }
 
-            code.push(ast.generateCode());
+            code.push(ast.generateCode(options));
         }
 
         return codeGen.join(...code);
@@ -188,13 +192,13 @@ export class Symbol {
         return this.constructor.generateId(this.namespace, this.name);
     }
 
-    generateCode() {
+    generateCode(options) {
         return this.code;
     }
 }
 
 export class SystemCall extends Symbol {
-    generateCode() {
+    generateCode(options) {
         return codeGen.systemCall(this.name);
     }
 }
@@ -218,8 +222,8 @@ export class ForeignSymbolReference {
         this.symbol = new Symbol(this.receiverNamespace.imports[this.subjectNamespaceIdentifier], this.symbolName);
     }
 
-    generateCode() {
-        return this.symbol.generateCode();
+    generateCode(options) {
+        return this.symbol.generateCode(options);
     }
 }
 
