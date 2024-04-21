@@ -143,6 +143,10 @@ export class AstNode {
         }
     }
 
+    estimateTruthiness() {
+        return null;
+    }
+
     generateCode() {
         throw new Error("Not implemented in base class");
     }

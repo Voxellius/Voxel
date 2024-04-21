@@ -52,3 +52,5 @@ function popThis() {
 function getThis() {
     return nextThis;
 }
+
+var thingy = true;

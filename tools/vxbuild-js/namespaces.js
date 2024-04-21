@@ -287,7 +287,7 @@ export class Scope {
 
     addSymbol(symbol, reading = true, defining = false) {
         if (!(symbol instanceof Symbol)) {
-            return false;
+            return null;
         }
 
         var usage = this.getSymbolById(symbol.id, defining);
@@ -295,12 +295,12 @@ export class Scope {
         usage.everRead ||= reading;
         usage.everDefined ||= defining;
 
-        return true;
+        return usage;
     }
 
     addCoreNamespaceSymbol(symbol) {
         if (!(symbol instanceof Symbol)) {
-            return false;
+            return null;
         }
 
         if (this.foreignSymbolUses.find((usage) => usage.name == symbol.name && usage.foreignNamespaceIdentifier == null)) {
@@ -311,7 +311,22 @@ export class Scope {
 
         this.foreignSymbolUses.push(usage);
 
-        return true;
+        return usage;
+    }
+
+    getSymbolTruthiness(symbol) {
+        if (symbol instanceof Symbol) {
+            return this.symbolUses.find((usage) => usage.id == symbol.id)?.truthiness ?? null;
+        }
+
+        if (symbol instanceof ForeignSymbolReference) {
+            return this.foreignSymbolUses.find((usage) => (
+                usage.name == symbol.name &&
+                usage.foreignNamespaceIdentifier == symbol.subjectNamespaceIdentifier
+            ))?.truthiness ?? null;
+        }
+
+        return null;
     }
 
     createChildScope() {

@@ -101,6 +101,33 @@ export class ThingNode extends ast.AstNode {
         super.checkSymbolUsage(scope);
     }
 
+    estimateTruthiness() {
+        if (
+            this.value instanceof namespaces.Symbol ||
+            this.value instanceof namespaces.ForeignSymbolReference
+        ) {
+            return this.scope.getSymbolTruthiness(this.value);
+        }
+
+        if (this.value == null) {
+            return false;
+        }
+
+        if (typeof(this.value) == "boolean") {
+            return this.value;
+        }
+
+        if (typeof(this.value) == "string") {
+            return this.value.length > 0;
+        }
+
+        if (typeof(this.value) == "number") {
+            return this.value != 0;
+        }
+
+        return null;
+    }
+
     generateCode() {
         if (
             this.value instanceof namespaces.Symbol ||
@@ -174,6 +201,10 @@ export class ObjectNode extends ast.AstNode {
 
     // TODO: Allow symbol usage to be tracked for object keys
 
+    estimateTruthiness() {
+        return this.propertyNames.length > 0;
+    }
+
     generateCode() {
         return codeGen.join(
             codeGen.number(0),
@@ -220,6 +251,10 @@ export class ListNode extends ast.AstNode {
         }
 
         return instance;
+    }
+
+    estimateTruthiness() {
+        return this.children.length > 0;
     }
 
     generateCode() {
@@ -327,13 +362,19 @@ export class FunctionNode extends ast.AstNode {
     }
 
     checkSymbolUsage(scope) {
-        scope.addSymbol(this.identifierSymbol, false, true);
+        var usage = scope.addSymbol(this.identifierSymbol, false, true);
+
+        usage.truthiness = true;
 
         for (var capturedSymbol of this.capturedSymbols) {
             scope.addSymbol(capturedSymbol);
         }
 
         super.checkSymbolUsage(scope, true);
+    }
+
+    estimateTruthiness() {
+        return true;
     }
 
     generateCode() {
@@ -607,6 +648,10 @@ export class ExpressionNode extends ast.AstNode {
         return instance;
     }
 
+    estimateTruthiness() {
+        return this.children[0]?.estimateTruthiness() ?? null;
+    }
+
     generateCode() {
         return codeGen.join(...this.children.map((child) => child.generateCode()));
     }
@@ -637,13 +682,22 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     checkSymbolUsage(scope) {
         var target = this.targetInstance.children[0];
 
+        super.checkSymbolUsage(scope);
+
         if (target.value instanceof namespaces.Symbol) {
             var usage = scope.getSymbolById(target.value.id, true);
 
             usage.everDefined = true;
+            usage.truthiness = this.estimateTruthiness();
+        }
+    }
+
+    estimateTruthiness() {
+        if (this.children.length > 0) {
+            return this.children[0].estimateTruthiness();
         }
 
-        super.checkSymbolUsage(scope);
+        return null;
     }
 
     generateCode() {
@@ -795,12 +849,26 @@ export class UnaryNegativeOperatorExpressionNode extends UnaryOperatorExpression
         codeGen.number(1),
         codeGen.systemCall("-x")
     );
+
+    estimateTruthiness() {
+        return this.children[0].estimateTruthiness();
+    }
 }
 
 export class UnaryNotOperatorExpressionNode extends UnaryOperatorExpressionNode {
     static MATCH_QUERIES = [new ast.TokenQuery(tokeniser.OperatorToken, "!")];
 
     static OPERATOR_CODE = codeGen.bytes(codeGen.vxcTokens.NOT);
+
+    estimateTruthiness() {
+        var valueTruthiness = this.children[0].estimateTruthiness();
+
+        if (valueTruthiness == null) {
+            return null;
+        }
+
+        return !valueTruthiness;
+    }
 }
 
 export class BinaryOperatorExpressionNode extends ExpressionNode {
@@ -869,6 +937,24 @@ export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperator
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+
+    estimateTruthiness() {
+        var allTruthy = true;
+
+        for (var child of this.children) {
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                allTruthy = false;
+            }
+
+            if (truthiness == false) {
+                return false;
+            }
+        }
+
+        return allTruthy ? true : null;
+    }
 }
 
 export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExpressionNode {
@@ -889,6 +975,24 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = MultiplicationDivisionOperatorExpressionNode;
+
+    estimateTruthiness() {
+        var allFalsy = true;
+
+        for (var child of this.children) {
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == true) {
+                allFalsy = false;
+            }
+
+            if (truthiness == null) {
+                return null;
+            }
+        }
+
+        return !allFalsy;
+    }
 }
 
 export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode {
@@ -929,6 +1033,24 @@ export class LogicalEagerAndOperatorExpressionNode extends BinaryOperatorExpress
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = EqualityOperatorExpressionNode;
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var child of this.children) {
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == false) {
+                return false;
+            }
+        }
+
+        return anyUnknown ? null : true;
+    }
 }
 
 export class LogicalEagerOrOperatorExpressionNode extends BinaryOperatorExpressionNode {
@@ -941,6 +1063,24 @@ export class LogicalEagerOrOperatorExpressionNode extends BinaryOperatorExpressi
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = LogicalEagerAndOperatorExpressionNode;
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var child of this.children) {
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == true) {
+                return true;
+            }
+        }
+
+        return anyUnknown ? null : false;
+    }
 }
 
 export class LogicalShortCircuitingAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
@@ -956,6 +1096,24 @@ export class LogicalShortCircuitingAndOperatorExpressionNode extends BinaryOpera
         instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("and_skip"));
 
         return instance;
+    }
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var child of this.children) {
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == false) {
+                return false;
+            }
+        }
+
+        return anyUnknown ? null : true;
     }
 
     generateCode() {
@@ -1007,6 +1165,24 @@ export class LogicalShortCircuitingOrOperatorExpressionNode extends BinaryOperat
         return instance;
     }
 
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var child of this.children) {
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == true) {
+                return true;
+            }
+        }
+
+        return anyUnknown ? null : false;
+    }
+
     generateCode() {
         if (this.children.length == 1) {
             return this.children[0].generateCode();
@@ -1053,6 +1229,24 @@ export class NullishCoalescingOperatorExpressionNode extends BinaryOperatorExpre
         instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("nullish_skip"));
 
         return instance;
+    }
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var child of this.children) {
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == true) {
+                return true;
+            }
+        }
+
+        return anyUnknown ? null : false;
     }
 
     generateCode() {
