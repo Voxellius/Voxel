@@ -155,6 +155,30 @@ export class IfStatementNode extends ast.AstNode {
         return instance;
     }
 
+    checkSymbolUsage(scope) {
+        this.scope = scope;
+
+        this.children[0].checkSymbolUsage(scope);
+
+        var conditionTruthiness = this.children[0].estimateTruthiness();
+
+        if (conditionTruthiness == true) {
+            this.children[1].checkSymbolUsage(scope);
+
+            return;
+        }
+
+        if (conditionTruthiness == false && this.skipFalseSymbol) {
+            this.children[2].checkSymbolUsage(scope);
+
+            return;
+        }
+
+        for (var child of this.children) {
+            child.checkSymbolUsage(scope);
+        }
+    }
+
     generateCode(options) {
         if (options.removeDeadCode) {
             var conditionTruthiness = this.children[0].estimateTruthiness();
