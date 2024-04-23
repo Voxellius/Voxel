@@ -148,18 +148,24 @@ export class Namespace {
             resolveForeignSymbolUsesForScope(namespace.scope);
         }
 
-        for (var i = 0; i < 16; i++) {
-            console.log(`Pruning symbol usage (pass ${i + 1})...`);
-
-            var anyPruned = false;
-
-            for (var ast of asts) {
-                anyPruned ||= ast.pruneSymbolUsage();
+        if (options.removeDeadCode) {
+            for (var i = 0; i < (options.prunePassLimit ?? 100); i++) {
+                if (i == 0) {
+                    console.log(`Pruning symbol usage...`);
+                }
+    
+                var anyPruned = false;
+    
+                for (var ast of asts) {
+                    anyPruned ||= ast.pruneSymbolUsage();
+                }
+    
+                if (!anyPruned) {
+                    break;
+                }
             }
-
-            if (!anyPruned) {
-                break;
-            }
+    
+            console.log(`Pruning complete; pass count: ${i + 1}`);
         }
 
         for (var i = 0; i < processedNamespaces.length; i++) {
@@ -325,7 +331,7 @@ export class Scope {
         return usage;
     }
 
-    addCoreNamespaceSymbol(symbol) {
+    addCoreNamespaceSymbol(symbol, reader = null) {
         if (!(symbol instanceof Symbol)) {
             return null;
         }
@@ -335,6 +341,8 @@ export class Scope {
         }
 
         var usage = new ForeignSymbolUsage(symbol.name);
+
+        usage.readBy.push(reader);
 
         this.foreignSymbolUses.push(usage);
 

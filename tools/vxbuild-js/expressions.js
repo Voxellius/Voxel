@@ -23,7 +23,7 @@ export class ThisNode extends ast.AstNode {
     }
 
     checkSymbolUsage(scope) {
-        scope.addCoreNamespaceSymbol(this.getThisSymbol);
+        scope.addCoreNamespaceSymbol(this.getThisSymbol, this);
 
         super.checkSymbolUsage(scope);
     }
@@ -373,11 +373,30 @@ export class FunctionNode extends ast.AstNode {
         super.checkSymbolUsage(scope, true);
     }
 
+    pruneSymbolUsage() {
+        var usage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
+        var anyMarkedUnread = false;
+
+        if (usage && !usage.everRead) {
+            anyMarkedUnread ||= markChildSymbolsAsUnread(this.children[1]);
+        }
+
+        return super.pruneSymbolUsage() || anyMarkedUnread;
+    }
+
     estimateTruthiness() {
         return true;
     }
 
     generateCode(options) {
+        if (options.removeDeadCode) {
+            var usage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
+            
+            if (usage && !usage.everRead && hasNoEffect(this)) {
+                return codeGen.bytes(codeGen.vxcTokens.NULL);
+            }
+        }
+
         var symbolCode = this.identifierSymbol.generateCode(options);
 
         var bodyCode = codeGen.join(
@@ -443,6 +462,24 @@ export class FunctionNode extends ast.AstNode {
             returnCode
         );
     }
+
+    describe() {
+        var parts = super.describe();
+
+        parts.unshift(`assign to \`${this.identifierSymbol.id}\``);
+
+        if (this.scope != null) {
+            var targetUsage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
+
+            if (targetUsage.everRead) {
+                parts.push(`read by ${[...new Set(targetUsage.readBy)].map((reader) => reader != null ? String(reader.id) : "other").join(", ")}`);
+            } else {
+                parts.push("never read");
+            }
+        }
+
+        return parts;
+    }
 }
 
 export class FunctionArgumentsNode extends ast.AstNode {
@@ -504,13 +541,6 @@ export class FunctionCallNode extends ast.AstNode {
         instance.expectChildByMatching(tokens, [FunctionArgumentsNode], namespace);
 
         return instance;
-    }
-
-    checkSymbolUsage(scope) {
-        scope.addCoreNamespaceSymbol(this.pushThisSymbol);
-        scope.addCoreNamespaceSymbol(this.popThisSymbol);
-
-        super.checkSymbolUsage(scope);
     }
 
     generateCode(expressionCode, calledAsMethod, options) {
@@ -597,8 +627,8 @@ export class PropertyAccessorNode extends ast.AstNode {
     }
 
     checkSymbolUsage(scope) {
-        scope.addCoreNamespaceSymbol(this.getPropertySymbol);
-        scope.addCoreNamespaceSymbol(this.setPropertySymbol);
+        scope.addCoreNamespaceSymbol(this.getPropertySymbol, this);
+        scope.addCoreNamespaceSymbol(this.setPropertySymbol, this);
 
         super.checkSymbolUsage(scope);
     }
@@ -822,6 +852,17 @@ export class ExpressionLeafNode extends ExpressionNode {
         }
 
         return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        for (var child of this.children) {
+            if (child instanceof FunctionCallNode) {
+                scope.addCoreNamespaceSymbol(this.pushThisSymbol, this);
+                scope.addCoreNamespaceSymbol(this.popThisSymbol, this);
+            }
+        }
+
+        super.checkSymbolUsage(scope);
     }
 
     estimateTruthiness() {
@@ -1360,14 +1401,14 @@ export class SystemCallNode extends ast.AstNode {
     }
 }
 
-export function hasNoEffect(astNode, applicableChildren) {
+export function hasNoEffect(astNode, applicableChildren = []) {
     for (var child of applicableChildren) {
         if (child.findChildrenOfTypes([FunctionCallNode, PropertyAccessorNode]).length > 0) {
             return false;
         }
     }
 
-    var expressionNode = astNode.findAncestorOfTypes([ExpressionNode]);
+    var expressionNode = astNode.findAncestorOfTypes([ExpressionNode], true);
 
     if (expressionNode != null && expressionNode.parent instanceof statements.StatementNode) {
         return true;
@@ -1378,17 +1419,22 @@ export function hasNoEffect(astNode, applicableChildren) {
 
 export function markChildSymbolsAsUnread(astNode) {
     var anyMarkedUnread = false;
+    var currentScope = astNode.scope;
 
-    for (var usage of astNode.scope.symbolUses) {
-        usage.readBy = usage.readBy.filter(function(reader) {
-            if (reader != astNode) {
-                return true;
-            }
+    while (currentScope != null) {
+        for (var usage of currentScope.symbolUses) {
+            usage.readBy = usage.readBy.filter(function(reader) {
+                if (reader != astNode) {
+                    return true;
+                }
+    
+                anyMarkedUnread = true;
+    
+                return false;
+            });
+        }
 
-            anyMarkedUnread = true;
-
-            return false;
-        });
+        currentScope = currentScope.parentScope;
     }
 
     for (var child of astNode.children) {

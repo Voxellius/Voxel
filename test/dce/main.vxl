@@ -73,3 +73,29 @@ var usedB_PASS = usedC_PASS;
 var usedA_PASS = usedB_PASS;
 
 usedA_PASS;
+
+function unusedFunctionC_FAIL() {
+    "FAIL";
+}
+
+function unusedFunctionB_FAIL() {
+    unusedFunctionC_FAIL();
+}
+
+function unusedFunctionA_FAIL() {
+    unusedFunctionB_FAIL();
+}
+
+function usedFunctionC_PASS() {
+    "PASS usedFunctionC";
+}
+
+function usedFunctionB_PASS() {
+    usedFunctionC_PASS();
+}
+
+function usedFunctionA_PASS() {
+    usedFunctionB_PASS();
+}
+
+usedFunctionA_PASS();

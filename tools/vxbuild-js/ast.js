@@ -137,7 +137,7 @@ export class AstNode {
         }
     }
 
-    findAncestorOfTypes(nodeTypes) {
+    findAncestorOfTypes(nodeTypes, exact = false) {
         var currentNode = this;
 
         while (true) {
@@ -148,7 +148,7 @@ export class AstNode {
             }
 
             for (var nodeType of nodeTypes) {
-                if (currentNode instanceof nodeType) {
+                if (currentNode instanceof nodeType && (!exact || currentNode.constructor == nodeType)) {
                     return currentNode;
                 }
             }
