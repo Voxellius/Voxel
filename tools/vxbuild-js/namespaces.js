@@ -137,7 +137,7 @@ export class Namespace {
     
                     var usage = subjectNamespace.scope.getSymbolById(Symbol.generateId(subjectNamespace, foreignSymbolUsage.name));
     
-                    usage.everRead = true;
+                    usage.readBy = foreignSymbolUsage.readBy;
                 }
 
                 for (var childScope of scope.childScopes) {
@@ -146,6 +146,20 @@ export class Namespace {
             }
 
             resolveForeignSymbolUsesForScope(namespace.scope);
+        }
+
+        for (var i = 0; i < 16; i++) {
+            console.log(`Pruning symbol usage (pass ${i + 1})...`);
+
+            var anyPruned = false;
+
+            for (var ast of asts) {
+                anyPruned ||= ast.pruneSymbolUsage();
+            }
+
+            if (!anyPruned) {
+                break;
+            }
         }
 
         for (var i = 0; i < processedNamespaces.length; i++) {
@@ -232,8 +246,12 @@ export class SymbolUsage {
         this.id = id;
 
         this.everDefined = false;
-        this.everRead = false;
+        this.readBy = [];
         this.truthiness = null;
+    }
+
+    get everRead() {
+        return this.readBy.length > 0;
     }
 
     updateTruthiness(truthiness) {
@@ -256,6 +274,8 @@ export class ForeignSymbolUsage {
     constructor(name, foreignNamespaceIdentifier = null) {
         this.name = name;
         this.foreignNamespaceIdentifier = foreignNamespaceIdentifier;
+
+        this.readBy = [];
     }
 }
 
@@ -289,14 +309,17 @@ export class Scope {
         return usage;
     }
 
-    addSymbol(symbol, reading = true, defining = false) {
+    addSymbol(symbol, reading = true, defining = false, reader = null) {
         if (!(symbol instanceof Symbol)) {
             return null;
         }
 
         var usage = this.getSymbolById(symbol.id, defining);
 
-        usage.everRead ||= reading;
+        if (reading) {
+            usage.readBy.push(reader);
+        }
+
         usage.everDefined ||= defining;
 
         return usage;

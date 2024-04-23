@@ -1,5 +1,7 @@
 import * as sources from "./sources.js";
 
+var nextAstId = 0;
+
 export class TokenQuery {
     constructor(tokenType, targetValue = null, humanReadableName = null) {
         this.tokenType = tokenType;
@@ -63,6 +65,8 @@ export class AstNode {
     static MATCH_QUERIES = [];
 
     constructor() {
+        this.id = nextAstId++;
+        this.parent = null;
         this.children = [];
         this.scope = null;
     }
@@ -111,6 +115,8 @@ export class AstNode {
         if (match) {
             this.children.push(match);
 
+            match.parent = this;
+
             return match;
         }
 
@@ -131,6 +137,42 @@ export class AstNode {
         }
     }
 
+    findAncestorOfTypes(nodeTypes) {
+        var currentNode = this;
+
+        while (true) {
+            currentNode = currentNode.parent;
+
+            if (currentNode == null) {
+                return null;
+            }
+
+            for (var nodeType of nodeTypes) {
+                if (currentNode instanceof nodeType) {
+                    return currentNode;
+                }
+            }
+        }
+    }
+
+    findChildrenOfTypes(nodeTypes) {
+        var matchingChildren = this.children.filter(function(child) {
+            for (var nodeType of nodeTypes) {
+                if (child instanceof nodeType) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+        
+        for (var child of this.children) {
+            matchingChildren.push(...child.findChildrenOfTypes(nodeTypes));
+        }
+
+        return matchingChildren;
+    }
+
     checkSymbolUsage(scope, createChildScope = false) {
         this.scope = scope;
 
@@ -143,6 +185,16 @@ export class AstNode {
         }
     }
 
+    pruneSymbolUsage() {
+        var anyPruned = false;
+
+        for (var child of this.children) {
+            anyPruned ||= child.pruneSymbolUsage();
+        }
+
+        return anyPruned;
+    }
+
     estimateTruthiness() {
         return null;
     }
@@ -152,31 +204,29 @@ export class AstNode {
     }
 
     describe() {
-        return "";
-    }
-
-    analyse() {
         var estimatedTruthiness = this.estimateTruthiness();
-        var truthiness = "";
 
         if (estimatedTruthiness == true) {
-            truthiness = "truthy";
+            return ["truthy"];
         }
 
         if (estimatedTruthiness == false) {
-            truthiness = "falsy";
+            return ["falsy"];
         }
 
-        var metadata = `${this.describe()}${truthiness}`;
+        return [];
+    }
 
-        var nodeInfo = metadata.length != "" ? `${this.constructor.name} (${this.describe()}${truthiness})` : this.constructor.name;
+    analyse() {
+        var description = this.describe();
+        var nodeInfo = description.length != "" ? `${this.constructor.name} (${description.join("; ")})` : this.constructor.name;
 
         if (this.children.length == 0) {
-            return `${nodeInfo};`;
+            return `${this.id} ${nodeInfo};`;
         }
 
         return (
-            `${nodeInfo}:\n` +
+            `${this.id} ${nodeInfo}:\n` +
             this.children.map((child) => child.analyse()
                 .split("\n")
                 .map((line) => `  ${line}`)

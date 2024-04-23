@@ -59,7 +59,8 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
             VXBUILD_FILE,
             path.join(TEST_PATH, "main.vxl"),
             "-o",
-            path.join(TEST_PATH, "main.vxc")
+            path.join(TEST_PATH, "main.vxc"),
+            ...(TEST_NAME == "dce" ? ["--no-mangle"] : []) // Test relies on matching identifier names
         ]);
 
         if (buildOutput.stderr) {

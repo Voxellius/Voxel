@@ -88,12 +88,12 @@ export class ThingNode extends ast.AstNode {
     }
 
     checkSymbolUsage(scope) {
-        scope.addSymbol(this.value);
+        scope.addSymbol(this.value, true, false, this);
 
         if (this.value instanceof namespaces.ForeignSymbolReference) {
             var usage = new namespaces.ForeignSymbolUsage(this.value.symbolName, this.value.subjectNamespaceIdentifier);
 
-            usage.everRead = true;
+            usage.readBy.push(this);
 
             scope.foreignSymbolUses.push(usage);
         }
@@ -367,7 +367,7 @@ export class FunctionNode extends ast.AstNode {
         usage.truthiness = true;
 
         for (var capturedSymbol of this.capturedSymbols) {
-            scope.addSymbol(capturedSymbol);
+            scope.addSymbol(capturedSymbol, true, false, this);
         }
 
         super.checkSymbolUsage(scope, true);
@@ -692,6 +692,17 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         }
     }
 
+    pruneSymbolUsage() {
+        var usage = this.scope.symbolUses.find((usage) => usage.id == this.targetInstance.children.at(-1)?.value?.id);
+        var anyMarkedUnread = false;
+
+        if (this.children.length > 0 && usage && !usage.everRead) {
+            anyMarkedUnread ||= markChildSymbolsAsUnread(this.children[0]);
+        }
+
+        return super.pruneSymbolUsage() || anyMarkedUnread;
+    }
+
     estimateTruthiness() {
         if (this.children.length > 0) {
             return this.children[0].estimateTruthiness();
@@ -726,6 +737,14 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             throw new sources.SourceError("Cannot set a value literal (expected a variable name)");
         }
 
+        if (options.removeDeadCode) {
+            var usage = this.scope.symbolUses.find((usage) => usage.id == target.value.id);
+
+            if (usage && !usage.everRead) {
+                return hasNoEffect(this, this.children.length > 0 ? [this.children[0]] : []) ? codeGen.bytes(codeGen.vxcTokens.NULL) : valueCode;
+            }
+        }
+
         return codeGen.join(
             valueCode,
             target.value.generateCode(options),
@@ -734,13 +753,24 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     }
 
     describe() {
+        var parts = super.describe();
         var target = this.targetInstance.children[0];
 
         if (target.value instanceof namespaces.Symbol) {
-            return `assign to \`${target.value.id}\`; `;
+            parts.unshift(`assign to \`${target.value.id}\``);
+
+            if (this.scope != null) {
+                var targetUsage = this.scope.symbolUses.find((usage) => usage.id == target.value.id);
+
+                if (targetUsage.everRead) {
+                    parts.push(`read by ${[...new Set(targetUsage.readBy)].map((reader) => reader != null ? String(reader.id) : "other").join(", ")}`);
+                } else {
+                    parts.push("never read");
+                }
+            }
         }
 
-        return "";
+        return parts;
     }
 }
 
@@ -1328,4 +1358,42 @@ export class SystemCallNode extends ast.AstNode {
             this.value.generateCode(options)
         );
     }
+}
+
+export function hasNoEffect(astNode, applicableChildren) {
+    for (var child of applicableChildren) {
+        if (child.findChildrenOfTypes([FunctionCallNode, PropertyAccessorNode]).length > 0) {
+            return false;
+        }
+    }
+
+    var expressionNode = astNode.findAncestorOfTypes([ExpressionNode]);
+
+    if (expressionNode != null && expressionNode.parent instanceof statements.StatementNode) {
+        return true;
+    }
+
+    return false;
+}
+
+export function markChildSymbolsAsUnread(astNode) {
+    var anyMarkedUnread = false;
+
+    for (var usage of astNode.scope.symbolUses) {
+        usage.readBy = usage.readBy.filter(function(reader) {
+            if (reader != astNode) {
+                return true;
+            }
+
+            anyMarkedUnread = true;
+
+            return false;
+        });
+    }
+
+    for (var child of astNode.children) {
+        anyMarkedUnread ||= markChildSymbolsAsUnread(child);
+    }
+
+    return anyMarkedUnread;
 }

@@ -4,17 +4,29 @@ const TEST_NAME = "dce";
 const TEST_DIR = path.dirname(path.fromFileUrl(Deno.mainModule));
 const VXC_FILE = path.join(TEST_DIR, TEST_NAME, "main.vxc");
 
+function stringCheck(string) {
+    return `"${string}\0`;
+}
+
+function variableDefinitionCheck(name) {
+    return `:${name}\0v`;
+}
+
 const PASSES_TO_CHECK = [
-    "if alwaysTruthy",
-    "else alwaysFalsy",
-    "if alwaysUnknown",
-    "else alwaysUnknown",
-    "if !alwaysFalsy",
-    "if !alwaysUnknown",
-    "if true && alwaysTruthy",
-    "if alwaysTruthy && alwaysUnknown",
-    "if alwaysFalsy || alwaysTruthy",
-    "if alwaysFalsy || alwaysUnknown"
+    stringCheck("PASS if alwaysTruthy"),
+    stringCheck("PASS else alwaysFalsy"),
+    stringCheck("PASS if alwaysUnknown"),
+    stringCheck("PASS else alwaysUnknown"),
+    stringCheck("PASS if !alwaysFalsy"),
+    stringCheck("PASS if !alwaysUnknown"),
+    stringCheck("PASS if true && alwaysTruthy"),
+    stringCheck("PASS if alwaysTruthy && alwaysUnknown"),
+    stringCheck("PASS if alwaysFalsy || alwaysTruthy"),
+    stringCheck("PASS if alwaysFalsy || alwaysUnknown"),
+    variableDefinitionCheck("usedC_PASS"),
+    variableDefinitionCheck("usedB_PASS"),
+    variableDefinitionCheck("usedA_PASS"),
+    stringCheck("PASS usedC")
 ];
 
 function bytesMatchAt(array, bytes, index) {
@@ -45,7 +57,7 @@ export async function test() {
     var data = await Deno.readFile(VXC_FILE);
 
     for (var string of PASSES_TO_CHECK) {
-        if (!arrayContainsString(data, `"PASS ${string}\0`)) {
+        if (!arrayContainsString(data, string)) {
             console.error(
                 `TEST FAIL: ${TEST_NAME}\n` +
                 `Expected in VxC output but never matched: \`${string}\``
@@ -60,7 +72,7 @@ export async function test() {
         }
     }
 
-    if (arrayContainsString(data, `"FAIL\0`)) {
+    if (arrayContainsString(data, `"FAIL\0`) || arrayContainsString(data, "FAIL\0v")) {
         console.error(
             `TEST FAIL: ${TEST_NAME}\n` +
             `Encountered a failure trap in VxC output`

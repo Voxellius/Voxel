@@ -21,7 +21,13 @@ export class StatementNode extends ast.AstNode {
 
     generateCode(options) {
         if (this.children[0] instanceof expressions.ExpressionNode) {
-            return codeGen.join(this.children[0].generateCode(options), codeGen.bytes(codeGen.vxcTokens.POP));
+            var generatedCode = this.children[0].generateCode(options);
+
+            if (generatedCode.length == 1 && generatedCode[0] == codeGen.vxcTokens.NULL) {
+                return codeGen.bytes();
+            }
+
+            return codeGen.join(generatedCode, codeGen.bytes(codeGen.vxcTokens.POP));
         }
 
         return this.children[0].generateCode(options);
