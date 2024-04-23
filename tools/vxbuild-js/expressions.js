@@ -737,7 +737,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         var target = this.targetInstance.children[0];
 
         if (target.value instanceof namespaces.Symbol) {
-            return `assign to \`${target.value.id}\`, `;
+            return `assign to \`${target.value.id}\`; `;
         }
 
         return "";
@@ -906,6 +906,10 @@ export class BinaryOperatorExpressionNode extends ExpressionNode {
             }
 
             instance.operatorTokens.push(operatorToken);
+        }
+
+        if (instance.children.length == 1) {
+            return instance.children[0];
         }
 
         return instance;

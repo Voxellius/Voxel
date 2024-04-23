@@ -157,7 +157,7 @@ export class AstNode {
 
     analyse() {
         var estimatedTruthiness = this.estimateTruthiness();
-        var truthiness = "unknown";
+        var truthiness = "";
 
         if (estimatedTruthiness == true) {
             truthiness = "truthy";
@@ -167,7 +167,9 @@ export class AstNode {
             truthiness = "falsy";
         }
 
-        var nodeInfo = `${this.constructor.name} (${this.describe()}${truthiness})`;
+        var metadata = `${this.describe()}${truthiness}`;
+
+        var nodeInfo = metadata.length != "" ? `${this.constructor.name} (${this.describe()}${truthiness})` : this.constructor.name;
 
         if (this.children.length == 0) {
             return `${nodeInfo};`;
