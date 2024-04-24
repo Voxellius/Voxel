@@ -5,6 +5,15 @@ function unknownReturner() {
 var alwaysTruthy = true;
 var alwaysFalsy = false;
 var alwaysUnknown = unknownReturner();
+var falsyToStartWith = false;
+
+function check() {
+    if (falsyToStartWith) {
+        "PASS if falsyToStartWith";
+    } else {
+        "PASS else falsyToStartWith";
+    }
+}
 
 if (alwaysTruthy) {
     "PASS if alwaysTruthy";
@@ -63,6 +72,10 @@ while (alwaysFalsy) {
 for (; alwaysFalsy;) {
     "FAIL";
 }
+
+falsyToStartWith = true;
+
+check();
 
 var unusedC_FAIL = "FAIL";
 var unusedB_FAIL = unusedC_FAIL;

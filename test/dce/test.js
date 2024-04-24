@@ -13,6 +13,8 @@ function variableDefinitionCheck(name) {
 }
 
 const PASSES_TO_CHECK = [
+    stringCheck("PASS if falsyToStartWith"),
+    stringCheck("PASS else falsyToStartWith"),
     stringCheck("PASS if alwaysTruthy"),
     stringCheck("PASS else alwaysFalsy"),
     stringCheck("PASS if alwaysUnknown"),
