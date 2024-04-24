@@ -77,6 +77,10 @@ falsyToStartWith = true;
 
 check();
 
+function sideEffect() {
+    syscall log("Side effect called\n");
+}
+
 var unusedC_FAIL = "FAIL";
 var unusedB_FAIL = unusedC_FAIL;
 var unusedA_FAIL = unusedB_FAIL;
@@ -84,6 +88,8 @@ var unusedA_FAIL = unusedB_FAIL;
 var usedC_PASS = "PASS usedC";
 var usedB_PASS = usedC_PASS;
 var usedA_PASS = usedB_PASS;
+
+var sideEffect_FAIL = sideEffect();
 
 usedA_PASS;
 
@@ -112,3 +118,11 @@ function usedFunctionA_PASS() {
 }
 
 usedFunctionA_PASS();
+
+if (#used(usedA_PASS)) {
+    "PASS if #used(usedA_PASS)";
+}
+
+if (#used(unusedA_FAIL)) {
+    "FAIL";
+}

@@ -28,7 +28,8 @@ const PASSES_TO_CHECK = [
     variableDefinitionCheck("usedC_PASS"),
     variableDefinitionCheck("usedB_PASS"),
     variableDefinitionCheck("usedA_PASS"),
-    stringCheck("PASS usedC")
+    stringCheck("PASS usedC"),
+    stringCheck("PASS if #used(usedA_PASS)")
 ];
 
 function bytesMatchAt(array, bytes, index) {

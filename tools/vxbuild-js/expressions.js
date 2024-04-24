@@ -4,6 +4,7 @@ import * as tokeniser from "./tokeniser.js";
 import * as ast from "./ast.js";
 import * as codeGen from "./codegen.js";
 import * as statements from "./statements.js";
+import * as staticMacros from "./static.js";
 
 export class ThisNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "`this`";
@@ -666,6 +667,7 @@ export class ExpressionNode extends ast.AstNode {
         ...ObjectNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
         ...FunctionNode.MATCH_QUERIES,
+        ...staticMacros.StaticMacroNode.MATCH_QUERIES,
         new ast.TokenQuery(tokeniser.OperatorToken, "-"),
         new ast.TokenQuery(tokeniser.OperatorToken, "!")
     ];
@@ -726,7 +728,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         var usage = this.scope.symbolUses.find((usage) => usage.id == this.targetInstance.children.at(-1)?.value?.id);
         var anyMarkedUnread = false;
 
-        if (this.children.length > 0 && usage && !usage.everRead) {
+        if (this.children.length > 0 && usage && !usage.everRead && hasNoEffect(this, this.children.length > 0 ? [this.children[0]] : [])) {
             anyMarkedUnread ||= markChildSymbolsAsUnread(this.children[0]);
         }
 
@@ -895,13 +897,14 @@ export class ExpressionThingNode extends ExpressionLeafNode {
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
-        ...FunctionNode.MATCH_QUERIES
+        ...FunctionNode.MATCH_QUERIES,
+        ...staticMacros.StaticMacroNode.MATCH_QUERIES
     ];
 
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ThisNode, ThingNode, ObjectNode, ListNode, FunctionNode], namespace);
+        instance.expectChildByMatching(tokens, [ThisNode, ThingNode, ObjectNode, ListNode, FunctionNode, staticMacros.StaticMacroNode], namespace);
 
         this.maybeAddAccessors(instance, tokens, namespace);
 

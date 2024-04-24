@@ -25,6 +25,7 @@ export class Token {
 
 export class KeywordToken extends Token {static HUMAN_READABLE_NAME = "keyword";}
 export class AtomToken extends Token {static HUMAN_READABLE_NAME = "atom";}
+export class StaticMacroToken extends Token {static HUMAN_READABLE_NAME = "static function name";}
 export class BracketToken extends Token {static HUMAN_READABLE_NAME = "bracket";}
 export class DelimeterToken extends Token {static HUMAN_READABLE_NAME = "delimeter (,)";}
 export class StatementDelimeterToken extends Token {static HUMAN_READABLE_NAME = "statement delimeter (;)";}
@@ -124,6 +125,11 @@ export function tokenise(sourceContainer) {
 
         if (matchToken(/^(?:null|true|false)\b/)) {
             addToken(AtomToken);
+            continue;
+        }
+
+        if (matchToken(/^(?:#used)\b/)) {
+            addToken(StaticMacroToken);
             continue;
         }
 

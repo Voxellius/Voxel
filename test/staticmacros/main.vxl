@@ -1,0 +1,12 @@
+var used = 0;
+var unused = 0;
+
+used;
+
+syscall log("#used(used): ");
+syscall log(#used(used));
+syscall log("\n");
+
+syscall log("#used(unused): ");
+syscall log(#used(unused));
+syscall log("\n");
