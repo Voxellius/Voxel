@@ -34,7 +34,7 @@ export class StaticMacro {
     generateCode(options) {
         throw new Error("Not implemented in base class");
     }
-};
+}
 
 export class PropertyStaticMacro extends StaticMacro {
     static NAME = "#prop";
@@ -72,7 +72,7 @@ export class UsedStaticMacro extends StaticMacro {
     generateCode(options) {
         return codeGen.boolean(this.estimateTruthiness() != false);
     }
-};
+}
 
 export class StaticMacroNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "static macro";
@@ -130,6 +130,6 @@ export class StaticMacroNode extends ast.AstNode {
     generateCode(options) {
         return this.macroInstance.generateCode(options);
     }
-};
+}
 
 export const STATIC_MACROS = [PropertyStaticMacro, UsedStaticMacro];
