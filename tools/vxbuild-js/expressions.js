@@ -4,7 +4,7 @@ import * as tokeniser from "./tokeniser.js";
 import * as ast from "./ast.js";
 import * as codeGen from "./codegen.js";
 import * as statements from "./statements.js";
-import * as staticMacros from "./static.js";
+import * as staticMacros from "./staticmacros.js";
 
 export class ThisNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "`this`";
@@ -167,7 +167,8 @@ export class ObjectNode extends ast.AstNode {
         new ast.TokenQuery(tokeniser.BracketToken, "{")
     ];
 
-    propertyNames = [];
+    propertySymbols = [];
+    propertySymbolIsString = [];
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -185,13 +186,18 @@ export class ObjectNode extends ast.AstNode {
                 this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
             }
 
-            instance.propertyNames.push(this.eat(tokens, [
+            var retain = !!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "retain")]);
+
+            var propertyToken = this.eat(tokens, [
                 new ast.TokenQuery(tokeniser.IdentifierToken),
                 new ast.TokenQuery(tokeniser.StringToken)
-            ]));
-            
+            ]);
+
+            instance.propertySymbols.push(namespaces.Symbol.generateForProperty(propertyToken.value, retain));
+            instance.propertySymbolIsString.push(propertyToken instanceof tokeniser.StringToken);
+
             this.eat(tokens, [new ast.TokenQuery(tokeniser.PropertyDefinerToken)]);
-            
+
             instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
 
             addedFirstItem = true;
@@ -203,7 +209,7 @@ export class ObjectNode extends ast.AstNode {
     // TODO: Allow symbol usage to be tracked for object keys
 
     estimateTruthiness() {
-        return this.propertyNames.length > 0;
+        return this.propertySymbols.length > 0;
     }
 
     generateCode(options) {
@@ -214,7 +220,7 @@ export class ObjectNode extends ast.AstNode {
                 codeGen.bytes(codeGen.vxcTokens.DUPE),
                 child.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.SWAP),
-                codeGen.string(this.propertyNames[i].value),
+                this.propertySymbolIsString[i] ? codeGen.string(this.propertySymbols[i].name) : this.propertySymbols[i].generateCode(),
                 codeGen.number(3),
                 codeGen.systemCall("Os"),
                 codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
@@ -622,7 +628,7 @@ export class PropertyAccessorNode extends ast.AstNode {
         instance.setPropertySymbol = new namespaces.Symbol(namespaces.coreNamespace, "setProperty");
 
         // TODO: Create a special symbol class for properties so that they can be mangled but are not confined to namespaces
-        instance.property = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value;
+        instance.propertySymbol = namespaces.Symbol.generateForProperty(this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value);
 
         return instance;
     }
@@ -636,7 +642,7 @@ export class PropertyAccessorNode extends ast.AstNode {
 
     generateCode(options) {
         return codeGen.join(
-            codeGen.string(this.property),
+            this.propertySymbol.generateCode(),
             codeGen.number(2),
             this.getPropertySymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
@@ -646,7 +652,7 @@ export class PropertyAccessorNode extends ast.AstNode {
     generateSetterCode(targetCode, valueCode, options) {
         return codeGen.join(
             targetCode,
-            codeGen.string(this.property),
+            this.propertySymbol.generateCode(),
             valueCode,
             codeGen.number(3),
             this.setPropertySymbol.generateCode(options),

@@ -118,7 +118,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:syscall|import|as|return|function|captures|this|var|if|else|while|for)\b/)) {
+        if (matchToken(/^(?:syscall|import|as|return|function|captures|this|var|if|else|while|for|retain)\b/)) {
             addToken(KeywordToken);
             continue;
         }
@@ -128,7 +128,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:#used)\b/)) {
+        if (matchToken(/^(?:#prop|#used)\b/)) {
             addToken(StaticMacroToken);
             continue;
         }

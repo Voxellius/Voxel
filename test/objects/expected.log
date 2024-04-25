@@ -8,6 +8,9 @@ Get nested object value using property accessor: value2
 Set existing property value: {"key":456,"nestedObject":{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}},"list":["a","b","c"],"quoted key value":true}
 Set new property value: {"key":456,"nestedObject":{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}},"list":["a","b","c"],"quoted key value":true,"newKey":789}
 Set existing property value using property accessor: {"key":321,"nestedObject":{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}},"list":["a","b","c"],"quoted key value":true,"newKey":789}
-Set new property value using property accessor: {"key":321,"nestedObject":{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}},"list":["a","b","c"],"quoted key value":true,"newKey":789,"anotherNewKey":654}
-Get object length: 6
-Removing nested object: {"key":321,"list":["a","b","c"],"quoted key value":true,"newKey":789,"anotherNewKey":654}
+Get object length: 5
+Removing nested object: {"key":321,"list":["a","b","c"],"quoted key value":true,"newKey":789}
+Get value using property accessor on mangled object: key = 123
+Set value using property accessor on mangled object: key = 456
+Get value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey1 = value1
+Set new value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey3 = value3

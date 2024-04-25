@@ -10,6 +10,7 @@ var namespaceIndex = 0;
 var existingNamespaces = {};
 
 export var coreNamespace = null;
+export var propertySymbols = {};
 
 export class Namespace {
     constructor(sourceContainer = null) {
@@ -194,13 +195,32 @@ export class Symbol {
         this.namespace = namespace;
         this.name = name;
         this.code = codeGen.string(this.id);
+        this.shouldRetainName = false;
 
-        namespace.symbols[name] ??= [];
+        if (namespace != null) {
+            namespace.symbols[name] ??= [];
 
-        namespace.symbols[name].push(this);
+            namespace.symbols[name].push(this);
+        } else {
+            propertySymbols[name] ??= [];
+
+            propertySymbols[name].push(this);
+        }
+    }
+
+    static generateForProperty(name, shouldRetainName = false) {
+        var instance = new this(null, name);
+
+        instance.shouldRetainName = shouldRetainName;
+
+        return instance;
     }
 
     static generateId(namespace, name) {
+        if (namespace == null) {
+            return `#prop:${name}`;
+        }
+
         if (namespace == coreNamespace) {
             return `#core:${name}`;
         }
@@ -209,6 +229,10 @@ export class Symbol {
     }
 
     get id() {
+        if (this.namespace == null && this.shouldRetainName) {
+            return this.name;
+        }
+
         return this.constructor.generateId(this.namespace, this.name);
     }
 
@@ -380,7 +404,10 @@ export function generateSymbolName(prefix) {
 }
 
 export function mangleSymbols(namespaces) {
-    var symbolCollections = namespaces.map((namespace) => Object.values(namespace.symbols)).flat();
+    var symbolCollections = [
+        ...namespaces.map((namespace) => Object.values(namespace.symbols)),
+        Object.values(propertySymbols)
+    ].flat();
 
     var i = 0;
 
@@ -388,6 +415,14 @@ export function mangleSymbols(namespaces) {
     symbolCollections = symbolCollections.sort((a, b) => b.length - a.length);
 
     for (var symbolCollection of symbolCollections) {
+        if (symbolCollection[0].shouldRetainName) {
+            for (var symbol of symbolCollection) {
+                symbol.code = codeGen.string(symbol.name);
+            }
+
+            continue;
+        }
+
         for (var symbol of symbolCollection) {
             symbol.code = codeGen.number(i);
         }

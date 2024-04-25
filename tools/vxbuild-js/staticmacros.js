@@ -17,6 +17,12 @@ export class StaticMacro {
         return this.astNode.arguments;
     }
 
+    argumentCountRequired(count) {
+        if (this.arguments.length < count) {
+            throw this.generateSourceError("Missing a required argument in static macro");
+        }
+    }
+
     generateSourceError(message) {
         return new sources.SourceError(message, this.closingToken?.sourceContainer, this.closingToken?.location);
     }
@@ -30,13 +36,28 @@ export class StaticMacro {
     }
 };
 
+export class PropertyStaticMacro extends StaticMacro {
+    static NAME = "#prop";
+
+    generateCode(options) {
+        this.argumentCountRequired(1);
+
+        var symbolName = this.arguments[0];
+        var symbolCollection = namespaces.propertySymbols[symbolName];
+
+        if (!symbolCollection || symbolCollection.length == 0) {
+            return namespaces.Symbol.generateForProperty(symbolName).generateCode(options);
+        }
+
+        return symbolCollection[0].generateCode(options);
+    }
+}
+
 export class UsedStaticMacro extends StaticMacro {
     static NAME = "#used";
 
     estimateTruthiness() {
-        if (this.arguments.length < 1) {
-            throw this.generateSourceError("Missing a required argument in static macro");
-        }
+        this.argumentCountRequired(1);
 
         var symbol = new namespaces.Symbol(this.namespace, this.arguments[0]);
         var usage = this.astNode.scope.symbolUses.find((usage) => usage.id == symbol.id);
@@ -111,4 +132,4 @@ export class StaticMacroNode extends ast.AstNode {
     }
 };
 
-export const STATIC_MACROS = [UsedStaticMacro];
+export const STATIC_MACROS = [PropertyStaticMacro, UsedStaticMacro];
