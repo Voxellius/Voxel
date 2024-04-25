@@ -11,6 +11,7 @@ var existingNamespaces = {};
 
 export var coreNamespace = null;
 export var propertySymbols = {};
+export var propertySymbolRetainedNames = {};
 
 export class Namespace {
     constructor(sourceContainer = null) {
@@ -195,7 +196,6 @@ export class Symbol {
         this.namespace = namespace;
         this.name = name;
         this.code = codeGen.string(this.id);
-        this.shouldRetainName = false;
 
         if (namespace != null) {
             namespace.symbols[name] ??= [];
@@ -208,17 +208,23 @@ export class Symbol {
         }
     }
 
+    get shouldRetainName() {
+        return !!propertySymbolRetainedNames[this.name];
+    }
+
     static generateForProperty(name, shouldRetainName = false) {
         var instance = new this(null, name);
 
-        instance.shouldRetainName = shouldRetainName;
+        if (shouldRetainName) {
+            propertySymbolRetainedNames[name] = true;
+        }
 
         return instance;
     }
 
     static generateId(namespace, name) {
         if (namespace == null) {
-            return `#prop:${name}`;
+            return `.${name}`;
         }
 
         if (namespace == coreNamespace) {
@@ -237,6 +243,10 @@ export class Symbol {
     }
 
     generateCode(options) {
+        if (this.namespace == null && this.shouldRetainName) {
+            return codeGen.string(this.name);
+        }
+
         return this.code;
     }
 }
@@ -416,10 +426,6 @@ export function mangleSymbols(namespaces) {
 
     for (var symbolCollection of symbolCollections) {
         if (symbolCollection[0].shouldRetainName) {
-            for (var symbol of symbolCollection) {
-                symbol.code = codeGen.string(symbol.name);
-            }
-
             continue;
         }
 
