@@ -243,7 +243,7 @@ export class Symbol {
     }
 
     generateCode(options) {
-        if (this.namespace == null && this.shouldRetainName) {
+        if (this.namespace == null && (this.shouldRetainName || !options.mangle)) {
             return codeGen.string(this.name);
         }
 

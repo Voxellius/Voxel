@@ -220,7 +220,7 @@ export class ObjectNode extends ast.AstNode {
                 codeGen.bytes(codeGen.vxcTokens.DUPE),
                 child.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.SWAP),
-                this.propertySymbolIsString[i] ? codeGen.string(this.propertySymbols[i].name) : this.propertySymbols[i].generateCode(),
+                this.propertySymbolIsString[i] ? codeGen.string(this.propertySymbols[i].name) : this.propertySymbols[i].generateCode(options),
                 codeGen.number(3),
                 codeGen.systemCall("Os"),
                 codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
@@ -642,7 +642,7 @@ export class PropertyAccessorNode extends ast.AstNode {
 
     generateCode(options) {
         return codeGen.join(
-            this.propertySymbol.generateCode(),
+            this.propertySymbol.generateCode(options),
             codeGen.number(2),
             this.getPropertySymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
@@ -652,7 +652,7 @@ export class PropertyAccessorNode extends ast.AstNode {
     generateSetterCode(targetCode, valueCode, options) {
         return codeGen.join(
             targetCode,
-            this.propertySymbol.generateCode(),
+            this.propertySymbol.generateCode(options),
             valueCode,
             codeGen.number(3),
             this.setPropertySymbol.generateCode(options),
@@ -723,7 +723,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         super.checkSymbolUsage(scope);
 
         if (target.value instanceof namespaces.Symbol) {
-            var usage = scope.getSymbolById(target.value.id, true);
+            var usage = scope.getSymbolById(target.value.id, this.isLocal);
 
             usage.everDefined = true;
             usage.truthiness = this.estimateTruthiness();
@@ -865,8 +865,8 @@ export class ExpressionLeafNode extends ExpressionNode {
     checkSymbolUsage(scope) {
         for (var child of this.children) {
             if (child instanceof FunctionCallNode) {
-                scope.addCoreNamespaceSymbol(this.pushThisSymbol, this);
-                scope.addCoreNamespaceSymbol(this.popThisSymbol, this);
+                scope.addCoreNamespaceSymbol(child.pushThisSymbol, this);
+                scope.addCoreNamespaceSymbol(child.popThisSymbol, this);
             }
         }
 
@@ -1436,7 +1436,7 @@ export function markChildSymbolsAsUnread(astNode) {
                 if (reader != astNode) {
                     return true;
                 }
-    
+                
                 anyMarkedUnread = true;
     
                 return false;
