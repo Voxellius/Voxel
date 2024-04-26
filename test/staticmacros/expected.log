@@ -1,2 +1,4 @@
 #used(used): true
 #used(unused): false
+#usedprop(usedProp): true
+#usedprop(unusedProp): false

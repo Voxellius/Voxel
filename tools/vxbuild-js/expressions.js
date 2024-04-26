@@ -637,6 +637,8 @@ export class PropertyAccessorNode extends ast.AstNode {
         scope.addCoreNamespaceSymbol(this.getPropertySymbol, this);
         scope.addCoreNamespaceSymbol(this.setPropertySymbol, this);
 
+        scope.addSymbol(this.propertySymbol, true, false, this);
+
         super.checkSymbolUsage(scope);
     }
 
@@ -718,12 +720,17 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     }
 
     checkSymbolUsage(scope) {
-        var target = this.targetInstance.children[0];
+        var subject = this.targetInstance.children[0];
+        var target = this.targetInstance.children.at(-1);
+
+        if (target instanceof PropertyAccessorNode) {
+            scope.addSymbol(target.propertySymbol, false, true);
+        }
 
         super.checkSymbolUsage(scope);
 
-        if (target.value instanceof namespaces.Symbol) {
-            var usage = scope.getSymbolById(target.value.id, this.isLocal);
+        if (subject.value instanceof namespaces.Symbol) {
+            var usage = scope.getSymbolById(subject.value.id, this.isLocal);
 
             usage.everDefined = true;
             usage.truthiness = this.estimateTruthiness();

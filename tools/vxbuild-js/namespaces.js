@@ -338,10 +338,6 @@ export class Scope {
             return usage;
         }
 
-        if (!defining) {
-            console.warn(`Undefined symbol: ${id}`);
-        }
-
         usage = new SymbolUsage(id);
 
         this.symbolUses.push(usage);

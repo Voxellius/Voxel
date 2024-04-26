@@ -74,6 +74,27 @@ export class UsedStaticMacro extends StaticMacro {
     }
 }
 
+export class UsedPropertyStaticMacro extends StaticMacro {
+    static NAME = "#usedprop";
+
+    estimateTruthiness() {
+        this.argumentCountRequired(1);
+
+        var symbol = new namespaces.Symbol(null, this.arguments[0]);
+        var usage = this.astNode.scope.symbolUses.find((usage) => usage.id == symbol.id);
+
+        if (!usage) {
+            return false;
+        }
+
+        return usage.everRead;
+    }
+
+    generateCode(options) {
+        return codeGen.boolean(this.estimateTruthiness() != false);
+    }
+}
+
 export class StaticMacroNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "static macro";
 
@@ -132,4 +153,4 @@ export class StaticMacroNode extends ast.AstNode {
     }
 }
 
-export const STATIC_MACROS = [PropertyStaticMacro, UsedStaticMacro];
+export const STATIC_MACROS = [PropertyStaticMacro, UsedStaticMacro, UsedPropertyStaticMacro];

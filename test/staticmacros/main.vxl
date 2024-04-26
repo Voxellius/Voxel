@@ -1,7 +1,13 @@
 var used = 0;
 var unused = 0;
+var object = {};
 
 used;
+
+object.usedProp = 123;
+object.unusedProp = 456;
+
+object.usedProp;
 
 syscall log("#used(used): ");
 syscall log(#used(used));
@@ -9,4 +15,12 @@ syscall log("\n");
 
 syscall log("#used(unused): ");
 syscall log(#used(unused));
+syscall log("\n");
+
+syscall log("#usedprop(usedProp): ");
+syscall log(#usedprop(usedProp));
+syscall log("\n");
+
+syscall log("#usedprop(unusedProp): ");
+syscall log(#usedprop(unusedProp));
 syscall log("\n");

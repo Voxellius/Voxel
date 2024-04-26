@@ -128,7 +128,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:#prop|#used)\b/)) {
+        if (matchToken(/^(?:#usedprop|#prop|#used)\b/)) {
             addToken(StaticMacroToken);
             continue;
         }
