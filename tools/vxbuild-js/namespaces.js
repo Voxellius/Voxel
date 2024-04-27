@@ -336,7 +336,7 @@ export class Scope {
         this.foreignSymbolUses = [];
     }
 
-    getSymbolById(id, defining = false) {
+    getSymbolById(id, defining = false, readOnly = false) {
         var usage = this.symbolUses.find((usage) => usage.id == id);
 
         if (!usage && !defining && this.parentScope != null) {
@@ -347,11 +347,27 @@ export class Scope {
             return usage;
         }
 
+        if (readOnly) {
+            return null;
+        }
+
         usage = new SymbolUsage(id);
 
         this.symbolUses.push(usage);
 
         return usage;
+    }
+
+    findScopeWhereSymbolIsDefined(id) {
+        if (this.getSymbolById(id, false, true)) {
+            return this;
+        }
+
+        if (this.parentScope == null) {
+            return null;
+        }
+
+        return this.parentScope.findScopeWhereSymbolIsDefined(id);
     }
 
     addSymbol(symbol, reading = true, defining = false, reader = null) {

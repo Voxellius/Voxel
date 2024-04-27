@@ -1,5 +1,5 @@
 function outer(a) {
-    function inner(b) captures a {
+    function inner(b) {
         return a + b;
     }
 
@@ -26,7 +26,7 @@ syscall log(outer(3)(2));
 syscall log("\n");
 
 var anonymousOuter = function(a) {
-    return function(b) captures a {
+    return function(b) {
         return a + b;
     };
 }
@@ -39,4 +39,15 @@ syscall log("\n");
 var four = anonymousOuter(4);
 
 syscall log(four(1));
+syscall log("\n");
+
+function deepOuter(a) {
+    return function(b) {
+        return function(c) {
+            return a * b * c;
+        };
+    };
+}
+
+syscall log(deepOuter(2)(3)(4));
 syscall log("\n");

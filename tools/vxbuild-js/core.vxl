@@ -10,13 +10,13 @@ function getProperty(thing, property) {
         }
 
         if (#usedprop(push) && property == #prop(push)) {
-            return function(value) captures thing {
+            return function(value) {
                 syscall Lu(value, thing);
             };
         }
 
         if (#usedprop(pop) && property == #prop(pop)) {
-            return function() captures thing {
+            return function() {
                 return syscall Lp(thing);
             };
         }

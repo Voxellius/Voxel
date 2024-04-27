@@ -155,7 +155,7 @@ export class AstNode {
         }
     }
 
-    findChildrenOfTypes(nodeTypes) {
+    findDescendantsOfTypes(nodeTypes, notParentOf = []) {
         var matchingChildren = this.children.filter(function(child) {
             for (var nodeType of nodeTypes) {
                 if (child instanceof nodeType) {
@@ -167,7 +167,11 @@ export class AstNode {
         });
         
         for (var child of this.children) {
-            matchingChildren.push(...child.findChildrenOfTypes(nodeTypes));
+            if (notParentOf.find((parentType) => child instanceof parentType)) {
+                continue;
+            }
+
+            matchingChildren.push(...child.findDescendantsOfTypes(nodeTypes, notParentOf));
         }
 
         return matchingChildren;

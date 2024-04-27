@@ -3,6 +3,7 @@ import * as namespaces from "./namespaces.js";
 import * as tokeniser from "./tokeniser.js";
 import * as ast from "./ast.js";
 import * as codeGen from "./codegen.js";
+import * as parser from "./parser.js";
 import * as statements from "./statements.js";
 import * as staticMacros from "./staticmacros.js";
 
@@ -351,18 +352,6 @@ export class FunctionNode extends ast.AstNode {
 
         instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
 
-        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "captures")])) {
-            while (true) {
-                var capturedIdentifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
-
-                instance.capturedSymbols.push(new namespaces.Symbol(namespace, capturedIdentifier.value));
-
-                if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)])) {
-                    break;
-                }
-            }
-        }
-
         instance.expectChildByMatching(tokens, [statements.StatementBlockNode], namespace);
 
         return instance;
@@ -370,11 +359,34 @@ export class FunctionNode extends ast.AstNode {
 
     checkSymbolUsage(scope) {
         var usage = scope.addSymbol(this.identifierSymbol, false, true);
+        var moduleNode = this.findAncestorOfTypes([parser.ModuleNode]);
 
         usage.truthiness = true;
 
-        for (var capturedSymbol of this.capturedSymbols) {
-            scope.addSymbol(capturedSymbol, true, false, this);
+        // Determine symbols to capture for closure
+        for (var expressionNode of this.findDescendantsOfTypes([ThingNode])) {
+            var descendant = expressionNode.value;
+
+            if (descendant instanceof namespaces.Symbol) {
+                if (!scope.getSymbolById(descendant.id, false, true)) {
+                    // If not defined outside of function, then don't capture (defined locally)
+                    continue;
+                }
+
+                if (scope.findScopeWhereSymbolIsDefined(descendant.id) == moduleNode.scope) {
+                    // If global variable, then don't capture (can be accessed anyway)
+                    continue;
+                }
+
+                if (this.children[0].parameters.find((parameter) => parameter.id == descendant.id)) {
+                    // If parameter, then don't capture
+                    continue;
+                }
+
+                this.capturedSymbols.push(descendant);
+
+                scope.addSymbol(descendant, true, false, this);
+            }
         }
 
         super.checkSymbolUsage(scope, true);
@@ -1419,7 +1431,7 @@ export class SystemCallNode extends ast.AstNode {
 
 export function hasNoEffect(astNode, applicableChildren = []) {
     for (var child of applicableChildren) {
-        if (child.findChildrenOfTypes([FunctionCallNode, PropertyAccessorNode]).length > 0) {
+        if (child.findDescendantsOfTypes([FunctionCallNode, PropertyAccessorNode]).length > 0) {
             return false;
         }
     }
