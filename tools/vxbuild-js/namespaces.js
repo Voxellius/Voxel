@@ -12,6 +12,7 @@ var existingNamespaces = {};
 export var coreNamespace = null;
 export var propertySymbols = {};
 export var propertySymbolRetainedNames = {};
+export var propertySymbolUses = [];
 
 export class Namespace {
     constructor(sourceContainer = null) {
@@ -114,15 +115,23 @@ export class Namespace {
             var ast = asts[i];
 
             if (namespace == coreNamespace) {
-                console.log("Performing static code analysis for core namespace...");
-            } else {
-                console.log(`Performing static code analysis for \`${namespace.sourceContainer.name}\`...`);
+                continue;
             }
+
+            console.log(`Performing static code analysis for \`${namespace.sourceContainer.name}\`...`);
 
             ast.checkSymbolUsage();
 
             namespace.scope = ast.scope;
         }
+
+        console.log("Performing static code analysis for core namespace...");
+
+        var coreAst = asts[processedNamespaces.indexOf(coreNamespace)];
+
+        coreAst.checkSymbolUsage();
+
+        coreNamespace.scope = coreAst.scope;
 
         console.log("Resolving foreign symbol usage...");
 

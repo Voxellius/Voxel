@@ -81,7 +81,7 @@ export class UsedPropertyStaticMacro extends StaticMacro {
         this.argumentCountRequired(1);
 
         var symbol = new namespaces.Symbol(null, this.arguments[0]);
-        var usage = this.astNode.scope.symbolUses.find((usage) => usage.id == symbol.id);
+        var usage = namespaces.propertySymbolUses.find((usage) => usage.id == symbol.id);
 
         if (!usage) {
             return false;

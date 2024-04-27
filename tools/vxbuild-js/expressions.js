@@ -637,7 +637,7 @@ export class PropertyAccessorNode extends ast.AstNode {
         scope.addCoreNamespaceSymbol(this.getPropertySymbol, this);
         scope.addCoreNamespaceSymbol(this.setPropertySymbol, this);
 
-        scope.addSymbol(this.propertySymbol, true, false, this);
+        namespaces.propertySymbolUses.push(scope.addSymbol(this.propertySymbol, true, false, this));
 
         super.checkSymbolUsage(scope);
     }

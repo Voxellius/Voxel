@@ -2,7 +2,7 @@ var thisStack = [];
 var nextThis = null;
 
 function getProperty(thing, property) {
-    if (property == #prop(length) && syscall T(thing) == "L") {
+    if (#usedprop(length) && property == #prop(length) && syscall T(thing) == "L") {
         return syscall Ll(thing);
     }
 
@@ -17,7 +17,7 @@ function getProperty(thing, property) {
 
         var value = syscall Og(thing, property);
 
-        if (property == #prop(length) && value == null) {
+        if (#usedprop(length) && property == #prop(length) && value == null) {
             return syscall Ol(thing);
         }
 
