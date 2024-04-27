@@ -17,14 +17,6 @@ function newList() {
     return syscall L();
 }
 
-function pushOntoList(list, value) {
-    return syscall Lu(value, list);
-}
-
-function popFromList(list) {
-    return syscall Lp(list);
-}
-
 function printList(list) {
     print("[");
     print(syscall Lj(list, ", "));
@@ -105,7 +97,7 @@ println("Created new list:");
 printList(list);
 
 print("Pushing item; new length is: ");
-print(pushOntoList(list, "d"));
+print(list.push("d"));
 println("");
 
 printList(list);
@@ -115,11 +107,11 @@ print(list[2]);
 println("");
 
 print("Popping item: ");
-print(popFromList(list));
+print(list.pop());
 println("");
 
 print("Popping item again: ");
-print(popFromList(list));
+print(list.pop());
 println("");
 
 println("Remaining list:");
