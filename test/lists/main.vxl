@@ -4,7 +4,7 @@ syscall log("Define list: ");
 syscall log(list);
 syscall log("\n");
 
-syscall Lu("d", list);
+list.push("d");
 
 syscall log("Push d: ");
 syscall log(list);
@@ -51,31 +51,31 @@ syscall log(list);
 syscall log("\n");
 
 syscall log("Popping item from list: ");
-syscall log(syscall Lp(list));
+syscall log(list.pop());
 syscall log(" => ");
 syscall log(list);
 syscall log("\n");
 
 syscall log("Popping item from list: ");
-syscall log(syscall Lp(list));
+syscall log(list.pop());
 syscall log(" => ");
 syscall log(list);
 syscall log("\n");
 
 syscall log("Popping item from list: ");
-syscall log(syscall Lp(list));
+syscall log(list.pop());
 syscall log(" => ");
 syscall log(list);
 syscall log("\n");
 
 syscall log("Popping item from list: ");
-syscall log(syscall Lp(list));
+syscall log(list.pop());
 syscall log(" => ");
 syscall log(list);
 syscall log("\n");
 
 syscall log("Popping item from list: ");
-syscall log(syscall Lp(list));
+syscall log(list.pop());
 syscall log(" => ");
 syscall log(list);
 syscall log("\n");

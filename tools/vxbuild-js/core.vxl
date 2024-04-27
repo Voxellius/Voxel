@@ -2,13 +2,27 @@ var thisStack = [];
 var nextThis = null;
 
 function getProperty(thing, property) {
-    if (#usedprop(length) && property == #prop(length) && syscall T(thing) == "L") {
-        return syscall Ll(thing);
+    nextThis = thing;
+
+    if (syscall T(thing) == "L") {
+        if (#usedprop(length) && property == #prop(length)) {
+            return syscall Ll(thing);
+        }
+
+        if (#usedprop(push) && property == #prop(push)) {
+            return function(value) captures thing {
+                syscall Lu(value, thing);
+            };
+        }
+
+        if (#usedprop(pop) && property == #prop(pop)) {
+            return function() captures thing {
+                return syscall Lp(thing);
+            };
+        }
     }
 
     if (syscall T(thing) == "O") {
-        nextThis = thing;
-
         var getter = syscall Ogg(thing, property);
 
         if (getter) {
