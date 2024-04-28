@@ -34,6 +34,12 @@ Voxel only generates the necessary bytecode to provide the supporting features n
     * **Tree shaking** to remove functions that are never called and variables that are never read
     * **Potential side effect detection** when deciding how unused variables should be removed so that their assigned value is still evaluated if its expression contains a function call or getter method
 
+## Key features of VxC bytecode format
+* **Stack-based virtual machine** that enables powerful manipulation of data and easy passing of data as arguments to commands
+* **Position-independent code** to allow easy linkage of libraries without absolute address references
+* **Read-only execution** to reduce potential for exploits whereby untrusted code is loaded and executed
+    * Sandboxed, untrusted code could be allowed to execute by creating a syscall in C that instantiates a new Voxel context with `voxel_newContext` and loads in the byte buffer from a syscall argument as code for execution
+
 ## Building a Voxel project into VxC bytecode
 You must first have Deno installed.
 
