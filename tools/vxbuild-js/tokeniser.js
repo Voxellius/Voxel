@@ -60,6 +60,7 @@ export function tokenise(sourceContainer) {
     var tokens = [];
     var stringLiteralOpener = null;
     var currentString = null;
+    var blockCommentDepth = 0;
     var currentPosition = 0;
     var previousPosition = 0;
 
@@ -109,6 +110,28 @@ export function tokenise(sourceContainer) {
             currentPosition++;
             source = source.substring(1);
 
+            continue;
+        }
+
+        if (matchToken(/^\/\*/)) {
+            blockCommentDepth++;
+
+            continue;
+        }
+
+        if (blockCommentDepth > 0) {
+            if (matchToken(/^\/\*\//)) {
+                blockCommentDepth--;
+
+                continue;
+            }
+
+            matchToken(/^(?:[^*]+|\*)/);
+
+            continue;
+        }
+
+        if (matchToken(/^\/\/.*?\n/)) {
             continue;
         }
 

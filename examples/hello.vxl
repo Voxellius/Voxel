@@ -1,8 +1,21 @@
 import "imported.vxl" as imported;
 import "another.vxl" as another;
 
+/*
+    This is a demonstration of features included in the Voxel programming
+    language. The first feature to demonstrate is nested block comments:
+
+    /* This is a nested block comment. */
+
+    Other features will be introduced with line comments.
+*/
+
+// Expression parsing
+
 var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 var thisIsAwesome = true;
+
+// Functions (these ones are mainly for usage later on)
 
 function print(value) {
     syscall log(value);
@@ -27,19 +40,27 @@ function removeObjectItem(object, key) {
     return syscall Or(object, key);
 }
 
+// Calling functions
+
 println("This message was from a .vxl file!");
 println("This time, it was compiled to a .vxc file and loaded by the runtime!");
+
+// Imported modules
 
 print("Imported value: ");
 println(imported.valueFromImport);
 
 imported.functionFromImport();
 
+// `if` statements
+
 if (thisIsAwesome) {
     println("This is awesome!");
 } else {
     println("This is not awesome!");
 }
+
+// `while` loops
 
 var count = 10;
 
@@ -49,6 +70,8 @@ while (count > 0) {
 
     count = count - 1;
 }
+
+// More functions
 
 function hello() {
     println("Hello from another function!");
@@ -73,6 +96,8 @@ var returned = test("I am a passed-in value!", 2 + 3);
 print("Returned value: ");
 println(returned);
 
+// `for` loops
+
 for (var i = 1; i <= 15; i = i + 1) {
     if (i % 3 == 0 && i % 5 == 0) {
         println("Fizzbuzz!");
@@ -84,6 +109,8 @@ for (var i = 1; i <= 15; i = i + 1) {
         println(i);
     }
 }
+
+// Lists
 
 var someList = [5, 7, 9];
 
@@ -130,6 +157,8 @@ println(list.length);
 
 print("Some list length: ");
 println(getSomeList().length);
+
+// Objects
 
 var object = {};
 
@@ -189,6 +218,8 @@ var structured = {
 
 print("Object initialiser syntax: ");
 println(structured);
+
+// Methods
 
 function method() {
     print("Object value: ");
