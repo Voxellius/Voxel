@@ -3,6 +3,7 @@ import * as namespaces from "./namespaces.js";
 import * as tokeniser from "./tokeniser.js";
 import * as ast from "./ast.js";
 import * as codeGen from "./codegen.js";
+import * as dce from "./dce.js";
 import * as parser from "./parser.js";
 import * as statements from "./statements.js";
 import * as staticMacros from "./staticmacros.js";
@@ -337,6 +338,7 @@ export class FunctionNode extends ast.AstNode {
     ];
 
     identifierSymbol = null;
+    isAnonymous = false;
     skipSymbol = null;
     capturedSymbols = [];
 
@@ -347,7 +349,11 @@ export class FunctionNode extends ast.AstNode {
 
         var identifier = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
 
-        instance.identifierSymbol = new namespaces.Symbol(namespace, identifier != null ? identifier.value : namespaces.generateSymbolName("anonfn"));
+        if (identifier == null) {
+            instance.isAnonymous = true;
+        }
+
+        instance.identifierSymbol = new namespaces.Symbol(namespace, !instance.isAnonymous ? identifier.value : namespaces.generateSymbolName("anonfn"));
         instance.skipSymbol = new namespaces.Symbol(namespace, "#fn");
 
         instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
@@ -393,11 +399,17 @@ export class FunctionNode extends ast.AstNode {
     }
 
     pruneSymbolUsage() {
+        if (this.isAnonymous) {
+            anyMarkedUnread ||= dce.markChildSymbolsAsUnread(this.children[1]);
+
+            return false;
+        }
+
         var usage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
         var anyMarkedUnread = false;
 
         if (usage && !usage.everRead) {
-            anyMarkedUnread ||= markChildSymbolsAsUnread(this.children[1]);
+            anyMarkedUnread ||= dce.markChildSymbolsAsUnread(this.children[1]);
         }
 
         return super.pruneSymbolUsage() || anyMarkedUnread;
@@ -411,7 +423,7 @@ export class FunctionNode extends ast.AstNode {
         if (options.removeDeadCode) {
             var usage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
             
-            if (usage && !usage.everRead && hasNoEffect(this)) {
+            if (usage && !usage.everRead && dce.hasNoEffect(this)) {
                 return codeGen.bytes(codeGen.vxcTokens.NULL);
             }
         }
@@ -753,8 +765,8 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         var usage = this.scope.symbolUses.find((usage) => usage.id == this.targetInstance.children.at(-1)?.value?.id);
         var anyMarkedUnread = false;
 
-        if (this.children.length > 0 && usage && !usage.everRead && hasNoEffect(this, this.children.length > 0 ? [this.children[0]] : [])) {
-            anyMarkedUnread ||= markChildSymbolsAsUnread(this.children[0]);
+        if (this.children.length > 0 && usage && !usage.everRead && dce.hasNoEffect(this, this.children.length > 0 ? [this.children[0]] : [])) {
+            anyMarkedUnread ||= dce.markChildSymbolsAsUnread(this.children[0]);
         }
 
         return super.pruneSymbolUsage() || anyMarkedUnread;
@@ -798,7 +810,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             var usage = this.scope.symbolUses.find((usage) => usage.id == target.value.id);
 
             if (usage && !usage.everRead) {
-                return hasNoEffect(this, this.children.length > 0 ? [this.children[0]] : []) ? codeGen.bytes(codeGen.vxcTokens.NULL) : valueCode;
+                return dce.hasNoEffect(this, this.children.length > 0 ? [this.children[0]] : []) ? codeGen.bytes(codeGen.vxcTokens.NULL) : valueCode;
             }
         }
 
@@ -1427,47 +1439,4 @@ export class SystemCallNode extends ast.AstNode {
             this.value.generateCode(options)
         );
     }
-}
-
-export function hasNoEffect(astNode, applicableChildren = []) {
-    for (var child of applicableChildren) {
-        if (child.findDescendantsOfTypes([FunctionCallNode, PropertyAccessorNode]).length > 0) {
-            return false;
-        }
-    }
-
-    var expressionNode = astNode.findAncestorOfTypes([ExpressionNode], true);
-
-    if (expressionNode != null && expressionNode.parent instanceof statements.StatementNode) {
-        return true;
-    }
-
-    return false;
-}
-
-export function markChildSymbolsAsUnread(astNode) {
-    var anyMarkedUnread = false;
-    var currentScope = astNode.scope;
-
-    while (currentScope != null) {
-        for (var usage of currentScope.symbolUses) {
-            usage.readBy = usage.readBy.filter(function(reader) {
-                if (reader != astNode) {
-                    return true;
-                }
-                
-                anyMarkedUnread = true;
-    
-                return false;
-            });
-        }
-
-        currentScope = currentScope.parentScope;
-    }
-
-    for (var child of astNode.children) {
-        anyMarkedUnread ||= markChildSymbolsAsUnread(child);
-    }
-
-    return anyMarkedUnread;
 }

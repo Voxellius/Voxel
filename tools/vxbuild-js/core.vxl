@@ -20,6 +20,134 @@ function getProperty(thing, property) {
                 return syscall Lp(thing);
             };
         }
+
+        if (#usedprop(unshift) && property == #prop(unshift)) {
+            return function(value) {
+                return syscall Li(value, thing, 0);
+            };
+        }
+
+        if (#usedprop(shift) && property == #prop(shift)) {
+            return function() {
+                var value = thing[0];
+
+                syscall Lr(thing, 0);
+
+                return value;
+            };
+        }
+
+        if (#usedprop(insert) && property == #prop(insert)) {
+            return function(index, value) {
+                return syscall Li(value, thing, index);
+            };
+        }
+
+        if (#usedprop(removeAt) && property == #prop(removeAt)) {
+            return function(index) {
+                var value = thing[index];
+
+                syscall Lr(thing, index);
+
+                return value;
+            };
+        }
+
+        if (#usedprop(indexOf) && property == #prop(indexOf)) {
+            return function(value) {
+                var length = syscall Ll(thing);
+
+                for (var i = 0; i < length; i = i + 1) {
+                    if (thing[i] == value) {
+                        return i;
+                    }
+                }
+
+                return -1;
+            };
+        }
+
+        if (#usedprop(contains) && property == #prop(contains)) {
+            return function(value) {
+                var length = syscall Ll(thing);
+
+                for (var i = 0; i < length; i = i + 1) {
+                    if (thing[i] == value) {
+                        return true;
+                    }
+                }
+
+                return false;
+            };
+        }
+
+        if (#usedprop(remove) && property == #prop(remove)) {
+            return function(value) {
+                var length = syscall Ll(thing);
+
+                for (var i = 0; i < length; i = i + 1) {
+                    if (thing[i] == value) {
+                        syscall Lr(thing, i);
+
+                        return true;
+                    }
+                }
+
+                return false;
+            };
+        }
+
+        if (#usedprop(forEach) && property == #prop(forEach)) {
+            return function(callback) {
+                var length = syscall Ll(thing);
+
+                for (var i = 0; i < length; i = i + 1) {
+                    callback(thing[i], i);
+                }
+            };
+        }
+
+        if (#usedprop(map) && property == #prop(map)) {
+            return function(callback) {
+                var length = syscall Ll(thing);
+                var result = [];
+
+                for (var i = 0; i < length; i = i + 1) {
+                    syscall Lp(callback(thing[i], i), result);
+                }
+
+                return result;
+            };
+        }
+
+        if (#usedprop(filter) && property == #prop(filter)) {
+            return function(callback) {
+                var length = syscall Ll(thing);
+                var result = [];
+
+                for (var i = 0; i < length; i = i + 1) {
+                    var item = thing[i];
+
+                    if (callback(item, i)) {
+                        syscall Lp(item, result);
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        if (#usedprop(reduce) && property == #prop(reduce)) {
+            return function(callback, initialValue) {
+                var length = syscall Ll(thing);
+
+                for (var i = 0; i < length; i = i + 1) {
+                    initialValue = callback(initialValue, thing[i]);
+                }
+
+                return initialValue;
+            };
+        }
     }
 
     if (syscall T(thing) == "O") {

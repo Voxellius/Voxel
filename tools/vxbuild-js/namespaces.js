@@ -164,18 +164,18 @@ export class Namespace {
                 if (i == 0) {
                     console.log(`Pruning symbol usage...`);
                 }
-    
+
                 var anyPruned = false;
-    
+
                 for (var ast of asts) {
                     anyPruned ||= ast.pruneSymbolUsage();
                 }
-    
+
                 if (!anyPruned) {
                     break;
                 }
             }
-    
+
             console.log(`Pruning complete; pass count: ${i + 1}`);
         }
 

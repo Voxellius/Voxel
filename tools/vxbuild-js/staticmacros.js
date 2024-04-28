@@ -83,11 +83,7 @@ export class UsedPropertyStaticMacro extends StaticMacro {
         var symbol = new namespaces.Symbol(null, this.arguments[0]);
         var usage = namespaces.propertySymbolUses.find((usage) => usage.id == symbol.id);
 
-        if (!usage) {
-            return false;
-        }
-
-        return usage.everRead;
+        return !!(usage && usage.everRead);
     }
 
     generateCode(options) {

@@ -83,3 +83,29 @@ syscall log("\n");
 syscall log("Get list length: ");
 syscall log(list.length);
 syscall log("\n");
+
+list.unshift(2);
+list.unshift(3);
+list.unshift(4);
+list.unshift(5);
+list.unshift(6);
+
+syscall log("Unshift a few list items: ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Shifting from list: ");
+syscall log(list.shift());
+syscall log("\n");
+
+syscall log("Shifting from list: ");
+syscall log(list.shift());
+syscall log("\n");
+
+syscall log("Shifting from list: ");
+syscall log(list.shift());
+syscall log("\n");
+
+syscall log("List after shifting: ");
+syscall log(list);
+syscall log("\n");

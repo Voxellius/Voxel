@@ -122,6 +122,8 @@ void voxel_builtins_core_removeListItem(voxel_Executor* executor) {
     }
 
     if (index < 0) {
+        voxel_unreferenceThing(executor->context, list);
+
         return voxel_pushNull(executor);
     }
 
@@ -205,8 +207,6 @@ void voxel_builtins_core_insertIntoList(voxel_Executor* executor) {
     if (VOXEL_IS_ERROR(voxel_insertIntoList(executor->context, list, index, value))) {
         return;
     }
-
-    value->referenceCount--;
 
     voxel_unreferenceThing(executor->context, list);
 }

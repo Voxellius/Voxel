@@ -2,6 +2,7 @@ import * as tokeniser from "./tokeniser.js";
 import * as namespaces from "./namespaces.js";
 import * as ast from "./ast.js";
 import * as codeGen from "./codegen.js";
+import * as dce from "./dce.js";
 import * as expressions from "./expressions.js";
 
 export class StatementNode extends ast.AstNode {
@@ -137,6 +138,7 @@ export class IfStatementNode extends ast.AstNode {
 
     skipTrueSymbol = null;
     skipFalseSymbol = null;
+    conditionTruthiness = null;
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -166,15 +168,17 @@ export class IfStatementNode extends ast.AstNode {
 
         this.children[0].checkSymbolUsage(scope);
 
-        var conditionTruthiness = this.children[0].estimateTruthiness();
+        if (this.conditionTruthiness == null) {
+            this.conditionTruthiness = this.children[0].estimateTruthiness();
+        }
 
-        if (conditionTruthiness == true) {
+        if (this.conditionTruthiness == true) {
             this.children[1].checkSymbolUsage(scope);
 
             return;
         }
 
-        if (conditionTruthiness == false && this.skipFalseSymbol) {
+        if (this.conditionTruthiness == false && this.skipFalseSymbol) {
             this.children[2].checkSymbolUsage(scope);
 
             return;
@@ -187,13 +191,13 @@ export class IfStatementNode extends ast.AstNode {
 
     generateCode(options) {
         if (options.removeDeadCode) {
-            var conditionTruthiness = this.children[0].estimateTruthiness();
-
-            if (conditionTruthiness != null) {
+            if (this.conditionTruthiness != null) {
                 return codeGen.join(
-                    this.children[0].generateCode(options),
-                    codeGen.bytes(codeGen.vxcTokens.POP),
-                    conditionTruthiness ? (
+                    dce.hasNoEffect(this, [this.children[0]]) ? codeGen.bytes() : codeGen.join(
+                        this.children[0].generateCode(options),
+                        codeGen.bytes(codeGen.vxcTokens.POP)
+                    ),
+                    this.conditionTruthiness ? (
                         this.children[1].generateCode(options)
                     ) : (
                         this.skipFalseSymbol ?

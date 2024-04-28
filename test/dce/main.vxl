@@ -126,3 +126,7 @@ if (#used(usedA_PASS)) {
 if (#used(unusedA_FAIL)) {
     "FAIL";
 }
+
+while (false) {
+    "FAIL";
+}
