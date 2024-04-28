@@ -109,3 +109,58 @@ syscall log("\n");
 syscall log("List after shifting: ");
 syscall log(list);
 syscall log("\n");
+
+list.insert(1, 4);
+
+syscall log("Inserted into list: ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Removed from list by index: ");
+syscall log(list.removeAt(1));
+syscall log("\n");
+
+syscall log("List after removal: ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Removed from list by value; success: ");
+syscall log(list.remove(2));
+syscall log("\n");
+
+syscall log("List after removal: ");
+syscall log(list);
+syscall log("\n");
+
+var empty = [];
+
+empty.pop();
+empty.shift();
+
+var values = [1, 2, 3, 4, 5];
+
+values.forEach(function(value, i) {
+    syscall log("values[");
+    syscall log(i);
+    syscall log("] = ");
+    syscall log(value);
+    syscall log("\n");
+});
+
+syscall log("Mapping: ");
+syscall log(values.map(function(value, i) {
+    return (value * 3) + i;
+}));
+syscall log("\n");
+
+syscall log("Filtering to get odd numbers: ");
+syscall log(values.filter(function(value) {
+    return value % 2 == 1;
+}));
+syscall log("\n");
+
+syscall log("Reducing to find sum: ");
+syscall log(values.reduce(function(accumulator, value) {
+    return accumulator + value;
+}, 0));
+syscall log("\n");

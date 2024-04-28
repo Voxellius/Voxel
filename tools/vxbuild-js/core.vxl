@@ -29,6 +29,10 @@ function getProperty(thing, property) {
 
         if (#usedprop(shift) && property == #prop(shift)) {
             return function() {
+                if (value >= syscall Ll(thing)) {
+                    return null;
+                }
+
                 var value = thing[0];
 
                 syscall Lr(thing, 0);
@@ -45,6 +49,10 @@ function getProperty(thing, property) {
 
         if (#usedprop(removeAt) && property == #prop(removeAt)) {
             return function(index) {
+                if (value >= syscall Ll(thing)) {
+                    return null;
+                }
+
                 var value = thing[index];
 
                 syscall Lr(thing, index);
@@ -113,7 +121,7 @@ function getProperty(thing, property) {
                 var result = [];
 
                 for (var i = 0; i < length; i = i + 1) {
-                    syscall Lp(callback(thing[i], i), result);
+                    syscall Lu(callback(thing[i], i), result);
                 }
 
                 return result;
@@ -129,7 +137,7 @@ function getProperty(thing, property) {
                     var item = thing[i];
 
                     if (callback(item, i)) {
-                        syscall Lp(item, result);
+                        syscall Lu(item, result);
                     }
                 }
 

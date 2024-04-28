@@ -33,7 +33,7 @@ void voxel_builtins_core_modulo(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_push(executor, voxel_newNumberFloat(executor->context, a % b));
+    voxel_push(executor, voxel_newNumberInt(executor->context, a % b));
 }
 
 void voxel_builtins_core_equal(voxel_Executor* executor) {

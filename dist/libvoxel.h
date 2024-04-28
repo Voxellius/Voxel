@@ -589,7 +589,7 @@ void voxel_builtins_core_modulo(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_push(executor, voxel_newNumberFloat(executor->context, a % b));
+    voxel_push(executor, voxel_newNumberInt(executor->context, a % b));
 }
 
 void voxel_builtins_core_equal(voxel_Executor* executor) {
@@ -3227,6 +3227,10 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
     listItem->previousItem = currentListItem->previousItem;
     listItem->nextItem = currentListItem;
     currentListItem->previousItem = listItem;
+
+    if (listItem->previousItem) {
+        listItem->previousItem->nextItem = listItem;
+    }
 
     if (currentListItem == list->firstItem) {
         list->firstItem = listItem;

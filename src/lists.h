@@ -294,6 +294,10 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
     listItem->nextItem = currentListItem;
     currentListItem->previousItem = listItem;
 
+    if (listItem->previousItem) {
+        listItem->previousItem->nextItem = listItem;
+    }
+
     if (currentListItem == list->firstItem) {
         list->firstItem = listItem;
     }

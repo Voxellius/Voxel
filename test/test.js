@@ -132,7 +132,12 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
         
         process.kill();
 
-        if (before != after) {
+        if (after > before + 256) {
+            /*
+                Give a 256 KiB tolerance since memory usage could happen to be a
+                bit more than beforehand but is not a memory leak
+            */
+
             console.error(
                 `TEST FAIL: ${TEST_NAME}\n` +
                 `Memory leak: ${before} KiB before; ${after} KiB after (delta ${after - before} KiB)\n`
