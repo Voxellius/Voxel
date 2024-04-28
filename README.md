@@ -27,7 +27,7 @@ Voxel only generates the necessary bytecode to provide the supporting features n
     * **Modular, namespaced approach** where each imported file is called in the correct dependency order and where symbol names across files won't collide
     * **Relative imports** by specifying a path relative to the Voxel file
     * **Circular imports** where _A_ can import _B_ and _B_ can import _A_
-* **Exceptions** to throw and handle errors (partially implemented in VxC interpreter only so far)
+* **Exceptions** to throw and handle errors
 * **Static macros** for libraries to determine whether symbols and properties are used or not to enable efficient code generation
 * **Dead code elimination** to produce space-efficient VxC bytecode
     * **Truthiness estimation** so unreachable code in `if` statements and `while` loops (due to condition always being `true` or `false`) is removed
