@@ -3968,6 +3968,8 @@ VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor) {
 
     *voxel_getExecutorPosition(executor) = executor->callStack[executor->callStackHead].exceptionHandlerPosition;
 
+    voxel_clearExceptionHandler(executor);
+
     return VOXEL_OK;
 }
 

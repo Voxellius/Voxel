@@ -1,0 +1,37 @@
+try {
+    syscall log("No error thrown\n");
+} catch (error) {
+    syscall log("Caught error that does not exist\n");
+}
+
+try {
+    throw 1;
+}
+
+try {
+    throw 2;
+} catch (error) {
+    syscall log("Caught error: ");
+    syscall log(error);
+    syscall log("\n");
+}
+
+function rethrow() {
+    try {
+        throw 3;
+    } catch (error) {
+        throw error + 1;
+    }
+}
+
+try {
+    rethrow();
+} catch (error) {
+    syscall log("Caught error: ");
+    syscall log(error);
+    syscall log("\n");
+}
+
+try {
+    throw 5;
+}

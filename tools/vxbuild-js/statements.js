@@ -14,7 +14,7 @@ export class StatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ImportStatementNode, IfStatementNode, WhileLoopNode, ForLoopNode, ReturnStatementNode, expressions.ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [ImportStatementNode, IfStatementNode, WhileLoopNode, ForLoopNode, TryStatementNode, ReturnStatementNode, ThrowStatementNode, expressions.ExpressionNode], namespace);
 
         return instance;
     }
@@ -209,9 +209,7 @@ export class IfStatementNode extends ast.AstNode {
             codeGen.bytes(codeGen.vxcTokens.NOT)
         );
 
-        var isTrueCode = codeGen.join(
-            this.children[1].generateCode(options)
-        );
+        var isTrueCode = this.children[1].generateCode(options);
 
         var isFalseCode = this.skipFalseSymbol ? codeGen.join(
             this.children[2].generateCode(options)
@@ -406,10 +404,7 @@ export class ForLoopNode extends ast.AstNode {
             codeGen.bytes(codeGen.vxcTokens.NOT)
         );
 
-        var loopCode = codeGen.join(
-            loopStatementBlock.generateCode(options)
-        );
-
+        var loopCode = loopStatementBlock.generateCode(options);
         var stepCode = stepStatement.generateCode(options);
 
         var skipLoopCode = codeGen.join(
@@ -442,6 +437,108 @@ export class ForLoopNode extends ast.AstNode {
             loopCode,
             stepCode,
             repeatLoopCode
+        );
+    }
+}
+
+export class ThrowStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`throw` statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "throw")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        instance.expectChildByMatching(tokens, [expressions.ExpressionNode], namespace);
+
+        return instance;
+    }
+
+    generateCode(options) {
+        return codeGen.join(this.children[0].generateCode(options), codeGen.bytes(codeGen.vxcTokens.THROW));
+    }
+}
+
+export class TryStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`try` statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "try")
+    ];
+
+    enterHandlerSymbol = null;
+    skipHandlerSymbol = null;
+    catchExceptionSymbol = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "catch")])) {
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);
+
+            var identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+            instance.catchExceptionSymbol = new namespaces.Symbol(namespace, identifier.value);
+
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
+
+            instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
+        }
+
+        instance.enterHandlerSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("try_handler"));
+        instance.skipHandlerSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("try_skip"));
+
+        return instance;
+    }
+
+    generateCode(options) {
+        var trialCode = this.children[0].generateCode();
+
+        var handlerCode = this.catchExceptionSymbol != null ? codeGen.join(
+            this.catchExceptionSymbol.generateCode(),
+            codeGen.bytes(codeGen.vxcTokens.SET),
+            codeGen.bytes(codeGen.vxcTokens.POP),
+            this.children[1].generateCode(),
+        ) : codeGen.bytes(codeGen.vxcTokens.POP);
+
+        var skipHandlerCode = codeGen.join(
+            codeGen.bytes(codeGen.vxcTokens.CLEAR_HANDLER),
+            this.skipHandlerSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        );
+
+        var setHandlerCode = codeGen.join(
+            this.enterHandlerSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.SET_HANDLER)
+        );
+
+        var enterHandlerDefinitionCode = codeGen.join(
+            this.enterHandlerSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(setHandlerCode.length + trialCode.length + skipHandlerCode.length)
+        );
+
+        var skipHandlerDefinitionCode = codeGen.join(
+            this.skipHandlerSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(enterHandlerDefinitionCode.length + setHandlerCode.length + trialCode.length + skipHandlerCode.length + handlerCode.length)
+        );
+
+        return codeGen.join(
+            skipHandlerDefinitionCode,
+            enterHandlerDefinitionCode,
+            setHandlerCode,
+            trialCode,
+            skipHandlerCode,
+            handlerCode
         );
     }
 }
