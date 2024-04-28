@@ -39,6 +39,9 @@ Voxel only generates the necessary bytecode to provide the supporting features n
 * **Position-independent code** to allow easy linkage of libraries without absolute address references
 * **Read-only execution** to reduce potential for exploits whereby untrusted code is loaded and executed
     * Sandboxed, untrusted code could be allowed to execute by creating a syscall in C that instantiates a new Voxel context with `voxel_newContext` and loads in the byte buffer from a syscall argument as code for execution
+* **Compact code** with a space-efficient design
+* **Easy-to-read instruction set** with all instruction tokens as printable ASCII characters
+* **Loose typing of data** with type casting where necessary
 
 ## Building a Voxel project into VxC bytecode
 You must first have Deno installed.
