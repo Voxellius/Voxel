@@ -369,6 +369,8 @@ export class FunctionNode extends ast.AstNode {
 
         usage.truthiness = true;
 
+        var capturedSymbolIds = [];
+
         // Determine symbols to capture for closure
         for (var expressionNode of this.findDescendantsOfTypes([ThingNode])) {
             var descendant = expressionNode.value;
@@ -389,7 +391,12 @@ export class FunctionNode extends ast.AstNode {
                     continue;
                 }
 
+                if (capturedSymbolIds.includes(descendant.id)) {
+                    continue;
+                }
+
                 this.capturedSymbols.push(descendant);
+                capturedSymbolIds.push(descendant.id);
 
                 scope.addSymbol(descendant, true, false, this);
             }

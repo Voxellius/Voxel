@@ -33,3 +33,7 @@ values[4] = 5
 Mapping: 3,7,11,15,19
 Filtering to get odd numbers: 1,3,5
 Reducing to find sum: 15
+Index of 3: 2
+Index of 6: -1
+List contains 3: true
+List contains 6: false

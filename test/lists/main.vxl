@@ -164,3 +164,19 @@ syscall log(values.reduce(function(accumulator, value) {
     return accumulator + value;
 }, 0));
 syscall log("\n");
+
+syscall log("Index of 3: ");
+syscall log(values.indexOf(3));
+syscall log("\n");
+
+syscall log("Index of 6: ");
+syscall log(values.indexOf(6));
+syscall log("\n");
+
+syscall log("List contains 3: ");
+syscall log(values.contains(3));
+syscall log("\n");
+
+syscall log("List contains 6: ");
+syscall log(values.contains(6));
+syscall log("\n");
