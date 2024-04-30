@@ -3,16 +3,18 @@
 
 **Voxel** is a loosely-typed programming language that is designed to be powerful, versatile, easy-to-use and portable. It has a C-like syntax and has many features found in other modern programming languages.
 
-Portability is a key goal of Voxel — especially so that programs written in it can run on low-power hardware, such as microcontrollers. Voxel achieves this by compiling into a bytecode format, called **VxC** (Voxel Code). Using a number of optimisations including name mangling and dead code elimination (DCE) via static code analysis, Voxel can generate memory-efficient bytecode that takes up as little storage space as possible.
+Portability is a key goal of Voxel — especially so that programs written in it can run on low-powered hardware, such as microcontrollers. Voxel achieves this by compiling source code into a bytecode format, called **VxC** (Voxel Code). Voxel can generate storage-efficient bytecode by using a number of optimisations, including name mangling and dead code elimination (DCE) via static code analysis.
 
-Voxel only generates the necessary bytecode to provide the supporting features needed by the main program's code. Here's a hex dump of all the bytecode needed to output "Hello, world!":
+Voxel only generates the necessary bytecode to provide the supporting features needed by the main program's code. As an example, here's a hex dump of all the bytecode needed to output "Hello, world!":
 
 ```
 56 78 43 01 22 48 65 6c 6c 6f 2c 20 77 6f 72 6c     VxC."Hello, worl
 64 21 0a 00 33 01 2e 6c 6f 67 00 70 00              d!..3..log.p.
 ```
 
-## Key features of Voxel
+Since this program does not make use of Voxel's auxiliary features, all code from [`core.vxl`](tools/vxbuild-js/core.vxl) in this example has been excluded through static code analysis and is therefore never compiled into the bytecode.
+
+## Key features of the Voxel programming language
 * **Functions** — named and anonymous
     * **Closures** that allow references to non-global variables outside a function's scope
 * **Expressions** that follow a defined operator precedence
@@ -30,11 +32,11 @@ Voxel only generates the necessary bytecode to provide the supporting features n
 * **Exceptions** to throw and handle errors
 * **Static macros** for libraries to determine whether symbols and properties are used or not to enable efficient code generation
 * **Dead code elimination** to produce space-efficient VxC bytecode
-    * **Truthiness estimation** so unreachable code in `if` statements and `while` loops (due to condition always being `true` or `false`) is removed
+    * **Truthiness estimation** so that unreachable code in `if` statements and `while` loops (due to condition always being `true` or `false`) is removed
     * **Tree shaking** to remove functions that are never called and variables that are never read
     * **Potential side effect detection** when deciding how unused variables should be removed so that their assigned value is still evaluated if its expression contains a function call or getter method
 
-## Key features of VxC bytecode format
+## Key features of the VxC bytecode format
 * **Stack-based virtual machine** that enables powerful manipulation of data and easy passing of data as arguments to commands
 * **Position-independent code** to allow easy linkage of libraries without absolute address references
 * **Read-only execution** to reduce potential for exploits whereby untrusted code is loaded and executed
@@ -43,7 +45,7 @@ Voxel only generates the necessary bytecode to provide the supporting features n
 * **Easy-to-read instruction set** with all instruction tokens as printable ASCII characters
 * **Loose typing of data** with type casting where necessary
 
-## Building a Voxel project into VxC bytecode
+## Compiling a Voxel project into VxC bytecode
 You must first have Deno installed.
 
 To compile Voxel source code (.vxl files) into VxC bytecode (.vxc files), run:
