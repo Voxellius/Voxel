@@ -120,13 +120,13 @@ export function tokenise(sourceContainer) {
         }
 
         if (blockCommentDepth > 0) {
-            if (matchToken(/^\/\*\//)) {
+            if (matchToken(/^\*\//)) {
                 blockCommentDepth--;
 
                 continue;
             }
 
-            matchToken(/^(?:[^*]+|\*)/);
+            matchToken(/^(?:[^\/*]+|\/|\*)/);
 
             continue;
         }
