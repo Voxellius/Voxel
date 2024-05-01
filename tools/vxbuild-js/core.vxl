@@ -171,6 +171,10 @@ function getProperty(thing, property) {
             return syscall Ol(thing);
         }
 
+        if (#usedprop(prototypes) && property == #prop(prototypes) && value == null) {
+            return syscall Op(thing);
+        }
+
         return value;
     }
 

@@ -222,4 +222,21 @@ void voxel_builtins_core_getObjectLength(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, object);
 }
 
+void voxel_builtins_core_getObjectPrototypes(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* object = voxel_pop(executor);
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT) {
+        return;
+    }
+
+    voxel_Thing* prototypes = voxel_getObjectPrototypes(executor->context, object);
+
+    prototypes->referenceCount++;
+
+    voxel_push(executor, prototypes);
+
+    voxel_unreferenceThing(executor->context, object);
+}
+
 #endif

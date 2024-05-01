@@ -88,6 +88,7 @@ typedef struct voxel_Object {
     voxel_Count length;
     struct voxel_ObjectItem* firstItem;
     struct voxel_ObjectItem* lastItem;
+    voxel_Thing* prototypes;
 } voxel_Object;
 
 typedef struct voxel_ObjectItem {
@@ -297,11 +298,13 @@ void voxel_lockObject(voxel_Thing* thing);
 voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing);
+voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* baseThing, voxel_Thing* currentThing, voxel_Thing* key, voxel_Bool shouldTraversePrototypes);
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
 voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* context, voxel_ObjectItem* objectItem);
 voxel_Count voxel_getObjectLength(voxel_Thing* thing);
+voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thing);
 
 voxel_Thing* voxel_newList(voxel_Context* context);
 VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing);

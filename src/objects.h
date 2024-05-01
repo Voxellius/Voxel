@@ -4,6 +4,7 @@ voxel_Thing* voxel_newObject(voxel_Context* context) {
     object->length = 0;
     object->firstItem = VOXEL_NULL;
     object->lastItem = VOXEL_NULL;
+    object->prototypes = VOXEL_NULL;
 
     voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_OBJECT);
 
@@ -38,6 +39,10 @@ VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) 
         VOXEL_FREE(currentItem); VOXEL_TAG_FREE(voxel_ObjectItem);
 
         currentItem = nextItem;
+    }
+
+    if (object->prototypes) {
+        VOXEL_MUST(voxel_unreferenceThing(context, object->prototypes));
     }
 
     VOXEL_FREE(object); VOXEL_TAG_FREE(voxel_Object);
@@ -146,15 +151,47 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
 voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing) {
     voxel_Object* object = thing->value;
 
-    return object->length != 0;
+    return voxel_getObjectLength(thing) != 0;
 }
 
-voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
-    voxel_Object* object = thing->value;
+voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* baseThing, voxel_Thing* currentThing, voxel_Thing* key, voxel_Bool shouldTraversePrototypes) {
+    if (currentThing == baseThing) {
+        return VOXEL_NULL;
+    }
+
+    if (baseThing == VOXEL_NULL) {
+        baseThing = currentThing;
+    }
+
+    voxel_Object* object = currentThing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
     while (VOXEL_TRUE) {
         if (!currentItem) {
+            if (!shouldTraversePrototypes) {
+                return VOXEL_NULL;
+            }
+
+            voxel_Thing* prototypesThing = object->prototypes;
+
+            if (prototypesThing == VOXEL_NULL) {
+                return VOXEL_NULL;
+            }
+
+            voxel_List* prototypesList = prototypesThing->value;
+            voxel_ListItem* currentPrototypeListItem = prototypesList->firstItem;
+
+            while (currentPrototypeListItem) {
+                voxel_Thing* currentPrototype = currentPrototypeListItem->value;
+                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(baseThing, currentPrototype, key, VOXEL_TRUE);
+
+                if (prototypeObjectItem) {
+                    return prototypeObjectItem;
+                }
+
+                currentPrototypeListItem = currentPrototypeListItem->nextItem;
+            }
+
             return VOXEL_NULL;
         }
 
@@ -166,11 +203,15 @@ voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
     }
 }
 
+voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
+    voxel_getPrototypedObjectItem(VOXEL_NULL, thing, key, VOXEL_TRUE);
+}
+
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     
     voxel_Object* object = thing->value;
-    voxel_ObjectItem* objectItem = voxel_getObjectItem(thing, key);
+    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(VOXEL_NULL, thing, key, VOXEL_FALSE);
 
     if (objectItem) {
         VOXEL_MUST(voxel_unreferenceThing(context, objectItem->value));
@@ -264,5 +305,26 @@ voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* cont
 voxel_Count voxel_getObjectLength(voxel_Thing* thing) {
     voxel_Object* object = thing->value;
 
+    // TODO: Maybe include lengths of prototypes as part of total returned length
+
     return object->length;
+}
+
+voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thing) {
+    voxel_Object* object = thing->value;
+
+    if (object->prototypes) {
+        return object->prototypes;
+    }
+
+    voxel_Thing* prototypesList = voxel_newList(context);
+
+    if (thing->isLocked) {
+        voxel_lockThing(prototypesList);
+    }
+
+    object->prototypes = prototypesList;
+    prototypesList->referenceCount++;
+
+    return prototypesList;
 }

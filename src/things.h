@@ -130,6 +130,10 @@ void voxel_lockThing(voxel_Thing* thing) {
         case VOXEL_TYPE_OBJECT:
             voxel_lockObject(thing);
             break;
+
+        case VOXEL_TYPE_LIST:
+            voxel_lockList(thing);
+            break;
     }
 }
 

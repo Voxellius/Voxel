@@ -200,6 +200,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ogs", &voxel_builtins_core_getObjectItemSetter);
     voxel_defineBuiltin(context, ".Oss", &voxel_builtins_core_setObjectItemSetter);
     voxel_defineBuiltin(context, ".Ol", &voxel_builtins_core_getObjectLength);
+    voxel_defineBuiltin(context, ".Op", &voxel_builtins_core_getObjectPrototypes);
 
     voxel_defineBuiltin(context, ".L", &voxel_builtins_core_newList);
     voxel_defineBuiltin(context, ".Lo", &voxel_builtins_core_newListOf);

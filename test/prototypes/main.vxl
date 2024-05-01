@@ -1,0 +1,59 @@
+var primaryParent = {
+    key1: "primaryParent value1",
+    key2: "primaryParent value2",
+    key3: "primaryParent value3"
+};
+
+var secondaryParent = {
+    key2: "secondaryParent value2",
+    key4: "secondaryParent value4"
+};
+
+var child = {
+    key1: "child value1",
+    key5: "child value5"
+};
+
+child.prototypes.push(primaryParent);
+child.prototypes.push(secondaryParent);
+
+syscall log("key1: ");
+syscall log(child.key1);
+syscall log("\n");
+
+syscall log("key2: ");
+syscall log(child.key2);
+syscall log("\n");
+
+syscall log("key3: ");
+syscall log(child.key3);
+syscall log("\n");
+
+syscall log("key4: ");
+syscall log(child.key4);
+syscall log("\n");
+
+syscall log("key5: ");
+syscall log(child.key5);
+syscall log("\n");
+
+child.key2 = "child value2";
+child.key4 = "child value4";
+
+syscall log("Set keys\n");
+
+syscall log("key2: ");
+syscall log(child.key2);
+syscall log("\n");
+
+syscall log("key4: ");
+syscall log(child.key4);
+syscall log("\n");
+
+syscall log("primaryParent key2: ");
+syscall log(primaryParent.key2);
+syscall log("\n");
+
+syscall log("secondaryParent key4: ");
+syscall log(secondaryParent.key4);
+syscall log("\n");
