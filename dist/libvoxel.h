@@ -2892,7 +2892,7 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* baseThing, voxel_Th
 }
 
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
-    voxel_getPrototypedObjectItem(VOXEL_NULL, thing, key, VOXEL_TRUE);
+    return voxel_getPrototypedObjectItem(VOXEL_NULL, thing, key, VOXEL_TRUE);
 }
 
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
