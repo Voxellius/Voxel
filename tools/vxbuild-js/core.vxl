@@ -11,7 +11,7 @@ function getProperty(thing, property) {
 
         if (#usedprop(push) && property == #prop(push)) {
             return function(value) {
-                syscall Lu(value, thing);
+                return syscall Lu(value, thing);
             };
         }
 
