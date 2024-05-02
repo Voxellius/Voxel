@@ -29,7 +29,7 @@ Since this program does not make use of Voxel's auxiliary features, all code fro
     * **Modular, namespaced approach** where each imported file is called in the correct dependency order and where symbol names across files won't collide
     * **Relative imports** by specifying a path relative to the Voxel file
     * **Circular imports** where _A_ can import _B_ and _B_ can import _A_
-* **Exceptions** to throw and handle errors
+* **Exceptions** to throw and handle errors with `throw` and `try`/`catch`
 * **Static macros** for libraries to determine whether symbols and properties are used or not to enable efficient code generation
 * **Dead code elimination** to produce space-efficient VxC bytecode
     * **Truthiness estimation** so that unreachable code in `if` statements and `while` loops (due to condition always being `true` or `false`) is removed
