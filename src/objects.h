@@ -154,21 +154,13 @@ voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing) {
     return voxel_getObjectLength(thing) != 0;
 }
 
-voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* baseThing, voxel_Thing* currentThing, voxel_Thing* key, voxel_Bool shouldTraversePrototypes) {
-    if (currentThing == baseThing) {
-        return VOXEL_NULL;
-    }
-
-    if (baseThing == VOXEL_NULL) {
-        baseThing = currentThing;
-    }
-
-    voxel_Object* object = currentThing->value;
+voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth) {
+    voxel_Object* object = thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
     while (VOXEL_TRUE) {
         if (!currentItem) {
-            if (!shouldTraversePrototypes) {
+            if (traverseDepth == 0) {
                 return VOXEL_NULL;
             }
 
@@ -183,7 +175,7 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* baseThing, voxel_Th
 
             while (currentPrototypeListItem) {
                 voxel_Thing* currentPrototype = currentPrototypeListItem->value;
-                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(baseThing, currentPrototype, key, VOXEL_TRUE);
+                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(currentPrototype, key, traverseDepth - 1);
 
                 if (prototypeObjectItem) {
                     return prototypeObjectItem;
@@ -204,14 +196,14 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* baseThing, voxel_Th
 }
 
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
-    return voxel_getPrototypedObjectItem(VOXEL_NULL, thing, key, VOXEL_TRUE);
+    return voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH);
 }
 
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     
     voxel_Object* object = thing->value;
-    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(VOXEL_NULL, thing, key, VOXEL_FALSE);
+    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, 0);
 
     if (objectItem) {
         VOXEL_MUST(voxel_unreferenceThing(context, objectItem->value));
