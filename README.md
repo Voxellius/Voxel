@@ -46,7 +46,7 @@ Since this program does not make use of Voxel's auxiliary features, all code fro
 * **Loose typing of data** with type casting where necessary
 
 ## Compiling a Voxel project into VxC bytecode
-You must first have Deno installed.
+Before compiling projects, you must first have Deno installed.
 
 To compile Voxel source code (.vxl files) into VxC bytecode (.vxc files), run:
 
