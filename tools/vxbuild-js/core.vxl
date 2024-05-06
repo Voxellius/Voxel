@@ -1,6 +1,24 @@
 var thisStack = [];
 var nextThis = null;
 
+function instantiate(object, constructorArgs) {
+    var instance = {};
+
+    instance.prototypes.push(object);
+
+    if (syscall T(instance.constructor) != "@" && syscall T(instance.constructor) != "C") {
+        return instance;
+    }
+
+    var result = instance.constructor(...constructorArgs);
+
+    if (result != null) {
+        return result;
+    }
+
+    return instance;
+}
+
 function getProperty(thing, property) {
     nextThis = thing;
 
@@ -29,7 +47,7 @@ function getProperty(thing, property) {
 
         if (#usedprop(shift) && property == #prop(shift)) {
             return function() {
-                if (value >= syscall Ll(thing)) {
+                if (syscall Ll(thing) == 0) {
                     return null;
                 }
 
@@ -49,7 +67,7 @@ function getProperty(thing, property) {
 
         if (#usedprop(removeAt) && property == #prop(removeAt)) {
             return function(index) {
-                if (value >= syscall Ll(thing)) {
+                if (index >= syscall Ll(thing)) {
                     return null;
                 }
 

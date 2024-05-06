@@ -1,0 +1,48 @@
+var TestClass = {
+    constructor: function(a, b) {
+        this.a = a;
+        this.b = b;
+    },
+    multiply: function() {
+        return this.a * this.b;
+    },
+    accumulate: function() {
+        this.a = this.multiply();
+    }
+};
+
+var ClassWithoutConstructor = {
+    someValue: 123,
+    getValue: function() {
+        return this.someValue * 2;
+    }
+};
+
+var instance1 = new TestClass(2, 3);
+var instance2 = new TestClass(3, 4);
+
+syscall log("instance1 multiply result: ");
+syscall log(instance1.multiply());
+syscall log("\n");
+
+instance1.accumulate();
+
+syscall log("instance1 multiply after accumulate result: ");
+syscall log(instance1.multiply());
+syscall log("\n");
+
+syscall log("instance2 multiply result: ");
+syscall log(instance2.multiply());
+syscall log("\n");
+
+instance2.accumulate();
+
+syscall log("instance2 multiply after accumulate result: ");
+syscall log(instance2.multiply());
+syscall log("\n");
+
+var instance3 = new ClassWithoutConstructor();
+
+syscall log("Class without constructor value: ");
+syscall log(instance3.getValue());
+syscall log("\n");

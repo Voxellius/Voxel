@@ -87,6 +87,32 @@ void voxel_builtins_core_toClosure(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, function);
 }
 
+void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* list = voxel_pop(executor);
+
+    if (!list || list->type != VOXEL_TYPE_LIST) {
+        return;
+    }
+
+    voxel_List* listValue = list->value;
+    voxel_ListItem* currentItem = listValue->firstItem;
+
+    while (currentItem) {
+        voxel_Thing* currentThing = currentItem->value;
+
+        voxel_push(executor, currentThing);
+
+        currentThing->referenceCount++;
+
+        currentItem = currentItem->nextItem;
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
+
+    voxel_unreferenceThing(executor->context, list);
+}
+
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
     voxel_Thing* argCount = voxel_peek(executor, 0);
 
@@ -176,6 +202,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
     voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
+    voxel_defineBuiltin(context, ".Au", &voxel_builtins_core_pushArgs);
 
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);

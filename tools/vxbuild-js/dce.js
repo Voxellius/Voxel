@@ -3,7 +3,11 @@ import * as statements from "./statements.js";
 
 export function hasNoEffect(astNode, applicableChildren = []) {
     for (var child of applicableChildren) {
-        if (child.findDescendantsOfTypes([expressions.FunctionCallNode, expressions.PropertyAccessorNode], [expressions.FunctionNode]).length > 0) {
+        if (child.findDescendantsOfTypes([
+            expressions.FunctionCallNode,
+            expressions.PropertyAccessorNode,
+            expressions.InstantiationNode
+        ], [expressions.FunctionNode]).length > 0) {
             return false;
         }
     }

@@ -208,8 +208,6 @@ export class ObjectNode extends ast.AstNode {
         return instance;
     }
 
-    // TODO: Allow symbol usage to be tracked for object keys
-
     estimateTruthiness() {
         return this.propertySymbols.length > 0;
     }
@@ -230,6 +228,50 @@ export class ObjectNode extends ast.AstNode {
         );
     }
 }
+
+export class InstantiationNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`new` expression";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "new")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.instantiateSymbol = new namespaces.Symbol(namespaces.coreNamespace, "instantiate");
+
+        this.eat(tokens);
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")])) {
+            instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
+        } else {
+            instance.expectChildByMatching(tokens, [ThingNode], namespace);
+        }
+
+        instance.expectChildByMatching(tokens, [ConstructorArgumentsNode], namespace);
+
+        return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        scope.addCoreNamespaceSymbol(this.instantiateSymbol, this);
+
+        super.checkSymbolUsage(scope);
+    }
+
+    generateCode(options) {
+        return codeGen.join(
+            this.children[0].generateCode(options),
+            this.children[1].generateCode(options),
+            codeGen.number(2),
+            this.instantiateSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
+        );
+    }
+};
 
 export class ListNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "list";
@@ -407,8 +449,6 @@ export class FunctionNode extends ast.AstNode {
 
     pruneSymbolUsage() {
         if (this.isAnonymous) {
-            anyMarkedUnread ||= dce.markChildSymbolsAsUnread(this.children[1]);
-
             return false;
         }
 
@@ -528,6 +568,7 @@ export class FunctionArgumentsNode extends ast.AstNode {
     ];
 
     arguments = [];
+    spreading = [];
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -545,6 +586,8 @@ export class FunctionArgumentsNode extends ast.AstNode {
                 this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
             }
 
+            instance.spreading.push(!!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "...")]));
+
             instance.arguments.push(
                 instance.expectChildByMatching(tokens, [ExpressionNode], namespace)
             );
@@ -556,9 +599,29 @@ export class FunctionArgumentsNode extends ast.AstNode {
     }
 
     generateCode(options) {
+        if (this.spreading.length == 1 && this.spreading[0]) {
+            // TODO: Allow spreading multiple args
+
+            return codeGen.join(
+                this.children[0].generateCode(options),
+                codeGen.number(1),
+                codeGen.systemCall("Au")
+            );
+        }
+
         return codeGen.join(
             ...this.children.map((child) => child.generateCode(options)),
             codeGen.number(this.children.length)
+        );
+    }
+}
+
+export class ConstructorArgumentsNode extends FunctionArgumentsNode {
+    generateCode(options) {
+        return codeGen.join(
+            ...this.children.map((child) => child.generateCode(options)),
+            codeGen.number(this.children.length),
+            codeGen.systemCall("Lo")
         );
     }
 }
@@ -704,6 +767,7 @@ export class ExpressionNode extends ast.AstNode {
         ...ThisNode.MATCH_QUERIES,
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
+        ...InstantiationNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
         ...FunctionNode.MATCH_QUERIES,
         ...staticMacros.StaticMacroNode.MATCH_QUERIES,
@@ -940,6 +1004,7 @@ export class ExpressionThingNode extends ExpressionLeafNode {
         ...ThisNode.MATCH_QUERIES,
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
+        ...InstantiationNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
         ...FunctionNode.MATCH_QUERIES,
         ...staticMacros.StaticMacroNode.MATCH_QUERIES
@@ -948,7 +1013,7 @@ export class ExpressionThingNode extends ExpressionLeafNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ThisNode, ThingNode, ObjectNode, ListNode, FunctionNode, staticMacros.StaticMacroNode], namespace);
+        instance.expectChildByMatching(tokens, [ThisNode, ThingNode, ObjectNode, InstantiationNode, ListNode, FunctionNode, staticMacros.StaticMacroNode], namespace);
 
         this.maybeAddAccessors(instance, tokens, namespace);
 

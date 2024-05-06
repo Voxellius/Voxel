@@ -160,7 +160,7 @@ export class Namespace {
         }
 
         if (options.removeDeadCode) {
-            for (var i = 0; i < (options.prunePassLimit ?? 100); i++) {
+            for (var i = 0; i < (options.prunePassLimit ?? 1_000); i++) {
                 if (i == 0) {
                     console.log(`Pruning symbol usage...`);
                 }
@@ -211,7 +211,9 @@ export class Symbol {
 
             namespace.symbols[name].push(this);
         } else {
-            propertySymbols[name] ??= [];
+            if (!propertySymbols.hasOwnProperty(name)) {
+                propertySymbols[name] = [];
+            }
 
             propertySymbols[name].push(this);
         }

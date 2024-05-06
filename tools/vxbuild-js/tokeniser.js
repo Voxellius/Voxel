@@ -141,7 +141,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:syscall|import|as|return|function|this|var|if|else|while|for|retain|throw|try|catch)\b/)) {
+        if (matchToken(/^(?:syscall|import|as|return|function|this|new|var|if|else|while|for|retain|throw|try|catch)\b/)) {
             addToken(KeywordToken);
             continue;
         }
@@ -168,6 +168,11 @@ export function tokenise(sourceContainer) {
 
         if (matchToken(/^;/)) {
             addToken(StatementDelimeterToken);
+            continue;
+        }
+
+        if (matchToken(/^\.\.\./)) {
+            addToken(OperatorToken);
             continue;
         }
 
