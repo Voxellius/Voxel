@@ -40,6 +40,66 @@ export class ThisNode extends ast.AstNode {
     }
 };
 
+// FIXME: Cannot easily call `super` within parent class (might be better to reimplement this so it's just syntactic sugar)
+export class SuperNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`super`";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "super")
+    ];
+
+    callingMethod = false;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.callSuperMethod = new namespaces.Symbol(namespaces.coreNamespace, "callSuperMethod");
+        instance.callSuperConstructors = new namespaces.Symbol(namespaces.coreNamespace, "callSuperConstructors");
+
+        this.eat(tokens);
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.PropertyAccessorToken)])) {
+            instance.callingMethod = true;
+
+            instance.propertySymbol = namespaces.Symbol.generateForProperty(this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value);
+        }
+
+        instance.expectChildByMatching(tokens, [ConstructorArgumentsNode], namespace);
+
+        return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        if (this.callingMethod) {
+            scope.addCoreNamespaceSymbol(this.callSuperMethod, this);
+            namespaces.propertySymbolUses.push(scope.addSymbol(this.propertySymbol, true, false, this));
+        } else {
+            scope.addCoreNamespaceSymbol(this.callSuperConstructors, this);
+        }
+
+        super.checkSymbolUsage(scope);
+    }
+
+    generateCode(options) {
+        if (this.callingMethod) {
+            return codeGen.join(
+                this.propertySymbol.generateCode(options),
+                this.children[0].generateCode(options),
+                codeGen.number(2),
+                this.callSuperMethod.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
+            );
+        }
+
+        return codeGen.join(
+            this.children[0].generateCode(options),
+            codeGen.number(1),
+            this.callSuperConstructors.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
+        );
+    }
+};
+
 export class ThingNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "thing expression";
 
@@ -765,6 +825,7 @@ export class ExpressionNode extends ast.AstNode {
         new ast.TokenQuery(tokeniser.KeywordToken, "var"),
         new ast.TokenQuery(tokeniser.BracketToken, "("),
         ...ThisNode.MATCH_QUERIES,
+        ...SuperNode.MATCH_QUERIES,
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
         ...InstantiationNode.MATCH_QUERIES,
@@ -809,7 +870,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             return instance;
         }
 
-        instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+        instance.addChildByMatching(tokens, [ExpressionNode], namespace);
 
         return instance;
     }
@@ -1002,6 +1063,7 @@ export class ExpressionLeafNode extends ExpressionNode {
 export class ExpressionThingNode extends ExpressionLeafNode {
     static MATCH_QUERIES = [
         ...ThisNode.MATCH_QUERIES,
+        ...SuperNode.MATCH_QUERIES,
         ...ThingNode.MATCH_QUERIES,
         ...ObjectNode.MATCH_QUERIES,
         ...InstantiationNode.MATCH_QUERIES,
@@ -1013,7 +1075,7 @@ export class ExpressionThingNode extends ExpressionLeafNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ThisNode, ThingNode, ObjectNode, InstantiationNode, ListNode, FunctionNode, staticMacros.StaticMacroNode], namespace);
+        instance.expectChildByMatching(tokens, [ThisNode, SuperNode, ThingNode, ObjectNode, InstantiationNode, ListNode, FunctionNode, staticMacros.StaticMacroNode], namespace);
 
         this.maybeAddAccessors(instance, tokens, namespace);
 
@@ -1139,6 +1201,10 @@ export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperator
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+
+    estimateTruthiness() {
+        return null;
+    }
 }
 
 export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExpressionNode {
@@ -1159,6 +1225,10 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = MultiplicationDivisionOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
 }
 
 export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode {

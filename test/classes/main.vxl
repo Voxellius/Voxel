@@ -1,5 +1,11 @@
 var TestClass = {
     constructor: function(a, b) {
+        syscall log("TestClass constructor called with args: ");
+        syscall log(a);
+        syscall log(", ");
+        syscall log(b);
+        syscall log("\n");
+
         this.a = a;
         this.b = b;
     },
@@ -46,3 +52,173 @@ var instance3 = new ClassWithoutConstructor();
 syscall log("Class without constructor value: ");
 syscall log(instance3.getValue());
 syscall log("\n");
+
+var ChildClass = {
+    constructor: function(a, b, c) {
+        syscall log("ChildClass constructor called with extra arg: ");
+        syscall log(c);
+        syscall log("\n");
+
+        super(a, b);
+
+        this.c = c;
+    },
+    multiply: function() {
+        return super.multiply() * this.c;
+    }
+};
+
+ChildClass.prototypes.push(TestClass);
+
+var instance4 = new ChildClass(4, 5, 6);
+
+syscall log("instance4 multiply result: ");
+syscall log(instance4.multiply());
+syscall log("\n");
+
+instance4.accumulate();
+
+syscall log("instance4 multiply after accumulate result: ");
+syscall log(instance4.multiply());
+syscall log("\n");
+
+var Animal = {
+    constructor: function(name, legCount) {
+        this.name = name;
+        this.legCount = legCount;
+    },
+    describe: function() {
+        syscall log("Leg count: ");
+        syscall log(this.legCount);
+        syscall log("\n");
+    },
+    jump: function() {
+        if (this.legCount == 0) {
+            syscall log("This animal can't jump\n");
+
+            return;
+        }
+
+        syscall log("This animal jumps up into the air\n");
+    },
+    swim: function() {
+        syscall log("This animal can't swim\n");
+    },
+    fly: function() {
+        syscall log("This animal can't fly\n");
+    }
+};
+
+var SwimmingAnimalMixin = {
+    constructor: function() {
+        this.canBreatheUnderwater = true;
+    },
+    swim: function() {
+        syscall log("This animal swims through the water\n");
+
+        if (!this.canBreatheUnderwater) {
+            syscall log("...then comes out, gasping for a breath of fresh air\n");
+        }
+    }
+};
+
+var FlyingAnimalMixin = {
+    constructor: function() {
+        this.canFlyLongDistances = true;
+    },
+    fly: function() {
+        syscall log("This animal flies through the sky\n");
+
+        if (!this.canFlyLongDistances) {
+            syscall log("...then falls to the ground a few seconds later\n");
+        }
+    }
+};
+
+var Giraffe = {
+    constructor: function(name) {
+        super(name, 4);
+    },
+    describe: function() {
+        syscall log("Has a long neck\n");
+
+        super.describe();
+    }
+};
+
+Giraffe.prototypes.push(Animal);
+
+var Fish = {
+    constructor: function(name) {
+        super(name, 0);
+    },
+    describe: function() {
+        syscall log("Has shiny skin\n");
+
+        super.describe();
+    }
+};
+
+Fish.prototypes.push(Animal);
+Fish.prototypes.push(SwimmingAnimalMixin);
+
+var Seagull = {
+    constructor: function(name) {
+        super(name, 2);
+
+        this.canBreatheUnderwater = false;
+    },
+    describe: function() {
+        syscall log("Has a long beak\n");
+
+        super.describe();
+    }
+};
+
+Seagull.prototypes.push(Animal);
+Seagull.prototypes.push(SwimmingAnimalMixin);
+Seagull.prototypes.push(FlyingAnimalMixin);
+
+var Chicken = {
+    constructor: function(name) {
+        super(name, 2);
+
+        this.canFlyLongDistances = false;
+    },
+    describe: function() {
+        syscall log("Has brown feathers\n");
+
+        super.describe();
+    }
+};
+
+Chicken.prototypes.push(Animal);
+Chicken.prototypes.push(FlyingAnimalMixin);
+
+var Ficken = {
+    constructor: function(name) {
+        super(name);
+    }
+};
+
+Ficken.prototypes.push(Fish);
+Ficken.prototypes.push(Chicken);
+
+var farm = [
+    new Giraffe("George the Giraffe"),
+    new Fish("Freddie the Fish"),
+    new Seagull("Sam the Seagull"),
+    new Chicken("Charlie the Chicken"),
+    new Ficken("Francis the Ficken")
+];
+
+farm.forEach(function(animal) {
+    syscall log("Animal's name: ");
+    syscall log(animal.name);
+    syscall log("\n");
+
+    animal.describe();
+    animal.jump();
+    animal.swim();
+    animal.fly();
+});

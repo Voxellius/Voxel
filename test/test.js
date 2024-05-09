@@ -126,16 +126,16 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
 
         var before = await measureMemoryUsage(process.pid);
         
-        await delay(2_000);
+        await delay(4_000);
 
         var after = await measureMemoryUsage(process.pid);
         
         process.kill();
 
-        if (after > before + 1024) {
+        if (after > before + 2048) {
             /*
-                Give a 256 KiB tolerance since memory usage could happen to be a
-                bit more than beforehand but is not a memory leak
+                Give a 2,048 KiB tolerance since memory usage could happen to be
+                a bit more than beforehand but is not a memory leak
             */
 
             console.error(

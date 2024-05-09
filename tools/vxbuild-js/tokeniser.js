@@ -141,7 +141,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:syscall|import|as|return|function|this|new|var|if|else|while|for|retain|throw|try|catch)\b/)) {
+        if (matchToken(/^(?:syscall|import|as|return|function|this|super|new|var|if|else|while|for|retain|throw|try|catch)\b/)) {
             addToken(KeywordToken);
             continue;
         }

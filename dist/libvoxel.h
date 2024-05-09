@@ -2888,7 +2888,7 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
             }
 
             voxel_List* prototypesList = prototypesThing->value;
-            voxel_ListItem* currentPrototypeListItem = prototypesList->firstItem;
+            voxel_ListItem* currentPrototypeListItem = prototypesList->lastItem;
 
             while (currentPrototypeListItem) {
                 voxel_Thing* currentPrototype = currentPrototypeListItem->value;
@@ -2898,7 +2898,7 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
                     return prototypeObjectItem;
                 }
 
-                currentPrototypeListItem = currentPrototypeListItem->nextItem;
+                currentPrototypeListItem = currentPrototypeListItem->previousItem;
             }
 
             return VOXEL_NULL;

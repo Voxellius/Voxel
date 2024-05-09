@@ -148,7 +148,7 @@ export class Namespace {
     
                     var usage = subjectNamespace.scope.getSymbolById(Symbol.generateId(subjectNamespace, foreignSymbolUsage.name));
     
-                    usage.readBy = foreignSymbolUsage.readBy;
+                    usage.readBy.push(...foreignSymbolUsage.readBy);
                 }
 
                 for (var childScope of scope.childScopes) {
@@ -393,11 +393,15 @@ export class Scope {
             return null;
         }
 
-        if (this.foreignSymbolUses.find((usage) => usage.name == symbol.name && usage.foreignNamespaceIdentifier == null)) {
+        var usage = this.foreignSymbolUses.find((usage) => usage.name == symbol.name && usage.foreignNamespaceIdentifier == null);
+
+        if (usage) {
+            usage.readBy.push(reader);
+
             return true;
         }
 
-        var usage = new ForeignSymbolUsage(symbol.name);
+        usage = new ForeignSymbolUsage(symbol.name);
 
         usage.readBy.push(reader);
 
