@@ -809,7 +809,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             return instance;
         }
 
-        instance.addChildByMatching(tokens, [ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
 
         return instance;
     }
@@ -1139,24 +1139,6 @@ export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperator
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
-
-    estimateTruthiness() {
-        var allTruthy = true;
-
-        for (var child of this.children) {
-            var truthiness = child.estimateTruthiness();
-
-            if (truthiness == null) {
-                allTruthy = false;
-            }
-
-            if (truthiness == false) {
-                return false;
-            }
-        }
-
-        return allTruthy ? true : null;
-    }
 }
 
 export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExpressionNode {
@@ -1177,24 +1159,6 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = MultiplicationDivisionOperatorExpressionNode;
-
-    estimateTruthiness() {
-        var allFalsy = true;
-
-        for (var child of this.children) {
-            var truthiness = child.estimateTruthiness();
-
-            if (truthiness == true) {
-                allFalsy = false;
-            }
-
-            if (truthiness == null) {
-                return null;
-            }
-        }
-
-        return !allFalsy;
-    }
 }
 
 export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode {

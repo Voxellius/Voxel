@@ -2804,6 +2804,8 @@ voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b) {
         currentItem = currentItem->nextItem;
     }
 
+    // TODO: Compare prototypes
+
     return VOXEL_TRUE;
 }
 
