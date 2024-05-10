@@ -9,3 +9,29 @@ ChildClass constructor called with extra arg: 6
 TestClass constructor called with args: 4, 5
 instance4 multiply result: 120
 instance4 multiply after accumulate result: 3600
+Animal's name: George the Giraffe
+Has a long neck
+Leg count: 4
+This animal jumps up into the air
+This animal can't swim
+This animal can't fly
+Animal's name: Freddie the Fish
+Has shiny skin
+Leg count: 0
+This animal can't jump
+This animal swims through the water
+This animal can't fly
+Animal's name: Sam the Seagull
+Has a long beak
+Leg count: 2
+This animal jumps up into the air
+This animal swims through the water
+...then comes out, gasping for a breath of fresh air
+This animal flies through the sky
+Animal's name: Charlie the Chicken
+Has brown feathers
+Leg count: 2
+This animal jumps up into the air
+This animal can't swim
+This animal flies through the sky
+...then falls to the ground a few seconds later

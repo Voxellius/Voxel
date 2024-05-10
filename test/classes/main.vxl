@@ -208,8 +208,8 @@ var farm = [
     new Giraffe("George the Giraffe"),
     new Fish("Freddie the Fish"),
     new Seagull("Sam the Seagull"),
-    new Chicken("Charlie the Chicken"),
-    new Ficken("Francis the Ficken")
+    new Chicken("Charlie the Chicken")
+    // new Ficken("Francis the Ficken")
 ];
 
 farm.forEach(function(animal) {
