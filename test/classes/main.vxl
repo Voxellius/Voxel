@@ -1,5 +1,5 @@
-var TestClass = {
-    constructor: function(a, b) {
+class TestClass {
+    constructor(a, b) {
         syscall log("TestClass constructor called with args: ");
         syscall log(a);
         syscall log(", ");
@@ -8,21 +8,24 @@ var TestClass = {
 
         this.a = a;
         this.b = b;
-    },
-    multiply: function() {
+    }
+
+    multiply() {
         return this.a * this.b;
-    },
-    accumulate: function() {
+    }
+
+    accumulate() {
         this.a = this.multiply();
     }
-};
+}
 
-var ClassWithoutConstructor = {
-    someValue: 123,
-    getValue: function() {
+class ClassWithoutConstructor {
+    someValue = 123;
+
+    getValue() {
         return this.someValue * 2;
     }
-};
+}
 
 var instance1 = new TestClass(2, 3);
 var instance2 = new TestClass(3, 4);
@@ -53,8 +56,8 @@ syscall log("Class without constructor value: ");
 syscall log(instance3.getValue());
 syscall log("\n");
 
-var ChildClass = {
-    constructor: function(a, b, c) {
+class ChildClass {
+    constructor(a, b, c) {
         syscall log("ChildClass constructor called with extra arg: ");
         syscall log(c);
         syscall log("\n");
@@ -62,11 +65,12 @@ var ChildClass = {
         super(a, b);
 
         this.c = c;
-    },
-    multiply: function() {
+    }
+
+    multiply() {
         return super.multiply() * this.c;
     }
-};
+}
 
 ChildClass.prototypes.push(TestClass);
 
@@ -82,17 +86,19 @@ syscall log("instance4 multiply after accumulate result: ");
 syscall log(instance4.multiply());
 syscall log("\n");
 
-var Animal = {
-    constructor: function(name, legCount) {
+class Animal {
+    constructor(name, legCount) {
         this.name = name;
         this.legCount = legCount;
-    },
-    describe: function() {
+    }
+
+    describe() {
         syscall log("Leg count: ");
         syscall log(this.legCount);
         syscall log("\n");
-    },
-    jump: function() {
+    }
+
+    jump() {
         if (this.legCount == 0) {
             syscall log("This animal can't jump\n");
 
@@ -100,106 +106,114 @@ var Animal = {
         }
 
         syscall log("This animal jumps up into the air\n");
-    },
-    swim: function() {
+    }
+
+    swim() {
         syscall log("This animal can't swim\n");
-    },
-    fly: function() {
+    }
+
+    fly() {
         syscall log("This animal can't fly\n");
     }
-};
+}
 
-var SwimmingAnimalMixin = {
-    constructor: function() {
+class SwimmingAnimalMixin {
+    constructor() {
         this.canBreatheUnderwater = true;
-    },
-    swim: function() {
+    }
+
+    swim() {
         syscall log("This animal swims through the water\n");
 
         if (!this.canBreatheUnderwater) {
             syscall log("...then comes out, gasping for a breath of fresh air\n");
         }
     }
-};
+}
 
-var FlyingAnimalMixin = {
-    constructor: function() {
+class FlyingAnimalMixin {
+    constructor() {
         this.canFlyLongDistances = true;
-    },
-    fly: function() {
+    }
+
+    fly() {
         syscall log("This animal flies through the sky\n");
 
         if (!this.canFlyLongDistances) {
             syscall log("...then falls to the ground a few seconds later\n");
         }
     }
-};
+}
 
-var Giraffe = {
-    constructor: function(name) {
+class Giraffe {
+    constructor(name) {
         super(name, 4);
-    },
-    describe: function() {
+    }
+
+    describe() {
         syscall log("Has a long neck\n");
 
         super.describe();
     }
-};
+}
 
 Giraffe.prototypes.push(Animal);
 
-var Fish = {
-    constructor: function(name) {
+class Fish {
+    constructor(name) {
         super(name, 0);
-    },
-    describe: function() {
+    }
+
+    describe() {
         syscall log("Has shiny skin\n");
 
         super.describe();
     }
-};
+}
 
 Fish.prototypes.push(Animal);
 Fish.prototypes.push(SwimmingAnimalMixin);
 
-var Seagull = {
-    constructor: function(name) {
+class Seagull {
+    constructor(name) {
         super(name, 2);
 
         this.canBreatheUnderwater = false;
-    },
-    describe: function() {
+    }
+
+    describe() {
         syscall log("Has a long beak\n");
 
         super.describe();
     }
-};
+}
 
 Seagull.prototypes.push(Animal);
 Seagull.prototypes.push(SwimmingAnimalMixin);
 Seagull.prototypes.push(FlyingAnimalMixin);
 
-var Chicken = {
-    constructor: function(name) {
+class Chicken {
+    constructor(name) {
         super(name, 2);
 
         this.canFlyLongDistances = false;
-    },
-    describe: function() {
+    }
+
+    describe() {
         syscall log("Has brown feathers\n");
 
         super.describe();
     }
-};
+}
 
 Chicken.prototypes.push(Animal);
 Chicken.prototypes.push(FlyingAnimalMixin);
 
-var Ficken = {
-    constructor: function(name) {
+class Ficken {
+    constructor(name) {
         super(name);
     }
-};
+}
 
 Ficken.prototypes.push(Fish);
 Ficken.prototypes.push(Chicken);

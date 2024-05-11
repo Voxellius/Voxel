@@ -527,7 +527,7 @@ export class FunctionNode extends ast.AstNode {
     }
 
     generateCode(options) {
-        if (options.removeDeadCode) {
+        if (options.removeDeadCode && !this.isAnonymous) {
             var usage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
             
             if (usage && !usage.everRead && dce.hasNoEffect(this)) {
@@ -617,6 +617,150 @@ export class FunctionNode extends ast.AstNode {
         }
 
         return parts;
+    }
+}
+
+export class MethodNode extends FunctionNode {
+    static HUMAN_READABLE_NAME = "method declaration";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.BracketToken, "(")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.identifierSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("anonfn"));
+        instance.isAnonymous = true;
+        instance.skipSymbol = new namespaces.Symbol(namespace, "#fn");
+
+        instance.expectChildByMatching(tokens, [FunctionParametersNode], namespace);
+
+        instance.expectChildByMatching(tokens, [statements.StatementBlockNode], namespace);
+
+        return instance;
+    }
+}
+
+export class ClassNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "class declaration";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "class")
+    ];
+
+    identifierSymbol = null;
+    isAnonymous = false;
+    extendsOtherClasses = false;
+    propertySymbols = [];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        var identifier = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+        if (identifier == null) {
+            instance.isAnonymous = true;
+        }
+
+        instance.identifierSymbol = new namespaces.Symbol(namespace, !instance.isAnonymous ? identifier.value : namespaces.generateSymbolName("anonfn"));        
+
+        if (instance.addChildByMatching(tokens, [ClassExtendsNode], namespace)) {
+            instance.extendsOtherClasses = true;
+        }
+
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "{")]);
+
+        while (true) {
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "}")])) {
+                break;
+            }
+
+            var retain = !!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "retain")]);
+            var propertyToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+            instance.propertySymbols.push(namespaces.Symbol.generateForProperty(propertyToken.value, retain));
+
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
+                instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+            } else {
+                instance.expectChildByMatching(tokens, [MethodNode], namespace);
+            }
+
+            this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)]);
+        }
+
+        return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        var usage = scope.addSymbol(this.identifierSymbol, false, true);
+
+        super.checkSymbolUsage(scope);
+    }
+
+    estimateTruthiness() {
+        return this.propertySymbols.length > 0;
+    }
+
+    generateCode(options) {
+        var extendsNode = null;
+
+        if (this.extendsOtherClasses) {
+            extendsNode = this.children.shift();
+        }
+
+        return codeGen.join(
+            codeGen.number(0),
+            codeGen.systemCall("O"),
+            ...this.children.map((child, i) => codeGen.join(
+                codeGen.bytes(codeGen.vxcTokens.DUPE),
+                child.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.SWAP),
+                this.propertySymbols[i].generateCode(options),
+                codeGen.number(3),
+                codeGen.systemCall("Os"),
+                codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
+            )),
+            !this.isAnonymous ? codeGen.join(
+                this.identifierSymbol.generateCode(),
+                codeGen.bytes(codeGen.vxcTokens.SET)
+            ) : codeGen.bytes()
+        );
+    }
+}
+
+export class ClassExtendsNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`extends` list";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "extends")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        while (true) {
+            instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+            if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)])) {
+                break;
+            }
+        }
+
+        return instance;
+    }
+
+    generateCode(options) {
+        return codeGen.join(
+            ...this.children.map((child) => child.generateCode(options)),
+            codeGen.number(this.children.length),
+            codeGen.systemCall("Lo")
+        );
     }
 }
 
@@ -831,6 +975,7 @@ export class ExpressionNode extends ast.AstNode {
         ...InstantiationNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
         ...FunctionNode.MATCH_QUERIES,
+        ...ClassNode.MATCH_QUERIES,
         ...staticMacros.StaticMacroNode.MATCH_QUERIES,
         new ast.TokenQuery(tokeniser.OperatorToken, "-"),
         new ast.TokenQuery(tokeniser.OperatorToken, "!")
@@ -1069,13 +1214,24 @@ export class ExpressionThingNode extends ExpressionLeafNode {
         ...InstantiationNode.MATCH_QUERIES,
         ...ListNode.MATCH_QUERIES,
         ...FunctionNode.MATCH_QUERIES,
+        ...ClassNode.MATCH_QUERIES,
         ...staticMacros.StaticMacroNode.MATCH_QUERIES
     ];
 
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ThisNode, SuperNode, ThingNode, ObjectNode, InstantiationNode, ListNode, FunctionNode, staticMacros.StaticMacroNode], namespace);
+        instance.expectChildByMatching(tokens, [
+            ThisNode,
+            SuperNode,
+            ThingNode,
+            ObjectNode,
+            InstantiationNode,
+            ListNode,
+            FunctionNode,
+            ClassNode,
+            staticMacros.StaticMacroNode
+        ], namespace);
 
         this.maybeAddAccessors(instance, tokens, namespace);
 
