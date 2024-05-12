@@ -22,7 +22,7 @@ Since this program does not make use of Voxel's auxiliary features, all code fro
     * **Eager evaluation** of logical operators using `&&&` and `|||` (all operands are evaluated — this produces simpler bytecode but may perform unnecessary computations at runtime)
 * **Lists** and their common operations (such as access through index accessors and `push` and `pop` methods)
 * **Objects**
-    * Basic **object-oriented programming** features including prototype-based multiple inheritance (`super`, constructors and `class` definitions coming soon)
+    * **Object-oriented programming** features including class definitions, constructors, prototype-based multiple inheritance and `super` keyword
     * **Methods** that have access to their associated object by using `this` keyword, including constructor methods that are called by using `new`
     * **Getters and setters** to simplify object interfaces and perform data validation (implemented in VxC interpreter only so far)
 * **Imports** of other Voxel files and libraries
