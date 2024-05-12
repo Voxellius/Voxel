@@ -31,17 +31,7 @@ function setPrototypes(object, prototypes) {
     }
 }
 
-function callSuperMethod(property, args) {
-    var object;
-
-    if (syscall Ll(superStack) == 0) {
-        var prototypes = syscall Op(this);
-
-        object = prototypes[0];
-    } else {
-        object = superStack[-1];
-    }
-
+function callSuperMethod(object, property, args) {
     var inheritedPrototypes = syscall Op(object);
 
     if (syscall T(inheritedPrototypes) != "L") {
@@ -65,17 +55,7 @@ function callSuperMethod(property, args) {
     return null;
 }
 
-function callSuperConstructors(constructorArgs) {
-    var object;
-
-    if (syscall Ll(superStack) == 0) {
-        var prototypes = syscall Op(this);
-
-        object = prototypes[0];
-    } else {
-        object = superStack[-1];
-    }
-
+function callSuperConstructors(object, constructorArgs) {
     var inheritedPrototypes = syscall Op(object);
 
     if (syscall T(inheritedPrototypes) != "L") {

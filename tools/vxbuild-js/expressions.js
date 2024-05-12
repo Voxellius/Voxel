@@ -81,19 +81,30 @@ export class SuperNode extends ast.AstNode {
     }
 
     generateCode(options) {
+        var classNode = this.findAncestorOfTypes([ClassNode]);
+
+        // TODO: Specify token
+        if (!classNode) {
+            throw new sources.SourceError("`super` must be used inside a class declaration");
+        }
+
         if (this.callingMethod) {
             return codeGen.join(
+                classNode.identifierSymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.GET),
                 this.propertySymbol.generateCode(options),
                 this.children[0].generateCode(options),
-                codeGen.number(2),
+                codeGen.number(3),
                 this.callSuperMethod.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
             );
         }
 
         return codeGen.join(
+            classNode.identifierSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET),
             this.children[0].generateCode(options),
-            codeGen.number(1),
+            codeGen.number(2),
             this.callSuperConstructors.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
         );
@@ -666,7 +677,7 @@ export class ClassNode extends ast.AstNode {
             instance.isAnonymous = true;
         }
 
-        instance.identifierSymbol = new namespaces.Symbol(namespace, !instance.isAnonymous ? identifier.value : namespaces.generateSymbolName("anonfn"));        
+        instance.identifierSymbol = new namespaces.Symbol(namespace, !instance.isAnonymous ? identifier.value : namespaces.generateSymbolName("anonclass"));        
 
         if (instance.addChildByMatching(tokens, [ClassExtendsNode], namespace)) {
             instance.extendsOtherClasses = true;
@@ -721,6 +732,10 @@ export class ClassNode extends ast.AstNode {
         return codeGen.join(
             codeGen.number(0),
             codeGen.systemCall("O"),
+            (!this.isAnonymous || this.findDescendantsOfTypes([SuperNode]).length > 0) ? codeGen.join(
+                this.identifierSymbol.generateCode(),
+                codeGen.bytes(codeGen.vxcTokens.SET)
+            ) : codeGen.bytes(),
             ...this.children.map((child, i) => codeGen.join(
                 codeGen.bytes(codeGen.vxcTokens.DUPE),
                 child.generateCode(options),
@@ -736,10 +751,6 @@ export class ClassNode extends ast.AstNode {
                 codeGen.number(2),
                 this.setPrototypesSymbol.generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
-            ) : codeGen.bytes(),
-            !this.isAnonymous ? codeGen.join(
-                this.identifierSymbol.generateCode(),
-                codeGen.bytes(codeGen.vxcTokens.SET)
             ) : codeGen.bytes()
         );
     }
