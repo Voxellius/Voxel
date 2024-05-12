@@ -23,6 +23,14 @@ function instantiate(object, constructorArgs) {
     return instance;
 }
 
+function setPrototypes(object, prototypes) {
+    var currentPrototypes = syscall Op(object);
+
+    for (var i = 0; i < syscall Ll(prototypes); i = i + 1) {
+        syscall Lu(prototypes[i], currentPrototypes);
+    }
+}
+
 function callSuperMethod(property, args) {
     var object;
 

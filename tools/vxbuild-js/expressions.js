@@ -652,6 +652,7 @@ export class ClassNode extends ast.AstNode {
     identifierSymbol = null;
     isAnonymous = false;
     extendsOtherClasses = false;
+    setPrototypesSymbol = null;
     propertySymbols = [];
 
     static create(tokens, namespace) {
@@ -669,6 +670,7 @@ export class ClassNode extends ast.AstNode {
 
         if (instance.addChildByMatching(tokens, [ClassExtendsNode], namespace)) {
             instance.extendsOtherClasses = true;
+            instance.setPrototypesSymbol = new namespaces.Symbol(namespaces.coreNamespace, "setPrototypes");
         }
 
         this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "{")]);
@@ -696,7 +698,11 @@ export class ClassNode extends ast.AstNode {
     }
 
     checkSymbolUsage(scope) {
-        var usage = scope.addSymbol(this.identifierSymbol, false, true);
+        scope.addSymbol(this.identifierSymbol, false, true);
+
+        if (this.extendsOtherClasses) {
+            scope.addCoreNamespaceSymbol(this.setPrototypesSymbol, this);
+        }
 
         super.checkSymbolUsage(scope);
     }
@@ -724,6 +730,13 @@ export class ClassNode extends ast.AstNode {
                 codeGen.systemCall("Os"),
                 codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
             )),
+            this.extendsOtherClasses ? codeGen.join(
+                codeGen.bytes(codeGen.vxcTokens.DUPE),
+                extendsNode.generateCode(options),
+                codeGen.number(2),
+                this.setPrototypesSymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
+            ) : codeGen.bytes(),
             !this.isAnonymous ? codeGen.join(
                 this.identifierSymbol.generateCode(),
                 codeGen.bytes(codeGen.vxcTokens.SET)

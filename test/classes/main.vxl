@@ -56,7 +56,7 @@ syscall log("Class without constructor value: ");
 syscall log(instance3.getValue());
 syscall log("\n");
 
-class ChildClass {
+class ChildClass extends TestClass {
     constructor(a, b, c) {
         syscall log("ChildClass constructor called with extra arg: ");
         syscall log(c);
@@ -71,8 +71,6 @@ class ChildClass {
         return super.multiply() * this.c;
     }
 }
-
-ChildClass.prototypes.push(TestClass);
 
 var instance4 = new ChildClass(4, 5, 6);
 
@@ -145,7 +143,7 @@ class FlyingAnimalMixin {
     }
 }
 
-class Giraffe {
+class Giraffe extends Animal {
     constructor(name) {
         super(name, 4);
     }
@@ -157,9 +155,7 @@ class Giraffe {
     }
 }
 
-Giraffe.prototypes.push(Animal);
-
-class Fish {
+class Fish extends Animal, SwimmingAnimalMixin {
     constructor(name) {
         super(name, 0);
     }
@@ -171,10 +167,7 @@ class Fish {
     }
 }
 
-Fish.prototypes.push(Animal);
-Fish.prototypes.push(SwimmingAnimalMixin);
-
-class Seagull {
+class Seagull extends Animal, SwimmingAnimalMixin, FlyingAnimalMixin {
     constructor(name) {
         super(name, 2);
 
@@ -188,11 +181,7 @@ class Seagull {
     }
 }
 
-Seagull.prototypes.push(Animal);
-Seagull.prototypes.push(SwimmingAnimalMixin);
-Seagull.prototypes.push(FlyingAnimalMixin);
-
-class Chicken {
+class Chicken extends Animal, FlyingAnimalMixin {
     constructor(name) {
         super(name, 2);
 
@@ -206,17 +195,11 @@ class Chicken {
     }
 }
 
-Chicken.prototypes.push(Animal);
-Chicken.prototypes.push(FlyingAnimalMixin);
-
-class Ficken {
+class Ficken extends Fish, Chicken {
     constructor(name) {
         super(name);
     }
 }
-
-Ficken.prototypes.push(Fish);
-Ficken.prototypes.push(Chicken);
 
 var farm = [
     new Giraffe("George the Giraffe"),
