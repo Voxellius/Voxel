@@ -82,9 +82,9 @@ export class SuperNode extends ast.AstNode {
 
     generateCode(options) {
         var classNode = this.findAncestorOfTypes([ClassNode]);
-
-        // TODO: Specify token
+        
         if (!classNode) {
+            // TODO: Specify token
             throw new sources.SourceError("`super` must be used inside a class declaration");
         }
 
