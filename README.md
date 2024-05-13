@@ -73,3 +73,12 @@ To build the libvoxel integration example, then run the `hello` example code, ru
 ```bash
 ./build.sh --examples && examples/build/hello
 ```
+
+## Testing all features
+To test all features of Voxel, run:
+
+```bash
+./test.sh
+```
+
+This will perform all tests listed in the `test` directory against their expected outputs and for memory leaks (the latter runs a test's program in an infinite loop and measures the difference in memory consumption).
