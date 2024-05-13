@@ -40,7 +40,6 @@ export class ThisNode extends ast.AstNode {
     }
 };
 
-// FIXME: Cannot easily call `super` within parent class (might be better to reimplement this so it's just syntactic sugar)
 export class SuperNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "`super`";
 
