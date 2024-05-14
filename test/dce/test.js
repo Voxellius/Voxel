@@ -12,6 +12,10 @@ function variableDefinitionCheck(name) {
     return `:${name}\0v`;
 }
 
+function propertyDefinitionCheck(name) {
+    return stringCheck(name);
+}
+
 const PASSES_TO_CHECK = [
     stringCheck("PASS if falsyToStartWith"),
     stringCheck("PASS else falsyToStartWith"),
@@ -29,7 +33,11 @@ const PASSES_TO_CHECK = [
     variableDefinitionCheck("usedB_PASS"),
     variableDefinitionCheck("usedA_PASS"),
     stringCheck("PASS usedC"),
-    stringCheck("PASS if #used(usedA_PASS)")
+    stringCheck("PASS if #used(usedA_PASS)"),
+    stringCheck("1:SideEffectClass_PASS"),
+    stringCheck("1:UsedClass_PASS"),
+    propertyDefinitionCheck("usedProp_PASS"),
+    propertyDefinitionCheck("usedMethod_PASS")
 ];
 
 function bytesMatchAt(array, bytes, index) {

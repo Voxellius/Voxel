@@ -80,10 +80,7 @@ export class UsedPropertyStaticMacro extends StaticMacro {
     estimateTruthiness() {
         this.argumentCountRequired(1);
 
-        var symbol = new namespaces.Symbol(null, this.arguments[0]);
-        var usage = namespaces.propertySymbolUses.find((usage) => usage.id == symbol.id);
-
-        return !!(usage && usage.everRead);
+        return namespaces.propertyIsUsed(new namespaces.Symbol(null, this.arguments[0]));
     }
 
     generateCode(options) {

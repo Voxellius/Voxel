@@ -465,6 +465,12 @@ export function mangleSymbols(namespaces) {
     }
 }
 
+export function propertyIsUsed(propertySymbol) {
+    var usage = propertySymbolUses.find((usage) => usage.id == propertySymbol.id);
+
+    return !!(usage && usage.everRead);
+}
+
 export async function init() {
     var location = path.resolve(common.STDLIB_DIR, "core.vxl");
     var source = await Deno.readTextFile(path.resolve(location));

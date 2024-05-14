@@ -137,3 +137,36 @@ if (#used(unusedA_FAIL)) {
 while (false) {
     "FAIL";
 }
+
+class UnusedClass_FAIL {
+    unusedClassProp_FAIL = "FAIL";
+}
+
+class SideEffectClass_PASS {
+    sideEffectUnusedClassProp_FAIL = sideEffect();
+    classSideEffectUnusedClassProp_FAIL = new ClassSideEffect();
+}
+
+class UsedClass_PASS {
+    unusedProp_FAIL = "FAIL";
+    usedProp_PASS = "PASS usedProp";
+
+    sideEffectProp_FAIL = sideEffect();
+    classSideEffectProp_FAIL = new ClassSideEffect();
+
+    constructor() {
+        this.usedProp_PASS;
+
+        this.usedMethod_PASS();
+    }
+
+    unusedMethod_FAIL() {
+        "FAIL";
+    }
+
+    usedMethod_PASS() {
+        "PASS usedMethod";
+    }
+}
+
+new UsedClass_PASS();

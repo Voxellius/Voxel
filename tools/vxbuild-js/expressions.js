@@ -728,6 +728,14 @@ export class ClassNode extends ast.AstNode {
             extendsNode = this.children.shift();
         }
 
+        if (options.removeDeadCode && !this.isAnonymous) {
+            var usage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
+
+            if (usage && !usage.everRead && dce.hasNoEffect(this, this.children)) {
+                return codeGen.bytes(codeGen.vxcTokens.NULL);
+            }
+        }
+
         return codeGen.join(
             codeGen.number(0),
             codeGen.systemCall("O"),
@@ -735,14 +743,22 @@ export class ClassNode extends ast.AstNode {
                 this.identifierSymbol.generateCode(),
                 codeGen.bytes(codeGen.vxcTokens.SET)
             ) : codeGen.bytes(),
-            ...this.children.map((child, i) => codeGen.join(
-                codeGen.bytes(codeGen.vxcTokens.DUPE),
-                child.generateCode(options),
-                codeGen.bytes(codeGen.vxcTokens.SWAP),
-                this.propertySymbols[i].generateCode(options),
-                codeGen.number(3),
-                codeGen.systemCall("Os"),
-                codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
+            ...this.children.map((child, i) => (
+                    (
+                        !options.removeDeadCode ||
+                        namespaces.propertyIsUsed(this.propertySymbols[i]) ||
+                        !dce.hasNoEffect(this, [child])
+                    ) ?
+                    codeGen.join(
+                        codeGen.bytes(codeGen.vxcTokens.DUPE),
+                        child.generateCode(options),
+                        codeGen.bytes(codeGen.vxcTokens.SWAP),
+                        this.propertySymbols[i].generateCode(options),
+                        codeGen.number(3),
+                        codeGen.systemCall("Os"),
+                        codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
+                    ) :
+                    codeGen.bytes()
             )),
             this.extendsOtherClasses ? codeGen.join(
                 codeGen.bytes(codeGen.vxcTokens.DUPE),
@@ -752,6 +768,24 @@ export class ClassNode extends ast.AstNode {
                 codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
             ) : codeGen.bytes()
         );
+    }
+
+    describe() {
+        var parts = super.describe();
+
+        parts.unshift(`assign to \`${this.identifierSymbol.id}\``);
+
+        if (this.scope != null) {
+            var targetUsage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
+
+            if (targetUsage.everRead) {
+                parts.push(`read by ${[...new Set(targetUsage.readBy)].map((reader) => reader != null ? String(reader.id) : "other").join(", ")}`);
+            } else {
+                parts.push("never read");
+            }
+        }
+
+        return parts;
     }
 }
 
