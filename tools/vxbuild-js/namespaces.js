@@ -1,5 +1,6 @@
 import * as path from "https://deno.land/std@0.220.1/path/mod.ts";
 
+import * as common from "./common.js";
 import * as sources from "./sources.js";
 import * as tokeniser from "./tokeniser.js";
 import * as parser from "./parser.js";
@@ -465,7 +466,7 @@ export function mangleSymbols(namespaces) {
 }
 
 export async function init() {
-    var location = path.resolve(path.dirname(path.fromFileUrl(Deno.mainModule)), "core.vxl");
+    var location = path.resolve(common.STDLIB_DIR, "core.vxl");
     var source = await Deno.readTextFile(path.resolve(location));
     var sourceContainer = new sources.SourceContainer(source, path.resolve(location));
 
