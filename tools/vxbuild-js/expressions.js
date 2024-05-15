@@ -744,21 +744,21 @@ export class ClassNode extends ast.AstNode {
                 codeGen.bytes(codeGen.vxcTokens.SET)
             ) : codeGen.bytes(),
             ...this.children.map((child, i) => (
-                    (
-                        !options.removeDeadCode ||
-                        namespaces.propertyIsUsed(this.propertySymbols[i]) ||
-                        !dce.hasNoEffect(this, [child])
-                    ) ?
-                    codeGen.join(
-                        codeGen.bytes(codeGen.vxcTokens.DUPE),
-                        child.generateCode(options),
-                        codeGen.bytes(codeGen.vxcTokens.SWAP),
-                        this.propertySymbols[i].generateCode(options),
-                        codeGen.number(3),
-                        codeGen.systemCall("Os"),
-                        codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
-                    ) :
-                    codeGen.bytes()
+                (
+                    !options.removeDeadCode ||
+                    namespaces.propertyIsUsed(this.propertySymbols[i]) ||
+                    !dce.hasNoEffect(this, [child])
+                ) ?
+                codeGen.join(
+                    codeGen.bytes(codeGen.vxcTokens.DUPE),
+                    child.generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.SWAP),
+                    this.propertySymbols[i].generateCode(options),
+                    codeGen.number(3),
+                    codeGen.systemCall("Os"),
+                    codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
+                ) :
+                codeGen.bytes()
             )),
             this.extendsOtherClasses ? codeGen.join(
                 codeGen.bytes(codeGen.vxcTokens.DUPE),
