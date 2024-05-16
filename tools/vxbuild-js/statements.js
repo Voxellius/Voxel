@@ -1,3 +1,6 @@
+import * as path from "https://deno.land/std@0.220.1/path/mod.ts";
+
+import * as common from "./common.js";
 import * as tokeniser from "./tokeniser.js";
 import * as namespaces from "./namespaces.js";
 import * as ast from "./ast.js";
@@ -88,11 +91,22 @@ export class ImportStatementNode extends ast.AstNode {
 
         this.eat(tokens);
 
-        var location = this.eat(tokens, [new ast.TokenQuery(tokeniser.StringToken)]).value;
+        var locationToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.StringToken), new ast.TokenQuery(tokeniser.IdentifierToken)]);
+        var isStandardLibraryImport = locationToken instanceof tokeniser.IdentifierToken;
+        var location = locationToken.value;
+        var identifier = location;
 
-        this.eat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "as")]);
+        if (isStandardLibraryImport) {
+            location = path.resolve(common.STDLIB_DIR, location, `${location}.vxl`);
 
-        var identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value;
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "as")])) {
+                identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value;
+            }
+        } else {
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "as")]);
+
+            identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value;
+        }
 
         namespace.import(location, identifier);
 
@@ -504,13 +518,13 @@ export class TryStatementNode extends ast.AstNode {
     }
 
     generateCode(options) {
-        var trialCode = this.children[0].generateCode();
+        var trialCode = this.children[0].generateCode(options);
 
         var handlerCode = this.catchExceptionSymbol != null ? codeGen.join(
-            this.catchExceptionSymbol.generateCode(),
+            this.catchExceptionSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.SET),
             codeGen.bytes(codeGen.vxcTokens.POP),
-            this.children[1].generateCode(),
+            this.children[1].generateCode(options),
         ) : codeGen.bytes(codeGen.vxcTokens.POP);
 
         var skipHandlerCode = codeGen.join(

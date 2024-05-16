@@ -1,0 +1,36 @@
+import errors;
+
+class StreamError extends errors.Error {}
+
+class Stream {
+    canRead = false;
+    canWrite = false;
+
+    read() {
+        if (!this.canRead) {
+            throw new StreamError("Stream is not readable");
+        }
+    }
+
+    write(data) {
+        if (!this.canWrite) {
+            throw new StreamError("Stream is not writable");
+        }
+    }
+}
+
+class StandardOutputStream extends Stream {
+    canWrite = true;
+
+    constructor() {
+        return stdout;
+    }
+
+    write(data) {
+        super.write(data);
+
+        syscall log(data);
+    }
+}
+
+var stdout = new StandardOutputStream();

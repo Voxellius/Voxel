@@ -1,0 +1,3 @@
+import io;
+
+io.stdout.write("Hello, world!\n");
