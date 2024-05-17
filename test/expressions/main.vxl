@@ -2,3 +2,8 @@ var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 
 syscall log(complexExpression);
 syscall log("\n");
+
+var count = 0;
+
+syscall log(++count);
+syscall log("\n");

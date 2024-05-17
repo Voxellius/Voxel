@@ -32,6 +32,7 @@ export class StatementDelimeterToken extends Token {static HUMAN_READABLE_NAME =
 export class PropertyAccessorToken extends Token {static HUMAN_READABLE_NAME = "property accessor (.)";}
 export class PropertyDefinerToken extends Token {static HUMAN_READABLE_NAME = "property definer (:)";}
 export class OperatorToken extends Token {static HUMAN_READABLE_NAME = "operator";}
+export class IncrementationOperatorToken extends OperatorToken {}
 export class IdentifierToken extends Token {static HUMAN_READABLE_NAME = "identifier";}
 
 export class StringToken extends Token {
@@ -183,6 +184,11 @@ export function tokenise(sourceContainer) {
 
         if (matchToken(/^:/)) {
             addToken(PropertyDefinerToken);
+            continue;
+        }
+
+        if (matchToken(/^(?:\+\+|--)/)) {
+            addToken(IncrementationOperatorToken);
             continue;
         }
 
