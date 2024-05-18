@@ -14,6 +14,14 @@ Voxel only generates the necessary bytecode to provide the supporting features n
 
 Since this program does not make use of Voxel's auxiliary features, all code from [`core.vxl`](tools/vxbuild-js/core.vxl) in this example has been excluded through static code analysis and is therefore never compiled into the bytecode.
 
+The following Voxel code produced the above bytecode:
+
+```voxel
+syscall log("Hello, world!\n");
+```
+
+More examples of Voxel programs can be found in the [`examples`](examples) directory.
+
 ## Key features of the Voxel programming language
 * **Functions** — named and anonymous
     * **Closures** that allow references to non-global variables outside a function's scope
