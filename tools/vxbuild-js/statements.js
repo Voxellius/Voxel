@@ -403,12 +403,12 @@ export class ForLoopNode extends ast.AstNode {
         var loopStatementBlock = this.children[3];
 
         if (options.removeDeadCode) {
+            console.log(this.scope.getSymbolById("1:i"));
             var conditionTruthiness = stopCondition.estimateTruthiness();
 
             if (conditionTruthiness == false) {
                 return codeGen.join(
                     startStatement.generateCode(options),
-                    codeGen.bytes(codeGen.vxcTokens.POP),
                     stopCondition.generateCode(options),
                     codeGen.bytes(codeGen.vxcTokens.POP)
                 );

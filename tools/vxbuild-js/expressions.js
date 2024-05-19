@@ -1166,7 +1166,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             if (this.scope != null) {
                 var targetUsage = this.scope.symbolUses.find((usage) => usage.id == target.value.id);
 
-                if (targetUsage.everRead) {
+                if (targetUsage?.everRead) {
                     parts.push(`read by ${[...new Set(targetUsage.readBy)].map((reader) => reader != null ? String(reader.id) : "other").join(", ")}`);
                 } else {
                     parts.push("never read");
@@ -1325,6 +1325,10 @@ export class UnaryPrefixOperatorExpressionNode extends ExpressionNode {
 export class UnaryPrefixIncrementationOperatorExpressionNode extends UnaryPrefixOperatorExpressionNode {
     static MATCH_QUERIES = [new ast.TokenQuery(tokeniser.IncrementationOperatorToken)];
 
+    estimateTruthiness() {
+        return null;
+    }
+
     generateCode(options) {
         return codeGen.join(
             this.children[0].generateCode(options),
@@ -1392,6 +1396,10 @@ export class UnarySuffixOperatorExpressionNode extends ExpressionNode {
 export class UnarySuffixIncrementationOperatorExpressionNode extends UnarySuffixOperatorExpressionNode {
     static OPERATOR_TOKEN_QUERIES = [new ast.TokenQuery(tokeniser.IncrementationOperatorToken)];
     static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+
+    estimateTruthiness() {
+        return null;
+    }
 
     generateCode(options) {
         return codeGen.join(
@@ -1530,6 +1538,10 @@ export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode
     };
 
     static CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
 }
 
 export class LogicalEagerAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
