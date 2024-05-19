@@ -71,12 +71,58 @@ void voxel_builtins_core_negate(voxel_Executor* executor) {
     voxel_Thing* value = voxel_popNumber(executor);
 
     if (!value) {
-        voxel_pushNull(executor);
+        return voxel_pushNull(executor);
     }
 
     voxel_push(executor, voxel_newNumberFloat(executor->context, -voxel_getNumberFloat(value)));
 
     voxel_unreferenceThing(executor->context, value);
+}
+
+void voxel_builtins_core_increment(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* thing = voxel_popNumber(executor);
+
+    if (!thing) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Number* number = thing->value;
+
+    switch (number->type) {
+        case VOXEL_NUMBER_TYPE_INT:
+            number->value.asInt++;
+            break;
+
+        case VOXEL_NUMBER_TYPE_FLOAT:
+            number->value.asFloat++;
+            break;
+    }
+
+    voxel_push(executor, thing);
+}
+
+void voxel_builtins_core_decrement(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* thing = voxel_popNumber(executor);
+
+    if (!thing) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Number* number = thing->value;
+
+    switch (number->type) {
+        case VOXEL_NUMBER_TYPE_INT:
+            number->value.asInt--;
+            break;
+
+        case VOXEL_NUMBER_TYPE_FLOAT:
+            number->value.asFloat--;
+            break;
+    }
+
+    voxel_push(executor, thing);
 }
 
 #endif

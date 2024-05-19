@@ -212,6 +212,8 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".-x", &voxel_builtins_core_negate);
     voxel_defineBuiltin(context, ".<=", &voxel_builtins_core_lessThanOrEqualTo);
     voxel_defineBuiltin(context, ".>=", &voxel_builtins_core_greaterThanOrEqualTo);
+    voxel_defineBuiltin(context, ".++", &voxel_builtins_core_increment);
+    voxel_defineBuiltin(context, ".--", &voxel_builtins_core_decrement);
 
     voxel_defineBuiltin(context, ".Tg", &voxel_builtins_core_getItem);
     voxel_defineBuiltin(context, ".Ts", &voxel_builtins_core_setItem);

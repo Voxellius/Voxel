@@ -334,6 +334,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_POP = 'p',
     VOXEL_TOKEN_TYPE_DUPE = 'd',
     VOXEL_TOKEN_TYPE_SWAP = 's',
+    VOXEL_TOKEN_TYPE_COPY = 'c',
     VOXEL_TOKEN_TYPE_POS_REF_HERE = '@',
     VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE = '#',
     VOXEL_TOKEN_TYPE_POS_REF_BACKWARD = '[',
@@ -630,12 +631,58 @@ void voxel_builtins_core_negate(voxel_Executor* executor) {
     voxel_Thing* value = voxel_popNumber(executor);
 
     if (!value) {
-        voxel_pushNull(executor);
+        return voxel_pushNull(executor);
     }
 
     voxel_push(executor, voxel_newNumberFloat(executor->context, -voxel_getNumberFloat(value)));
 
     voxel_unreferenceThing(executor->context, value);
+}
+
+void voxel_builtins_core_increment(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* thing = voxel_popNumber(executor);
+
+    if (!thing) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Number* number = thing->value;
+
+    switch (number->type) {
+        case VOXEL_NUMBER_TYPE_INT:
+            number->value.asInt++;
+            break;
+
+        case VOXEL_NUMBER_TYPE_FLOAT:
+            number->value.asFloat++;
+            break;
+    }
+
+    voxel_push(executor, thing);
+}
+
+void voxel_builtins_core_decrement(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* thing = voxel_popNumber(executor);
+
+    if (!thing) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Number* number = thing->value;
+
+    switch (number->type) {
+        case VOXEL_NUMBER_TYPE_INT:
+            number->value.asInt--;
+            break;
+
+        case VOXEL_NUMBER_TYPE_FLOAT:
+            number->value.asFloat--;
+            break;
+    }
+
+    voxel_push(executor, thing);
 }
 
 #endif
@@ -1352,6 +1399,8 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".-x", &voxel_builtins_core_negate);
     voxel_defineBuiltin(context, ".<=", &voxel_builtins_core_lessThanOrEqualTo);
     voxel_defineBuiltin(context, ".>=", &voxel_builtins_core_greaterThanOrEqualTo);
+    voxel_defineBuiltin(context, ".++", &voxel_builtins_core_increment);
+    voxel_defineBuiltin(context, ".--", &voxel_builtins_core_decrement);
 
     voxel_defineBuiltin(context, ".Tg", &voxel_builtins_core_getItem);
     voxel_defineBuiltin(context, ".Ts", &voxel_builtins_core_setItem);
@@ -3650,6 +3699,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_POP:
         case VOXEL_TOKEN_TYPE_DUPE:
         case VOXEL_TOKEN_TYPE_SWAP:
+        case VOXEL_TOKEN_TYPE_COPY:
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_JUMP:
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
@@ -3887,6 +3937,21 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, swapBResult.value));
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, swapAResult.value));
+
+            break;
+
+        case VOXEL_TOKEN_TYPE_COPY:
+            voxel_Thing* copyThing = ((voxel_List*)executor->valueStack->value)->lastItem->value;
+
+            VOXEL_ASSERT(copyThing, VOXEL_ERROR_MISSING_ARG);
+
+            voxel_Thing* copiedThing = voxel_copyThing(executor->context, copyThing);
+
+            copiedThing->referenceCount++;
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, copiedThing));
+
+            voxel_unreferenceThing(executor->context, copyThing);
 
             break;
 

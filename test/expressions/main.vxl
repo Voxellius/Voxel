@@ -1,9 +1,55 @@
 var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 
+syscall log("Complex expression result: ");
 syscall log(complexExpression);
 syscall log("\n");
 
-var count = 0;
+var count = 2;
 
+syscall log("Initial count value: ");
+syscall log(count);
+syscall log("\n");
+
+syscall log("Count prefix increment: ");
 syscall log(++count);
+syscall log("\n");
+
+syscall log("New count value: ");
+syscall log(count);
+syscall log("\n");
+
+syscall log("Count suffix increment: ");
+syscall log(count++);
+syscall log("\n");
+
+syscall log("New count value: ");
+syscall log(count);
+syscall log("\n");
+
+syscall log("Count prefix decrement: ");
+syscall log(--count);
+syscall log("\n");
+
+syscall log("New count value: ");
+syscall log(count);
+syscall log("\n");
+
+syscall log("Count suffix decrement: ");
+syscall log(count--);
+syscall log("\n");
+
+syscall log("New count value: ");
+syscall log(count);
+syscall log("\n");
+
+var list = [1, 2, 3];
+
+syscall log("Index accessor count prefix increment: ");
+syscall log(++list[1]);
+syscall log("\n");
+
+var object = {count: 2};
+
+syscall log("Property accessor count prefix increment: ");
+syscall log(++object.count);
 syscall log("\n");

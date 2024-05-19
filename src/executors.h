@@ -188,6 +188,21 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             break;
 
+        case VOXEL_TOKEN_TYPE_COPY:
+            voxel_Thing* copyThing = ((voxel_List*)executor->valueStack->value)->lastItem->value;
+
+            VOXEL_ASSERT(copyThing, VOXEL_ERROR_MISSING_ARG);
+
+            voxel_Thing* copiedThing = voxel_copyThing(executor->context, copyThing);
+
+            copiedThing->referenceCount++;
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, copiedThing));
+
+            voxel_unreferenceThing(executor->context, copyThing);
+
+            break;
+
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:

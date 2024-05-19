@@ -1,2 +1,12 @@
-7
-0
+Complex expression result: 7
+Initial count value: 2
+Count prefix increment: 3
+New count value: 3
+Count suffix increment: 3
+New count value: 4
+Count prefix decrement: 3
+New count value: 3
+Count suffix decrement: 3
+New count value: 2
+Index accessor count prefix increment: 3
+Property accessor count prefix increment: 3

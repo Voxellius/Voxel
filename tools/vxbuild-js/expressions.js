@@ -121,7 +121,6 @@ export class ThingNode extends ast.AstNode {
     ];
 
     value = null;
-    valueIsSymbol = false;
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -144,8 +143,6 @@ export class ThingNode extends ast.AstNode {
             } else {
                 instance.value = new namespaces.Symbol(namespace, token.value);
             }
-
-            instance.valueIsSymbol = true;
         } else if (token instanceof tokeniser.StringToken || token instanceof tokeniser.NumberToken) {
             instance.value = token.value;
         } else {
@@ -1182,10 +1179,6 @@ export class ExpressionAssignmentNode extends ast.AstNode {
 }
 
 export class ExpressionLeafNode extends ExpressionNode {
-    targetsSymbol = false;
-    targetsIndex = false;
-    targetsProperty = false;
-
     static maybeAddAccessors(instance, tokens, namespace) {
         while (true) {
             if (instance.addChildByMatching(tokens, [FunctionCallNode, IndexAccessorNode, PropertyAccessorNode], namespace)) {
@@ -1226,18 +1219,6 @@ export class ExpressionLeafNode extends ExpressionNode {
             instance.expectChildByMatching(tokens, [ExpressionThingNode], namespace);
 
             instance.children = instance.children[0].children;
-
-            var firstChild = instance.children[0];
-
-            if (instance.children.length > 1) {
-                if (instance.children.at(-1) instanceof IndexAccessorNode) {
-                    instance.targetsIndex = true;
-                } else if (instance.children.at(-1) instanceof PropertyAccessorNode) {
-                    instance.targetsProperty = true;
-                }
-            } else if (firstChild instanceof ThingNode && firstChild.valueIsSymbol) {
-                instance.targetsSymbol = true;
-            }
         }
 
         if (this.want(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
@@ -1344,21 +1325,12 @@ export class UnaryPrefixOperatorExpressionNode extends ExpressionNode {
 export class UnaryPrefixIncrementationOperatorExpressionNode extends UnaryPrefixOperatorExpressionNode {
     static MATCH_QUERIES = [new ast.TokenQuery(tokeniser.IncrementationOperatorToken)];
 
-    static create(tokens, namespace) {
-        var instance = super.create(tokens, namespace);
-        var expressionLeafNode = instance.children[0];
-
-        if (!(expressionLeafNode.targetsSymbol || expressionLeafNode.targetsIndex || expressionLeafNode.targetsProperty)) {
-            throw new sources.SourceError("Cannot increment or decrement a value literal", instance.operatorToken?.sourceContainer, instance.operatorToken?.location);
-        }
-
-        return instance;
-    }
-
     generateCode(options) {
-        // TODO: Generate code to increment or decrement value
-
-        return this.children[0].generateCode(options);
+        return codeGen.join(
+            this.children[0].generateCode(options),
+            codeGen.number(1),
+            codeGen.systemCall(this.operatorToken.value)
+        );
     }
 }
 
@@ -1391,10 +1363,51 @@ export class UnaryNotOperatorExpressionNode extends UnaryPrefixOperatorExpressio
     }
 }
 
+export class UnarySuffixOperatorExpressionNode extends ExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [];
+    static OPERATOR_CODE = null;
+    static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+
+    operatorToken = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+
+        instance.operatorToken = this.maybeEat(tokens, this.OPERATOR_TOKEN_QUERIES);
+
+        if (!instance.operatorToken) {
+            return instance.children[0];
+        }
+
+        return instance;
+    }
+
+    generateCode(options) {
+        return codeGen.join(this.children[0].generateCode(options), this.constructor.OPERATOR_CODE);
+    }
+}
+
+export class UnarySuffixIncrementationOperatorExpressionNode extends UnarySuffixOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [new ast.TokenQuery(tokeniser.IncrementationOperatorToken)];
+    static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+
+    generateCode(options) {
+        return codeGen.join(
+            this.children[0].generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.COPY, codeGen.vxcTokens.SWAP),
+            codeGen.number(1),
+            codeGen.systemCall(this.operatorToken.value),
+            codeGen.bytes(codeGen.vxcTokens.POP)
+        );
+    }
+}
+
 export class BinaryOperatorExpressionNode extends ExpressionNode {
     static OPERATOR_TOKEN_QUERIES = [];
     static OPERATOR_CODE = {};
-    static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+    static CHILD_EXPRESSION_NODE_CLASS = UnarySuffixOperatorExpressionNode;
 
     operatorTokens = [];
 
@@ -1460,7 +1473,7 @@ export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperator
         )
     };
 
-    static CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+    static CHILD_EXPRESSION_NODE_CLASS = UnarySuffixIncrementationOperatorExpressionNode;
 
     estimateTruthiness() {
         return null;
