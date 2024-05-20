@@ -34,3 +34,12 @@ class StandardOutputStream extends Stream {
 }
 
 var stdout = new StandardOutputStream();
+
+function print(data) {
+    syscall log(data);
+}
+
+function println(data) {
+    syscall log(data);
+    syscall log("\n");
+}
