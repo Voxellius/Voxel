@@ -31,7 +31,7 @@ export function markChildSymbolsAsUnread(astNode) {
                 if (reader != astNode) {
                     return true;
                 }
-                
+
                 anyMarkedUnread = true;
     
                 return false;

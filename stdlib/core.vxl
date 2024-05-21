@@ -10,7 +10,7 @@ function instantiate(object, constructorArgs) {
 
     var constructorFunction = instance.constructor;
 
-    if (syscall T(constructorFunction) != "@" && syscall T(constructorFunction) != "C") {
+    if (syscall T(constructorFunction) != "@" &&& syscall T(constructorFunction) != "C") {
         return instance;
     }
 
@@ -41,7 +41,7 @@ function callSuperMethod(object, property, args) {
     for (var i = syscall Ll(inheritedPrototypes) - 1; i >= 0; i--) {
         var methodFunction = inheritedPrototypes[i][property];
 
-        if (syscall T(methodFunction) == "@" || syscall T(methodFunction) == "C") {
+        if (syscall T(methodFunction) == "@" ||| syscall T(methodFunction) == "C") {
             syscall Lu(inheritedPrototypes[i], superStack);
 
             var result = methodFunction(...args);
@@ -65,7 +65,7 @@ function callSuperConstructors(object, constructorArgs) {
     for (var i = 0; i < syscall Ll(inheritedPrototypes); i = i + 1) {
         var constructorFunction = inheritedPrototypes[i][#prop(constructor)];
 
-        if (syscall T(constructorFunction) == "@" || syscall T(constructorFunction) == "C") {
+        if (syscall T(constructorFunction) == "@" ||| syscall T(constructorFunction) == "C") {
             syscall Lu(inheritedPrototypes[i], superStack);
 
             constructorFunction(...constructorArgs);
@@ -79,29 +79,29 @@ function getProperty(thing, property) {
     nextThis = thing;
 
     if (syscall T(thing) == "L") {
-        if (#usedprop(length) && property == #prop(length)) {
+        if (#usedprop(length) &&& property == #prop(length)) {
             return syscall Ll(thing);
         }
 
-        if (#usedprop(push) && property == #prop(push)) {
+        if (#usedprop(push) &&& property == #prop(push)) {
             return function(value) {
                 return syscall Lu(value, thing);
             };
         }
 
-        if (#usedprop(pop) && property == #prop(pop)) {
+        if (#usedprop(pop) &&& property == #prop(pop)) {
             return function() {
                 return syscall Lp(thing);
             };
         }
 
-        if (#usedprop(unshift) && property == #prop(unshift)) {
+        if (#usedprop(unshift) &&& property == #prop(unshift)) {
             return function(value) {
                 return syscall Li(value, thing, 0);
             };
         }
 
-        if (#usedprop(shift) && property == #prop(shift)) {
+        if (#usedprop(shift) &&& property == #prop(shift)) {
             return function() {
                 if (syscall Ll(thing) == 0) {
                     return null;
@@ -115,13 +115,13 @@ function getProperty(thing, property) {
             };
         }
 
-        if (#usedprop(insert) && property == #prop(insert)) {
+        if (#usedprop(insert) &&& property == #prop(insert)) {
             return function(index, value) {
                 return syscall Li(value, thing, index);
             };
         }
 
-        if (#usedprop(removeAt) && property == #prop(removeAt)) {
+        if (#usedprop(removeAt) &&& property == #prop(removeAt)) {
             return function(index) {
                 if (index >= syscall Ll(thing)) {
                     return null;
@@ -135,7 +135,7 @@ function getProperty(thing, property) {
             };
         }
 
-        if (#usedprop(indexOf) && property == #prop(indexOf)) {
+        if (#usedprop(indexOf) &&& property == #prop(indexOf)) {
             return function(value) {
                 var length = syscall Ll(thing);
 
@@ -149,7 +149,7 @@ function getProperty(thing, property) {
             };
         }
 
-        if (#usedprop(contains) && property == #prop(contains)) {
+        if (#usedprop(contains) &&& property == #prop(contains)) {
             return function(value) {
                 var length = syscall Ll(thing);
 
@@ -163,7 +163,7 @@ function getProperty(thing, property) {
             };
         }
 
-        if (#usedprop(remove) && property == #prop(remove)) {
+        if (#usedprop(remove) &&& property == #prop(remove)) {
             return function(value) {
                 var length = syscall Ll(thing);
 
@@ -179,7 +179,7 @@ function getProperty(thing, property) {
             };
         }
 
-        if (#usedprop(forEach) && property == #prop(forEach)) {
+        if (#usedprop(forEach) &&& property == #prop(forEach)) {
             return function(callback) {
                 var length = syscall Ll(thing);
 
@@ -189,7 +189,7 @@ function getProperty(thing, property) {
             };
         }
 
-        if (#usedprop(map) && property == #prop(map)) {
+        if (#usedprop(map) &&& property == #prop(map)) {
             return function(callback) {
                 var length = syscall Ll(thing);
                 var result = [];
@@ -202,7 +202,7 @@ function getProperty(thing, property) {
             };
         }
 
-        if (#usedprop(filter) && property == #prop(filter)) {
+        if (#usedprop(filter) &&& property == #prop(filter)) {
             return function(callback) {
                 var length = syscall Ll(thing);
                 var result = [];
@@ -219,7 +219,7 @@ function getProperty(thing, property) {
             }
         }
 
-        if (#usedprop(reduce) && property == #prop(reduce)) {
+        if (#usedprop(reduce) &&& property == #prop(reduce)) {
             return function(callback, initialValue) {
                 var length = syscall Ll(thing);
 
@@ -241,11 +241,11 @@ function getProperty(thing, property) {
 
         var value = syscall Og(thing, property);
 
-        if (#usedprop(length) && property == #prop(length) && value == null) {
+        if (#usedprop(length) &&& property == #prop(length) &&& value == null) {
             return syscall Ol(thing);
         }
 
-        if (#usedprop(prototypes) && property == #prop(prototypes) && value == null) {
+        if (#usedprop(prototypes) &&& property == #prop(prototypes) &&& value == null) {
             return syscall Op(thing);
         }
 

@@ -717,6 +717,21 @@ export class ClassNode extends ast.AstNode {
         super.checkSymbolUsage(scope);
     }
 
+    pruneSymbolUsage() {
+        if (this.isAnonymous) {
+            return false;
+        }
+
+        var usage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
+        var anyMarkedUnread = false;
+
+        if (usage && !usage.everRead) {
+            anyMarkedUnread ||= dce.markChildSymbolsAsUnread(this);
+        }
+
+        return super.pruneSymbolUsage() || anyMarkedUnread;
+    }
+
     estimateTruthiness() {
         return this.propertySymbols.length > 0;
     }
