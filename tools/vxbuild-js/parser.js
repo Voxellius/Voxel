@@ -38,6 +38,10 @@ export class ModuleNode extends ast.AstNode {
     generateCode(options) {
         return codeGen.join(...this.children.map((child) => child.generateCode(options)));
     }
+
+    generateContextPath() {
+        return "[module]";
+    }
 }
 
 export function parse(tokens, namespace = new namespaces.Namespace()) {

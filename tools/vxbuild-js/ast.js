@@ -238,4 +238,8 @@ export class AstNode {
             ).join("\n")
         );
     }
+
+    generateContextPath() {
+        return this.parent?.generateContextPath() || "";
+    }
 }

@@ -34,7 +34,8 @@ try {
     ), await namespace.build({
         mangle: !flags["no-mangle"],
         removeDeadCode: !flags["no-dce"],
-        analyseAst: !!flags["analyse-ast"]
+        analyseAst: !!flags["analyse-ast"],
+        analyseSymbols: !!flags["analyse-symbols"]
     }), codeGen.bytes(0));
 
     Deno.writeFile(flags["output"], code);

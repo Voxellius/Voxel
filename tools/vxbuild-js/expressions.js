@@ -628,6 +628,10 @@ export class FunctionNode extends ast.AstNode {
 
         return parts;
     }
+
+    generateContextPath() {
+        return `${this.parent.generateContextPath()}->${this.identifierSymbol.id}()`;
+    }
 }
 
 export class MethodNode extends FunctionNode {
@@ -801,6 +805,10 @@ export class ClassNode extends ast.AstNode {
         }
 
         return parts;
+    }
+
+    generateContextPath() {
+        return `${this.parent.generateContextPath()}->${this.identifierSymbol.id}{}`;
     }
 }
 
@@ -1190,6 +1198,10 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         }
 
         return parts;
+    }
+
+    generateContextPath() {
+        return `${this.parent.generateContextPath()}->${this.targetInstance.children[0]?.value.id || "[var]"}=`;
     }
 }
 

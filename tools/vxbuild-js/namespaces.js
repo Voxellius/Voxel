@@ -71,6 +71,22 @@ export class Namespace {
         return [...new Set(Object.values(this.imports))];
     }
 
+    analyseSymbols() {
+        return (
+            `${this.scope.symbolUses.length} in scope\n` +
+            this.scope.symbolUses
+                .sort((a, b) => b.readBy.length - a.readBy.length)
+                .map((usage) => (
+                    usage.readBy.length > 0 ?
+                    (
+                        `- ${usage.id}\n` +
+                        `  Read in ${usage.readBy.map((reader) => reader.generateContextPath()).join(", ")}`
+                    ) :
+                    `- ${usage.id} (Never read)`
+                )).join("\n")
+        );
+    }
+
     async build(options) {
         var processedNamespaces = [];
         var allDiscoveredNamespaces = [];
@@ -186,6 +202,10 @@ export class Namespace {
 
             if (options.analyseAst) {
                 console.log("Analysed AST:", ast.analyse());
+            }
+
+            if (options.analyseSymbols) {
+                console.log("Analysed symbols:", namespace.analyseSymbols());
             }
 
             if (namespace == coreNamespace) {
