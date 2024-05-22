@@ -25,6 +25,8 @@ export function markChildSymbolsAsUnread(astNode) {
     var anyMarkedUnread = false;
     var currentScope = astNode.scope;
 
+    // TODO: Check foreign symbol uses as well
+
     while (currentScope != null) {
         for (var usage of currentScope.symbolUses) {
             usage.readBy = usage.readBy.filter(function(reader) {
@@ -33,7 +35,7 @@ export function markChildSymbolsAsUnread(astNode) {
                 }
 
                 anyMarkedUnread = true;
-    
+
                 return false;
             });
         }
