@@ -1,3 +1,4 @@
+import * as namespaces from "./namespaces.js";
 import * as expressions from "./expressions.js";
 import * as statements from "./statements.js";
 
@@ -25,14 +26,18 @@ export function markChildSymbolsAsUnread(astNode) {
     var anyMarkedUnread = false;
     var currentScope = astNode.scope;
 
-    // TODO: Check foreign symbol uses as well
-
     while (currentScope != null) {
-        for (var usage of currentScope.symbolUses) {
+        for (var usage of [...currentScope.symbolUses, ...currentScope.foreignSymbolUses]) {
+            if (usage instanceof namespaces.ForeignSymbolUsage) {
+                usage = usage.resolvedUsage;
+            }
+
             usage.readBy = usage.readBy.filter(function(reader) {
                 if (reader != astNode) {
                     return true;
                 }
+
+                console.log(usage.id || usage.name, usage.readBy.map((r) => r.generateContextPath() + (r == reader ? "[X]" : "")).join(", "));
 
                 anyMarkedUnread = true;
 

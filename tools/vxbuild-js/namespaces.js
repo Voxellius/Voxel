@@ -73,17 +73,19 @@ export class Namespace {
 
     analyseSymbols() {
         return (
-            `${this.scope.symbolUses.length} in scope\n` +
+            `${this.scope.symbolUses.length} in scope` +
             this.scope.symbolUses
                 .sort((a, b) => b.readBy.length - a.readBy.length)
                 .map((usage) => (
-                    usage.readBy.length > 0 ?
-                    (
-                        `- ${usage.id}\n` +
-                        `  Read in ${usage.readBy.map((reader) => reader.generateContextPath()).join(", ")}`
-                    ) :
-                    `- ${usage.id} (Never read)`
-                )).join("\n")
+                    "\n" + (
+                        usage.readBy.length > 0 ?
+                        (
+                            `- ${usage.id}\n` +
+                            `  Read in ${usage.readBy.map((reader) => reader.generateContextPath()).join(", ")}`
+                        ) :
+                        `- ${usage.id} (Never read)`
+                    )
+                )).join("")
         );
     }
 
@@ -166,6 +168,8 @@ export class Namespace {
                     var usage = subjectNamespace.scope.getSymbolById(Symbol.generateId(subjectNamespace, foreignSymbolUsage.name));
     
                     usage.readBy.push(...foreignSymbolUsage.readBy);
+
+                    foreignSymbolUsage.resolvedUsage = usage;
                 }
 
                 for (var childScope of scope.childScopes) {
@@ -346,8 +350,9 @@ export class ForeignSymbolUsage {
     constructor(name, foreignNamespaceIdentifier = null) {
         this.name = name;
         this.foreignNamespaceIdentifier = foreignNamespaceIdentifier;
-
+        
         this.readBy = [];
+        this.resolvedUsage = null;
     }
 }
 

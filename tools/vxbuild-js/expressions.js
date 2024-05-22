@@ -750,7 +750,7 @@ export class ClassNode extends ast.AstNode {
         if (options.removeDeadCode && !this.isAnonymous) {
             var usage = this.scope.symbolUses.find((usage) => usage.id == this.identifierSymbol.id);
 
-            if (usage && !usage.everRead && dce.hasNoEffect(this, this.children)) {
+            if (usage && !usage.everRead && dce.hasNoEffect(this, this.children.filter((child) => !(child instanceof MethodNode)))) {
                 return codeGen.bytes(codeGen.vxcTokens.NULL);
             }
         }
@@ -1201,7 +1201,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     }
 
     generateContextPath() {
-        return `${this.parent.generateContextPath()}->${this.targetInstance.children[0]?.value.id || "[var]"}=`;
+        return `${this.parent.generateContextPath()}->${this.targetInstance.children[0]?.value?.id || "[var]"}=`;
     }
 }
 

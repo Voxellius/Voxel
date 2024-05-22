@@ -22,18 +22,12 @@ class Stream {
 class StandardOutputStream extends Stream {
     canWrite = true;
 
-    constructor() {
-        return stdout;
-    }
-
     write(data) {
         super.write(data);
 
         syscall log(data);
     }
 }
-
-var stdout = new StandardOutputStream();
 
 function print(data) {
     syscall log(data);
