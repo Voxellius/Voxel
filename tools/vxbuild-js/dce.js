@@ -37,8 +37,6 @@ export function markChildSymbolsAsUnread(astNode) {
                     return true;
                 }
 
-                console.log(usage.id || usage.name, usage.readBy.map((r) => r.generateContextPath() + (r == reader ? "[X]" : "")).join(", "));
-
                 anyMarkedUnread = true;
 
                 return false;
