@@ -78,6 +78,62 @@ function callSuperConstructors(object, constructorArgs) {
 function getProperty(thing, property) {
     nextThis = thing;
 
+    if (syscall T(thing) == "\"") {
+        if (#usedprop(toNumber) &&& property == #prop(toNumber)) {
+            return function() {
+                return syscall S2N(thing);
+            };
+        }
+
+        if (#usedprop(size) &&& property == #prop(size)) {
+            return syscall Ss(thing);
+        }
+
+        if (#usedprop(append) &&& property == #prop(append)) {
+            return function(appendedString) {
+                return syscall Sa(thing, appendedString);
+            }
+        }
+
+        if (#usedprop(reverse) &&& property == #prop(reverse)) {
+            return function() {
+                return syscall Sr(thing);
+            }
+        }
+
+        if (#usedprop(cutStart) &&& property == #prop(cutStart)) {
+            return function(size) {
+                return syscall Scs(thing, size);
+            }
+        }
+
+        if (#usedprop(cutEnd) &&& property == #prop(cutEnd)) {
+            return function(size) {
+                return syscall Sce(thing, size);
+            }
+        }
+
+        if (#usedprop(padStart) &&& property == #prop(padStart)) {
+            return function(minSize, fill) {
+                if (fill == null) {
+                    fill = " ";
+                }
+
+                return syscall Sps(thing, minSize, fill);
+            }
+        }
+
+        if (#usedprop(padEnd) &&& property == #prop(padEnd)) {
+            return function(minSize, fill) {
+                if (fill == null) {
+                    fill = " ";
+                }
+
+                return syscall Spe(thing, minSize, fill);
+            }
+        }
+    }
+
     if (syscall T(thing) == "L") {
         if (#usedprop(length) &&& property == #prop(length)) {
             return syscall Ll(thing);

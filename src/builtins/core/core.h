@@ -220,6 +220,15 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Tr", &voxel_builtins_core_removeItem);
     voxel_defineBuiltin(context, ".Tl", &voxel_builtins_core_getLength);
 
+    voxel_defineBuiltin(context, ".S2N", &voxel_builtins_core_stringToNumber);
+    voxel_defineBuiltin(context, ".Ss", &voxel_builtins_core_getStringSize);
+    voxel_defineBuiltin(context, ".Sa", &voxel_builtins_core_appendToString);
+    voxel_defineBuiltin(context, ".Sr", &voxel_builtins_core_reverseString);
+    voxel_defineBuiltin(context, ".Scs", &voxel_builtins_core_cutStringStart);
+    voxel_defineBuiltin(context, ".Sce", &voxel_builtins_core_cutStringEnd);
+    voxel_defineBuiltin(context, ".Sps", &voxel_builtins_core_padStringStart);
+    voxel_defineBuiltin(context, ".Spe", &voxel_builtins_core_padStringEnd);
+
     voxel_defineBuiltin(context, ".O", &voxel_builtins_core_newObject);
     voxel_defineBuiltin(context, ".Og", &voxel_builtins_core_getObjectItem);
     voxel_defineBuiltin(context, ".Os", &voxel_builtins_core_setObjectItem);

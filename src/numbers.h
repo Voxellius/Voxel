@@ -225,7 +225,11 @@ VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* th
         value /= base;
     } while (value > 0);
 
-    VOXEL_MUST(voxel_padStringEnd(context, string, minSize, '0'));
+    voxel_Thing* fill = voxel_newStringTerminated(context, "0");
+
+    VOXEL_MUST(voxel_padStringEnd(context, string, minSize, fill));
+
+    voxel_unreferenceThing(context, fill);
 
     if (isNegative) {
         VOXEL_MUST(voxel_appendByteToString(context, string, '-'));

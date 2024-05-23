@@ -107,6 +107,18 @@ export function tokenise(sourceContainer) {
                 continue;
             }
 
+            if (matchToken(/^\\'/)) {
+                currentString += "'";
+
+                continue;
+            }
+
+            if (matchToken(/^\\"/)) {
+                currentString += "\"";
+
+                continue;
+            }
+
             currentString += source[0];
             currentPosition++;
             source = source.substring(1);

@@ -295,29 +295,30 @@ VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, v
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte) {
+VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill) {
     VOXEL_MUST(voxel_reverseString(context, thing));
-    VOXEL_MUST(voxel_padStringEnd(context, thing, minSize, byte));
+    VOXEL_MUST(voxel_padStringEnd(context, thing, minSize, fill));
     VOXEL_MUST(voxel_reverseString(context, thing));
 
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte) {
+VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_String* string = thing->value;
+    voxel_String* fillString = fill->value;
     voxel_Count padding = minSize - string->size;
     voxel_Count newSize = string->size + padding;
 
-    if (minSize <= 0) {
+    if (minSize <= 0 || fillString->size == 0) {
         return VOXEL_OK;
     }
 
     string->value = VOXEL_REALLOC(string->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", string->size, newSize);
 
     for (voxel_Count i = 0; i < padding; i++) {
-        string->value[string->size + i] = byte;
+        string->value[string->size + i] = fillString->value[i % fillString->size];
     }
 
     string->size = newSize;

@@ -216,7 +216,7 @@ void voxel_builtins_core_getListLength(voxel_Executor* executor) {
     voxel_Thing* list = voxel_pop(executor);
 
     if (!list || list->type != VOXEL_TYPE_LIST) {
-        return;
+        return voxel_pushNull(executor);
     }
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));

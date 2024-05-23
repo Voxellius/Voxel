@@ -40,7 +40,7 @@ export class ModuleNode extends ast.AstNode {
     }
 
     generateContextPath() {
-        return "[module]";
+        return "[module]";  
     }
 }
 

@@ -484,8 +484,8 @@ VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* th
 VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_cutStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count size);
 VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count size);
-VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte);
-VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte);
+VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill);
+VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill);
 
 voxel_Thing* voxel_newObject(voxel_Context* context);
 VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing);
@@ -687,6 +687,139 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
     thing->referenceCount++;
 
     voxel_push(executor, thing);
+}
+
+#endif
+
+// src/builtins/core/strings.h
+
+#ifdef VOXEL_BUILTINS_CORE
+
+void voxel_builtins_core_stringToNumber(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_popString(executor);
+
+    if (!string) {
+        return voxel_pushNull(executor);
+    }
+
+    VOXEL_ERRORABLE result = voxel_stringToNumber(executor->context, string);
+
+    voxel_unreferenceThing(executor->context, string);
+
+    if (VOXEL_IS_ERROR(result)) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, result.value);
+}
+
+void voxel_builtins_core_getStringSize(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_popString(executor);
+
+    if (!string) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getStringSize(string)));
+
+    voxel_unreferenceThing(executor->context, string);
+}
+
+void voxel_builtins_core_appendToString(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* appendString = voxel_popString(executor);
+    voxel_Thing* baseString = voxel_peek(executor, 0); // Keep as return value
+
+    if (!appendString || !baseString || baseString->type != VOXEL_TYPE_STRING || argCount < 2) {
+        return;
+    }
+
+    voxel_appendToString(executor->context, baseString, appendString);
+
+    voxel_unreferenceThing(executor->context, appendString);
+}
+
+void voxel_builtins_core_reverseString(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
+
+    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 1) {
+        return;
+    }
+
+    voxel_reverseString(executor->context, string);
+}
+
+void voxel_builtins_core_cutStringStart(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int size = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
+
+    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+        return;
+    }
+
+    if (size < 0) {
+        return;
+    }
+
+    voxel_cutStringStart(executor->context, string, size);
+}
+
+void voxel_builtins_core_cutStringEnd(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int size = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
+
+    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+        return;
+    }
+
+    if (size < 0) {
+        return;
+    }
+
+    voxel_cutStringEnd(executor->context, string, size);
+}
+
+void voxel_builtins_core_padStringStart(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* fill = voxel_popString(executor);
+    voxel_Int minSize = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
+
+    if (!fill || !string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+        return;
+    }
+
+    if (minSize < 0) {
+        return;
+    }
+
+    voxel_padStringStart(executor->context, string, minSize, fill);
+
+    voxel_unreferenceThing(executor->context, fill);
+}
+
+void voxel_builtins_core_padStringEnd(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* fill = voxel_popString(executor);
+    voxel_Int minSize = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
+
+    if (!fill || !string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+        return;
+    }
+
+    if (minSize < 0) {
+        return;
+    }
+
+    voxel_padStringEnd(executor->context, string, minSize, fill);
+
+    voxel_unreferenceThing(executor->context, fill);
 }
 
 #endif
@@ -909,7 +1042,7 @@ void voxel_builtins_core_getObjectLength(voxel_Executor* executor) {
     voxel_Thing* object = voxel_pop(executor);
 
     if (!object || object->type != VOXEL_TYPE_OBJECT) {
-        return;
+        return voxel_pushNull(executor);
     }
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getObjectLength(object)));
@@ -1156,7 +1289,7 @@ void voxel_builtins_core_getListLength(voxel_Executor* executor) {
     voxel_Thing* list = voxel_pop(executor);
 
     if (!list || list->type != VOXEL_TYPE_LIST) {
-        return;
+        return voxel_pushNull(executor);
     }
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
@@ -1410,6 +1543,15 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ts", &voxel_builtins_core_setItem);
     voxel_defineBuiltin(context, ".Tr", &voxel_builtins_core_removeItem);
     voxel_defineBuiltin(context, ".Tl", &voxel_builtins_core_getLength);
+
+    voxel_defineBuiltin(context, ".S2N", &voxel_builtins_core_stringToNumber);
+    voxel_defineBuiltin(context, ".Ss", &voxel_builtins_core_getStringSize);
+    voxel_defineBuiltin(context, ".Sa", &voxel_builtins_core_appendToString);
+    voxel_defineBuiltin(context, ".Sr", &voxel_builtins_core_reverseString);
+    voxel_defineBuiltin(context, ".Scs", &voxel_builtins_core_cutStringStart);
+    voxel_defineBuiltin(context, ".Sce", &voxel_builtins_core_cutStringEnd);
+    voxel_defineBuiltin(context, ".Sps", &voxel_builtins_core_padStringStart);
+    voxel_defineBuiltin(context, ".Spe", &voxel_builtins_core_padStringEnd);
 
     voxel_defineBuiltin(context, ".O", &voxel_builtins_core_newObject);
     voxel_defineBuiltin(context, ".Og", &voxel_builtins_core_getObjectItem);
@@ -2312,7 +2454,11 @@ VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* th
         value /= base;
     } while (value > 0);
 
-    VOXEL_MUST(voxel_padStringEnd(context, string, minSize, '0'));
+    voxel_Thing* fill = voxel_newStringTerminated(context, "0");
+
+    VOXEL_MUST(voxel_padStringEnd(context, string, minSize, fill));
+
+    voxel_unreferenceThing(context, fill);
 
     if (isNegative) {
         VOXEL_MUST(voxel_appendByteToString(context, string, '-'));
@@ -2734,29 +2880,30 @@ VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, v
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte) {
+VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill) {
     VOXEL_MUST(voxel_reverseString(context, thing));
-    VOXEL_MUST(voxel_padStringEnd(context, thing, minSize, byte));
+    VOXEL_MUST(voxel_padStringEnd(context, thing, minSize, fill));
     VOXEL_MUST(voxel_reverseString(context, thing));
 
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Byte byte) {
+VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_String* string = thing->value;
+    voxel_String* fillString = fill->value;
     voxel_Count padding = minSize - string->size;
     voxel_Count newSize = string->size + padding;
 
-    if (minSize <= 0) {
+    if (minSize <= 0 || fillString->size == 0) {
         return VOXEL_OK;
     }
 
     string->value = VOXEL_REALLOC(string->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", string->size, newSize);
 
     for (voxel_Count i = 0; i < padding; i++) {
-        string->value[string->size + i] = byte;
+        string->value[string->size + i] = fillString->value[i % fillString->size];
     }
 
     string->size = newSize;

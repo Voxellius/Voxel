@@ -214,7 +214,7 @@ void voxel_builtins_core_getObjectLength(voxel_Executor* executor) {
     voxel_Thing* object = voxel_pop(executor);
 
     if (!object || object->type != VOXEL_TYPE_OBJECT) {
-        return;
+        return voxel_pushNull(executor);
     }
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getObjectLength(object)));
