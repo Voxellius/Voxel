@@ -113,6 +113,25 @@ function getProperty(thing, property) {
             }
         }
 
+        if (#usedprop(substring) &&& property == #prop(substring)) {
+            return function(start, end) {
+                var cutStart = syscall Scs("" + thing, start);
+
+                if (end == null) {
+                    return cutStart;
+                }
+
+                if (end < start) {
+                    var oldStart = start;
+
+                    start = end;
+                    end = oldStart;
+                }
+
+                return syscall Sce(cutStart, syscall Ss(thing) - (end - start));
+            }
+        }
+
         if (#usedprop(padStart) &&& property == #prop(padStart)) {
             return function(minSize, fill) {
                 if (fill == null) {
