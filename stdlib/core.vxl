@@ -89,12 +89,6 @@ function getProperty(thing, property) {
             return syscall Ss(thing);
         }
 
-        if (#usedprop(append) &&& property == #prop(append)) {
-            return function(appendedString) {
-                return syscall Sa(thing, appendedString);
-            }
-        }
-
         if (#usedprop(reverse) &&& property == #prop(reverse)) {
             return function() {
                 return syscall Sr(&thing);

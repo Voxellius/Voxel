@@ -31,3 +31,9 @@ syscall log("\n");
 syscall log("Pad end: ");
 syscall log(string.padEnd(10, "123"));
 syscall log("\n");
+
+var numericString = "1234";
+
+syscall log("Numeric string to number + 1: ");
+syscall log(numericString.toNumber() + 1);
+syscall log("\n");

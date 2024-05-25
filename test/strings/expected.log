@@ -6,3 +6,4 @@ Cut end: abcd
 Substring: cd
 Pad start: 1231abcdef
 Pad end: abcdef1231
+Numeric string to number + 1: 1235
