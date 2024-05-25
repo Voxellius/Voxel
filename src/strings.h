@@ -295,15 +295,7 @@ VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, v
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill) {
-    VOXEL_MUST(voxel_reverseString(context, thing));
-    VOXEL_MUST(voxel_padStringEnd(context, thing, minSize, fill));
-    VOXEL_MUST(voxel_reverseString(context, thing));
-
-    return VOXEL_OK;
-}
-
-VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill) {
+VOXEL_ERRORABLE _voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill, voxel_Bool reversed) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_String* string = thing->value;
@@ -318,10 +310,26 @@ VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, v
     string->value = VOXEL_REALLOC(string->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", string->size, newSize);
 
     for (voxel_Count i = 0; i < padding; i++) {
-        string->value[string->size + i] = fillString->value[i % fillString->size];
+        if (reversed) {
+            string->value[string->size + (padding - i - 1)] = fillString->value[i % fillString->size];
+        } else {
+            string->value[string->size + i] = fillString->value[i % fillString->size];
+        }
     }
 
     string->size = newSize;
 
     return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_padStringStart(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill) {
+    VOXEL_MUST(voxel_reverseString(context, thing));
+    VOXEL_MUST(_voxel_padStringEnd(context, thing, minSize, fill, VOXEL_TRUE));
+    VOXEL_MUST(voxel_reverseString(context, thing));
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill) {
+    return _voxel_padStringEnd(context, thing, minSize, fill, VOXEL_FALSE);
 }

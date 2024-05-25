@@ -113,6 +113,19 @@ void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, list);
 }
 
+void voxel_builtins_core_copyThing(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* thing = voxel_pop(executor);
+
+    if (!thing) {
+        return;
+    }
+
+    voxel_push(executor, voxel_copyThing(executor->context, thing));
+
+    voxel_unreferenceThing(executor->context, thing);
+}
+
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
     voxel_Thing* argCount = voxel_peek(executor, 0);
 
@@ -215,6 +228,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".++", &voxel_builtins_core_increment);
     voxel_defineBuiltin(context, ".--", &voxel_builtins_core_decrement);
 
+    voxel_defineBuiltin(context, ".Tc", &voxel_builtins_core_copyThing);
     voxel_defineBuiltin(context, ".Tg", &voxel_builtins_core_getItem);
     voxel_defineBuiltin(context, ".Ts", &voxel_builtins_core_setItem);
     voxel_defineBuiltin(context, ".Tr", &voxel_builtins_core_removeItem);

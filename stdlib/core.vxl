@@ -97,25 +97,46 @@ function getProperty(thing, property) {
 
         if (#usedprop(reverse) &&& property == #prop(reverse)) {
             return function() {
-                return syscall Sr(thing);
+                return syscall Sr(&thing);
             }
         }
 
         if (#usedprop(cutStart) &&& property == #prop(cutStart)) {
             return function(size) {
-                return syscall Scs(thing, size);
+                return syscall Scs(&thing, size);
             }
         }
 
         if (#usedprop(cutEnd) &&& property == #prop(cutEnd)) {
             return function(size) {
-                return syscall Sce(thing, size);
+                return syscall Sce(&thing, size);
+            }
+        }
+
+        if (#usedprop(padStart) &&& property == #prop(padStart)) {
+            return function(minSize, fill) {
+                if (fill == null) {
+                    fill = " ";
+                }
+
+                return syscall Sps(&thing, minSize, fill);
+            }
+        }
+
+        if (#usedprop(padEnd) &&& property == #prop(padEnd)) {
+            return function(minSize, fill) {
+                if (fill == null) {
+                    fill = " ";
+                }
+
+                return syscall Spe(&thing, minSize, fill);
             }
         }
 
         if (#usedprop(substring) &&& property == #prop(substring)) {
             return function(start, end) {
-                var cutStart = syscall Scs("" + thing, start);
+                var stringSize = syscall Ss(thing);
+                var cutStart = syscall Scs(&thing, stringSize - start);
 
                 if (end == null) {
                     return cutStart;
@@ -128,27 +149,7 @@ function getProperty(thing, property) {
                     end = oldStart;
                 }
 
-                return syscall Sce(cutStart, syscall Ss(thing) - (end - start));
-            }
-        }
-
-        if (#usedprop(padStart) &&& property == #prop(padStart)) {
-            return function(minSize, fill) {
-                if (fill == null) {
-                    fill = " ";
-                }
-
-                return syscall Sps(thing, minSize, fill);
-            }
-        }
-
-        if (#usedprop(padEnd) &&& property == #prop(padEnd)) {
-            return function(minSize, fill) {
-                if (fill == null) {
-                    fill = " ";
-                }
-
-                return syscall Spe(thing, minSize, fill);
+                return syscall Sce(cutStart, end - start);
             }
         }
     }
