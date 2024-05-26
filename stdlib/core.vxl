@@ -96,14 +96,14 @@ function getProperty(thing, property) {
         }
 
         if (#usedprop(cutStart) &&& property == #prop(cutStart)) {
-            return function(size) {
-                return syscall Scs(&thing, size);
+            return function(maxSize) {
+                return syscall Scs(&thing, maxSize);
             }
         }
 
         if (#usedprop(cutEnd) &&& property == #prop(cutEnd)) {
-            return function(size) {
-                return syscall Sce(&thing, size);
+            return function(maxSize) {
+                return syscall Sce(&thing, maxSize);
             }
         }
 
