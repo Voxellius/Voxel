@@ -31,7 +31,7 @@ voxel_Int voxel_getNumberInt(voxel_Thing* thing) {
         return 0;
     }
 
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -47,7 +47,7 @@ voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
         return 0;
     }
 
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -79,7 +79,7 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
 }
 
 voxel_Thing* voxel_copyNumber(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -245,7 +245,7 @@ VOXEL_ERRORABLE voxel_numberToByte(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing) {
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:

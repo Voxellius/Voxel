@@ -29,7 +29,7 @@ voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data)
 VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_STRING);
 
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     VOXEL_FREE(string->value); VOXEL_TAG_FREE_SIZE("voxel_String->value", string->size);
     VOXEL_FREE(string); VOXEL_TAG_FREE(voxel_String);
@@ -39,21 +39,21 @@ VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
-    voxel_String* aString = a->value;
-    voxel_String* bString = b->value;
+    voxel_String* aString = (voxel_String*)a->value;
+    voxel_String* bString = (voxel_String*)b->value;
 
     return voxel_compare(aString->value, bString->value, aString->size, bString->size);
 }
 
 voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     return voxel_newString(context, string->size, string->value);
 }
 
 // @source https://stackoverflow.com/a/4392789
 VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     voxel_Count i = 0;
     voxel_Float result = 0;
@@ -137,7 +137,7 @@ VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing)
 }
 
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
     voxel_Thing* vxonString = voxel_newStringTerminated(context, "\"");
 
     for (voxel_Count i = 0; i < string->size; i++) {
@@ -169,19 +169,19 @@ VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_stringIsTruthy(voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     return string->size != 0;
 }
 
 voxel_Count voxel_getStringSize(voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     return string->size;
 }
 
 void voxel_logString(voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     for (voxel_Count i = 0; i < string->size; i++) {
         VOXEL_LOG_BYTE(string->value[i]);
@@ -189,8 +189,8 @@ void voxel_logString(voxel_Thing* thing) {
 }
 
 voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
-    voxel_String* aString = a->value;
-    voxel_String* bString = b->value;
+    voxel_String* aString = (voxel_String*)a->value;
+    voxel_String* bString = (voxel_String*)b->value;
 
     voxel_String* resultString = (voxel_String*)VOXEL_MALLOC(sizeof(voxel_String)); VOXEL_TAG_MALLOC(voxel_String);
 
@@ -218,8 +218,8 @@ voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, vo
 VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
     VOXEL_ASSERT(!a->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_String* aString = a->value;
-    voxel_String* bString = b->value;
+    voxel_String* aString = (voxel_String*)a->value;
+    voxel_String* bString = (voxel_String*)b->value;
 
     voxel_Count newSize = aString->size + bString->size;
 
@@ -246,7 +246,7 @@ VOXEL_ERRORABLE voxel_appendToStringTerminatedBytes(voxel_Context* context, voxe
 VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     string->size++;
     string->value = (voxel_Byte*)VOXEL_REALLOC(string->value, string->size); VOXEL_TAG_REALLOC("voxel_String->value", string->size - 1, string->size);
@@ -259,7 +259,7 @@ VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* th
 VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
     voxel_Byte sourceString[string->size];
 
     voxel_copy(string->value, sourceString, string->size);
@@ -283,7 +283,7 @@ VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, v
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     VOXEL_ASSERT(size > 0, VOXEL_ERROR_INVALID_ARG);
 
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     if (string->size < size) {
         return VOXEL_OK;
@@ -298,8 +298,8 @@ VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, v
 VOXEL_ERRORABLE _voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill, voxel_Bool reversed) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_String* string = thing->value;
-    voxel_String* fillString = fill->value;
+    voxel_String* string = (voxel_String*)thing->value;
+    voxel_String* fillString = (voxel_String*)fill->value;
     voxel_Count padding = minSize - string->size;
     voxel_Count newSize = string->size + padding;
 

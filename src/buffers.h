@@ -23,7 +23,7 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byt
 VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_BUFFER);
 
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
 
     VOXEL_FREE(buffer->value); VOXEL_TAG_FREE_SIZE("voxel_Buffer->value", buffer->size);
     VOXEL_FREE(buffer); VOXEL_TAG_FREE(voxel_Buffer);
@@ -33,26 +33,26 @@ VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b) {
-    voxel_Buffer* aBuffer = a->value;
-    voxel_Buffer* bBuffer = b->value;
+    voxel_Buffer* aBuffer = (voxel_Buffer*)a->value;
+    voxel_Buffer* bBuffer = (voxel_Buffer*)b->value;
 
     return voxel_compare(aBuffer->value, bBuffer->value, aBuffer->size, bBuffer->size);
 }
 
 voxel_Thing* voxel_copyBuffer(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
     
     return voxel_newBuffer(context, buffer->size, buffer->value);
 }
 
 VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
 
     return VOXEL_OK_RET(voxel_newString(context, buffer->size, buffer->value));
 }
 
 VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "buffer([");
     voxel_Thing* hexPrefix = voxel_newStringTerminated(context, "0x");
     voxel_Thing* suffix = voxel_newStringTerminated(context, "])");
@@ -62,14 +62,14 @@ VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
         VOXEL_ERRORABLE hexString = voxel_numberToBaseString(context, number, 16, 2); VOXEL_MUST(hexString);
 
         VOXEL_MUST(voxel_appendToString(context, string, hexPrefix));
-        VOXEL_MUST(voxel_appendToString(context, string, hexString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)hexString.value));
 
         if (i < buffer->size - 1) {
             VOXEL_MUST(voxel_appendByteToString(context, string, ','));
         }
 
         VOXEL_MUST(voxel_unreferenceThing(context, number));
-        VOXEL_MUST(voxel_unreferenceThing(context, hexString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)hexString.value));
     }
 
     VOXEL_MUST(voxel_appendToString(context, string, suffix));
@@ -81,13 +81,13 @@ VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_bufferIsTruthy(voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
 
     return buffer->size != 0;
 }
 
 voxel_Count voxel_getBufferSize(voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
 
     return buffer->size;
 }

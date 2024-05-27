@@ -33,7 +33,7 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_List* listValue = list->value;
+    voxel_List* listValue = (voxel_List*)list->value;
 
     if (index < 0) {
         index = voxel_getListLength(list) + index;
@@ -51,7 +51,7 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_ListItem* listItem = listItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     if (!listItem) {
         return voxel_pushNull(executor);
@@ -90,7 +90,7 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_ListItem* listItem = getListItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)getListItemResult.value;
 
     if (!listItem) {
         return voxel_pushNull(executor);
@@ -162,7 +162,7 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_List* listValue = list->value;
+    voxel_List* listValue = (voxel_List*)list->value;
     voxel_ListItem* lastItem = listValue->lastItem;
 
     if (!lastItem) {
@@ -242,7 +242,7 @@ void voxel_builtins_core_joinList(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, list);
     voxel_unreferenceThing(executor->context, delimeter);
 
-    voxel_push(executor, result.value);
+    voxel_push(executor, (voxel_Thing*)result.value);
 }
 
 #endif

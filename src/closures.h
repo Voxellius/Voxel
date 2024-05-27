@@ -17,7 +17,7 @@ voxel_Thing* voxel_newClosure(voxel_Context* context, voxel_Position positionRef
 VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_CLOSURE);
 
-    voxel_Closure* closure = thing->value;
+    voxel_Closure* closure = (voxel_Closure*)thing->value;
 
     VOXEL_MUST(voxel_unreferenceThing(context, closure->environment));
 
@@ -28,8 +28,8 @@ VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing)
 }
 
 voxel_Bool voxel_compareClosures(voxel_Thing* a, voxel_Thing* b) {
-    voxel_Closure* aClosure = a->value;
-    voxel_Closure* bClosure = b->value;
+    voxel_Closure* aClosure = (voxel_Closure*)a->value;
+    voxel_Closure* bClosure = (voxel_Closure*)b->value;
 
     if (aClosure->position != bClosure->position) {
         return VOXEL_FALSE;
@@ -39,7 +39,7 @@ voxel_Bool voxel_compareClosures(voxel_Thing* a, voxel_Thing* b) {
 }
 
 voxel_Thing* voxel_copyClosure(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Closure* closure = thing->value;
+    voxel_Closure* closure = (voxel_Closure*)thing->value;
 
     return voxel_newClosure(context, closure->position, closure->environment);
 }

@@ -95,7 +95,7 @@ void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
         return;
     }
 
-    voxel_List* listValue = list->value;
+    voxel_List* listValue = (voxel_List*)list->value;
     voxel_ListItem* currentItem = listValue->firstItem;
 
     while (currentItem) {

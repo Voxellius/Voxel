@@ -17,7 +17,7 @@ voxel_Thing* voxel_newObject(voxel_Context* context) {
 VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_OBJECT);
 
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_ObjectItem* nextItem;
 
@@ -52,8 +52,8 @@ VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) 
 }
 
 voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b) {
-    voxel_Object* aObject = a->value;
-    voxel_Object* bObject = b->value;
+    voxel_Object* aObject = (voxel_Object*)a->value;
+    voxel_Object* bObject = (voxel_Object*)b->value;
 
     // First check that `b` contains all values that `a` has
 
@@ -95,7 +95,7 @@ voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b) {
 }
 
 void voxel_lockObject(voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
     while (currentItem) {
@@ -108,7 +108,7 @@ void voxel_lockObject(voxel_Thing* thing) {
 voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing) {
     // Shallow copy only; deep copying will be handled in the Voxel standard library
 
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_Thing* newObject = voxel_newObject(context);
     voxel_ObjectItem* currentItem = object->firstItem;
 
@@ -122,7 +122,7 @@ voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_Thing* string = voxel_newStringTerminated(context, "{");
 
@@ -131,9 +131,9 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
         VOXEL_ERRORABLE keyString = voxel_thingToVxon(context, currentItem->key); VOXEL_MUST(keyString);
         VOXEL_ERRORABLE valueString = voxel_thingToVxon(context, currentItem->value); VOXEL_MUST(valueString);
 
-        VOXEL_MUST(voxel_appendToString(context, string, keyString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)keyString.value));
         VOXEL_MUST(voxel_appendByteToString(context, string, ':'));
-        VOXEL_MUST(voxel_appendToString(context, string, valueString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)valueString.value));
 
         currentItem = currentItem->nextItem;
 
@@ -141,8 +141,8 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
             VOXEL_MUST(voxel_appendByteToString(context, string, ','));
         }
 
-        VOXEL_MUST(voxel_unreferenceThing(context, keyString.value));
-        VOXEL_MUST(voxel_unreferenceThing(context, valueString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)keyString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)valueString.value));
     }
 
     VOXEL_MUST(voxel_appendByteToString(context, string, '}'));
@@ -151,13 +151,13 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
 
     return voxel_getObjectLength(thing) != 0;
 }
 
 voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
     while (VOXEL_TRUE) {
@@ -172,7 +172,7 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
                 return VOXEL_NULL;
             }
 
-            voxel_List* prototypesList = prototypesThing->value;
+            voxel_List* prototypesList = (voxel_List*)prototypesThing->value;
             voxel_ListItem* currentPrototypeListItem = prototypesList->lastItem;
 
             while (currentPrototypeListItem) {
@@ -204,7 +204,7 @@ voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, 0);
 
     if (objectItem) {
@@ -246,7 +246,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_ObjectItem* previousItem = VOXEL_NULL;
 
@@ -297,7 +297,7 @@ voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* cont
 }
 
 voxel_Count voxel_getObjectLength(voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
 
     // TODO: Maybe include lengths of prototypes as part of total returned length
 
@@ -305,7 +305,7 @@ voxel_Count voxel_getObjectLength(voxel_Thing* thing) {
 }
 
 voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
 
     if (object->prototypes) {
         return object->prototypes;

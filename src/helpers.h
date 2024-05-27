@@ -31,7 +31,7 @@ voxel_Thing* voxel_pop(voxel_Executor* executor) {
         return VOXEL_NULL;
     }
 
-    return result.value;
+    return (voxel_Thing*)result.value;
 }
 
 void voxel_popVoid(voxel_Executor* executor) {
@@ -57,7 +57,7 @@ voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
         return VOXEL_NULL;
     }
 
-    return result.value;
+    return (voxel_Thing*)result.value;
 }
 
 _VOXEL_HELPER_POP_VALUE(voxel_popNumberInt, voxel_Int, voxel_popNumber, voxel_getNumberInt, 0);
@@ -82,7 +82,7 @@ voxel_Thing* voxel_popString(voxel_Executor* executor) {
         return VOXEL_NULL;
     }
 
-    return result.value;
+    return (voxel_Thing*)result.value;
 }
 
 voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
@@ -100,7 +100,7 @@ voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
         return VOXEL_NULL;
     }
 
-    voxel_ListItem* listItem = listItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     return listItem->value;
 }

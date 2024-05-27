@@ -216,7 +216,7 @@ VOXEL_ERRORABLE voxel_thingToByte(voxel_Context* context, voxel_Thing* thing) {
 
     VOXEL_ERRORABLE number = voxel_thingToNumber(context, thing); VOXEL_MUST(number);
 
-    return voxel_numberToByte(context, number.value);
+    return voxel_numberToByte(context, (voxel_Thing*)number.value);
 }
 
 voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
@@ -241,7 +241,7 @@ voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
 VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_ERRORABLE string = voxel_thingToString(context, thing); VOXEL_MUST(string);
 
-    voxel_logString(string.value);
+    voxel_logString((voxel_Thing*)string.value);
 
-    VOXEL_MUST(voxel_unreferenceThing(context, string.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)string.value));
 }

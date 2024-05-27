@@ -16,7 +16,7 @@ void voxel_builtins_core_stringToNumber(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_push(executor, result.value);
+    voxel_push(executor, (voxel_Thing*)result.value);
 }
 
 void voxel_builtins_core_getStringSize(voxel_Executor* executor) {

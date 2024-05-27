@@ -44,8 +44,8 @@ VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thin
     return VOXEL_OK_RET(voxel_newStringTerminated(
         context,
         voxel_getFunctionType(context, thing) == VOXEL_FUNCTION_TYPE_BUILTIN ?
-        "(builtin function)" :
-        "(function)"
+        (voxel_Byte*)"(builtin function)" :
+        (voxel_Byte*)"(function)"
     ));
 }
 

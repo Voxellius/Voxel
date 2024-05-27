@@ -46,7 +46,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             token.data = voxel_newBoolean(context, tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE);
 
             VOXEL_DEBUG_LOG("[Token: bool (");
-            VOXEL_DEBUG_LOG(tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE ? "true" : "false");
+            VOXEL_DEBUG_LOG(tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE ? (voxel_Byte*)"true" : (voxel_Byte*)"false");
             VOXEL_DEBUG_LOG(")]\n");
 
             break;
@@ -240,7 +240,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_THROW(VOXEL_ERROR_TOKENISATION_BYTE);
     }
 
-    token.type = tokenType;
+    token.type = (voxel_TokenType)tokenType;
 
     voxel_Token* tokenPtr = (voxel_Token*)VOXEL_MALLOC(sizeof(token)); VOXEL_TAG_MALLOC(voxel_Token);
 

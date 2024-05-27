@@ -5,7 +5,7 @@ VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing) {
 VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
     if (a->type == VOXEL_TYPE_BYTE) {
         VOXEL_ERRORABLE bByteResult = voxel_thingToByte(context, b); VOXEL_MUST(bByteResult);
-        voxel_Thing* bByte = bByteResult.value;
+        voxel_Thing* bByte = (voxel_Thing*)bByteResult.value;
         voxel_Thing* result = voxel_newByte(context, (voxel_IntPtr)a->value & (voxel_IntPtr)bByte->value);
 
         VOXEL_MUST(voxel_unreferenceThing(context, bByte));
@@ -15,7 +15,7 @@ VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel
 
     if (a->type == VOXEL_TYPE_NUMBER) {
         VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
-        voxel_Thing* bNumber = bNumberResult.value;
+        voxel_Thing* bNumber = (voxel_Thing*)bNumberResult.value;
 
         VOXEL_MUST(voxel_unreferenceThing(context, bNumber));
 
@@ -28,7 +28,7 @@ VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel
 VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
     if (a->type == VOXEL_TYPE_BYTE) {
         VOXEL_ERRORABLE bByteResult = voxel_thingToByte(context, b); VOXEL_MUST(bByteResult);
-        voxel_Thing* bByte = bByteResult.value;
+        voxel_Thing* bByte = (voxel_Thing*)bByteResult.value;
         voxel_Thing* result = voxel_newByte(context, (voxel_IntPtr)a->value | (voxel_IntPtr)bByte->value);
 
         VOXEL_MUST(voxel_unreferenceThing(context, bByte));
@@ -38,7 +38,7 @@ VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_
 
     if (a->type == VOXEL_TYPE_NUMBER) {
         VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
-        voxel_Thing* bNumber = bNumberResult.value;
+        voxel_Thing* bNumber = (voxel_Thing*)bNumberResult.value;
 
         VOXEL_MUST(voxel_unreferenceThing(context, bNumber));
 
@@ -56,10 +56,10 @@ VOXEL_ERRORABLE voxel_lessThanOperation(voxel_Context* context, voxel_Thing* a, 
     VOXEL_ERRORABLE aNumberResult = voxel_thingToNumber(context, a); VOXEL_MUST(aNumberResult);
     VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
 
-    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) < voxel_getNumberFloat(bNumberResult.value);
+    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) < voxel_getNumberFloat((voxel_Thing*)bNumberResult.value);
 
-    VOXEL_MUST(voxel_unreferenceThing(context, aNumberResult.value));
-    VOXEL_MUST(voxel_unreferenceThing(context, bNumberResult.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)aNumberResult.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)bNumberResult.value));
 
     return VOXEL_OK_RET(voxel_newBoolean(context, result));
 }
@@ -68,10 +68,10 @@ VOXEL_ERRORABLE voxel_greaterThanOperation(voxel_Context* context, voxel_Thing* 
     VOXEL_ERRORABLE aNumberResult = voxel_thingToNumber(context, a); VOXEL_MUST(aNumberResult);
     VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
 
-    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) > voxel_getNumberFloat(bNumberResult.value);
+    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) > voxel_getNumberFloat((voxel_Thing*)bNumberResult.value);
 
-    VOXEL_MUST(voxel_unreferenceThing(context, aNumberResult.value));
-    VOXEL_MUST(voxel_unreferenceThing(context, bNumberResult.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)aNumberResult.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)bNumberResult.value));
 
     return VOXEL_OK_RET(voxel_newBoolean(context, result));
 }

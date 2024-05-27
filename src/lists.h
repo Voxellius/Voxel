@@ -16,7 +16,7 @@ voxel_Thing* voxel_newList(voxel_Context* context) {
 VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_LIST);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* currentItem = list->firstItem;
     voxel_ListItem* nextItem;
 
@@ -37,8 +37,8 @@ VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_compareLists(voxel_Thing* a, voxel_Thing* b) {
-    voxel_List* aList = a->value;
-    voxel_List* bList = b->value;
+    voxel_List* aList = (voxel_List*)a->value;
+    voxel_List* bList = (voxel_List*)b->value;
 
     if (aList->length != bList->length) {
         return VOXEL_FALSE;
@@ -72,7 +72,7 @@ voxel_Bool voxel_compareLists(voxel_Thing* a, voxel_Thing* b) {
 }
 
 void voxel_lockList(voxel_Thing* thing) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* currentItem = list->firstItem;
 
     while (currentItem) {
@@ -85,7 +85,7 @@ void voxel_lockList(voxel_Thing* thing) {
 voxel_Thing* voxel_copyList(voxel_Context* context, voxel_Thing* thing) {
     // Shallow copy only; deep copying will be handled in the Voxel standard library
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_Thing* newList = voxel_newList(context);
     voxel_ListItem* currentItem = list->firstItem;
 
@@ -108,15 +108,15 @@ VOXEL_ERRORABLE voxel_listToString(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_listToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "[");
     voxel_ListItem* currentItem = list->firstItem;
 
     while (currentItem) {
         VOXEL_ERRORABLE itemString = voxel_thingToVxon(context, currentItem->value); VOXEL_MUST(itemString);
 
-        VOXEL_MUST(voxel_appendToString(context, string, itemString.value));
-        VOXEL_MUST(voxel_unreferenceThing(context, itemString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)itemString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)itemString.value));
 
         currentItem = currentItem->nextItem;
 
@@ -131,13 +131,13 @@ VOXEL_ERRORABLE voxel_listToVxon(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_listIsTruthy(voxel_Thing* thing) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     return list->length != 0;
 }
 
 VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* currentItem = list->firstItem;
 
     if (index >= list->length) {
@@ -162,7 +162,7 @@ VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, vo
 VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
     VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARG);
@@ -172,7 +172,7 @@ VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, vo
     }
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
-    voxel_ListItem* listItem = listItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     VOXEL_MUST(voxel_unreferenceThing(context, listItem->value));
 
@@ -185,13 +185,13 @@ VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, vo
 VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
     VOXEL_ASSERT(index < list->length, VOXEL_ERROR_INVALID_ARG);
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
-    voxel_ListItem* listItem = listItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     if (listItem == list->firstItem) {
         list->firstItem = listItem->nextItem;
@@ -220,7 +220,7 @@ VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing,
 VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* listItem = (voxel_ListItem*)VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
@@ -245,7 +245,7 @@ VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, v
 VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* listItem = list->lastItem;
 
     if (!listItem) {
@@ -275,7 +275,7 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing) {
 VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
     VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARG);
@@ -285,7 +285,7 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
     }
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
-    voxel_ListItem* currentListItem = listItemResult.value;
+    voxel_ListItem* currentListItem = (voxel_ListItem*)listItemResult.value;
     voxel_ListItem* listItem = (voxel_ListItem*)VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
@@ -308,21 +308,21 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 }
 
 voxel_Count voxel_getListLength(voxel_Thing* thing) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     return list->length;
 }
 
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "");
     voxel_ListItem* currentItem = list->firstItem;
 
     while (currentItem) {
         VOXEL_ERRORABLE itemString = voxel_thingToString(context, currentItem->value); VOXEL_MUST(itemString);
 
-        VOXEL_MUST(voxel_appendToString(context, string, itemString.value));
-        VOXEL_MUST(voxel_unreferenceThing(context, itemString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)itemString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)itemString.value));
 
         currentItem = currentItem->nextItem;
 

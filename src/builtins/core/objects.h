@@ -121,7 +121,7 @@ void voxel_builtins_core_setObjectItemGetter(voxel_Executor* executor) {
             return voxel_pushNull(executor);
         }
 
-        objectItem = objectItemResult.value;
+        objectItem = (voxel_ObjectItem*)objectItemResult.value;
     }
 
     voxel_ObjectItemDescriptor* descriptor = voxel_ensureObjectItemDescriptor(executor->context, objectItem);
@@ -190,7 +190,7 @@ void voxel_builtins_core_setObjectItemSetter(voxel_Executor* executor) {
             return voxel_pushNull(executor);
         }
 
-        objectItem = objectItemResult.value;
+        objectItem = (voxel_ObjectItem*)objectItemResult.value;
     }
 
     voxel_ObjectItemDescriptor* descriptor = voxel_ensureObjectItemDescriptor(executor->context, objectItem);

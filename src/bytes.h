@@ -32,11 +32,11 @@ VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_Thing* number = voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
     VOXEL_ERRORABLE hexString = voxel_numberToBaseString(context, number, 16, 2); VOXEL_MUST(hexString);
 
-    VOXEL_MUST(voxel_appendToString(context, string, hexString.value));
+    VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)hexString.value));
     VOXEL_MUST(voxel_appendByteToString(context, string, ')'));
 
     VOXEL_MUST(voxel_unreferenceThing(context, number));
-    VOXEL_MUST(voxel_unreferenceThing(context, hexString.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)hexString.value));
 
     return VOXEL_OK_RET(string);
 }

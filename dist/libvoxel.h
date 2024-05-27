@@ -647,7 +647,7 @@ void voxel_builtins_core_increment(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -672,7 +672,7 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -711,7 +711,7 @@ void voxel_builtins_core_stringToNumber(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_push(executor, result.value);
+    voxel_push(executor, (voxel_Thing*)result.value);
 }
 
 void voxel_builtins_core_getStringSize(voxel_Executor* executor) {
@@ -949,7 +949,7 @@ void voxel_builtins_core_setObjectItemGetter(voxel_Executor* executor) {
             return voxel_pushNull(executor);
         }
 
-        objectItem = objectItemResult.value;
+        objectItem = (voxel_ObjectItem*)objectItemResult.value;
     }
 
     voxel_ObjectItemDescriptor* descriptor = voxel_ensureObjectItemDescriptor(executor->context, objectItem);
@@ -1018,7 +1018,7 @@ void voxel_builtins_core_setObjectItemSetter(voxel_Executor* executor) {
             return voxel_pushNull(executor);
         }
 
-        objectItem = objectItemResult.value;
+        objectItem = (voxel_ObjectItem*)objectItemResult.value;
     }
 
     voxel_ObjectItemDescriptor* descriptor = voxel_ensureObjectItemDescriptor(executor->context, objectItem);
@@ -1106,7 +1106,7 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_List* listValue = list->value;
+    voxel_List* listValue = (voxel_List*)list->value;
 
     if (index < 0) {
         index = voxel_getListLength(list) + index;
@@ -1124,7 +1124,7 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_ListItem* listItem = listItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     if (!listItem) {
         return voxel_pushNull(executor);
@@ -1163,7 +1163,7 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_ListItem* listItem = getListItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)getListItemResult.value;
 
     if (!listItem) {
         return voxel_pushNull(executor);
@@ -1235,7 +1235,7 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_List* listValue = list->value;
+    voxel_List* listValue = (voxel_List*)list->value;
     voxel_ListItem* lastItem = listValue->lastItem;
 
     if (!lastItem) {
@@ -1315,7 +1315,7 @@ void voxel_builtins_core_joinList(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, list);
     voxel_unreferenceThing(executor->context, delimeter);
 
-    voxel_push(executor, result.value);
+    voxel_push(executor, (voxel_Thing*)result.value);
 }
 
 #endif
@@ -1419,7 +1419,7 @@ void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
         return;
     }
 
-    voxel_List* listValue = list->value;
+    voxel_List* listValue = (voxel_List*)list->value;
     voxel_ListItem* currentItem = listValue->firstItem;
 
     while (currentItem) {
@@ -1966,7 +1966,7 @@ VOXEL_ERRORABLE voxel_thingToByte(voxel_Context* context, voxel_Thing* thing) {
 
     VOXEL_ERRORABLE number = voxel_thingToNumber(context, thing); VOXEL_MUST(number);
 
-    return voxel_numberToByte(context, number.value);
+    return voxel_numberToByte(context, (voxel_Thing*)number.value);
 }
 
 voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
@@ -1991,9 +1991,9 @@ voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
 VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_ERRORABLE string = voxel_thingToString(context, thing); VOXEL_MUST(string);
 
-    voxel_logString(string.value);
+    voxel_logString((voxel_Thing*)string.value);
 
-    VOXEL_MUST(voxel_unreferenceThing(context, string.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)string.value));
 }
 
 // src/null.h
@@ -2101,11 +2101,11 @@ VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_Thing* number = voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
     VOXEL_ERRORABLE hexString = voxel_numberToBaseString(context, number, 16, 2); VOXEL_MUST(hexString);
 
-    VOXEL_MUST(voxel_appendToString(context, string, hexString.value));
+    VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)hexString.value));
     VOXEL_MUST(voxel_appendByteToString(context, string, ')'));
 
     VOXEL_MUST(voxel_unreferenceThing(context, number));
-    VOXEL_MUST(voxel_unreferenceThing(context, hexString.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)hexString.value));
 
     return VOXEL_OK_RET(string);
 }
@@ -2166,8 +2166,8 @@ VOXEL_ERRORABLE voxel_functionToString(voxel_Context* context, voxel_Thing* thin
     return VOXEL_OK_RET(voxel_newStringTerminated(
         context,
         voxel_getFunctionType(context, thing) == VOXEL_FUNCTION_TYPE_BUILTIN ?
-        "(builtin function)" :
-        "(function)"
+        (voxel_Byte*)"(builtin function)" :
+        (voxel_Byte*)"(function)"
     ));
 }
 
@@ -2204,7 +2204,7 @@ voxel_Thing* voxel_newClosure(voxel_Context* context, voxel_Position positionRef
 VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_CLOSURE);
 
-    voxel_Closure* closure = thing->value;
+    voxel_Closure* closure = (voxel_Closure*)thing->value;
 
     VOXEL_MUST(voxel_unreferenceThing(context, closure->environment));
 
@@ -2215,8 +2215,8 @@ VOXEL_ERRORABLE voxel_destroyClosure(voxel_Context* context, voxel_Thing* thing)
 }
 
 voxel_Bool voxel_compareClosures(voxel_Thing* a, voxel_Thing* b) {
-    voxel_Closure* aClosure = a->value;
-    voxel_Closure* bClosure = b->value;
+    voxel_Closure* aClosure = (voxel_Closure*)a->value;
+    voxel_Closure* bClosure = (voxel_Closure*)b->value;
 
     if (aClosure->position != bClosure->position) {
         return VOXEL_FALSE;
@@ -2226,7 +2226,7 @@ voxel_Bool voxel_compareClosures(voxel_Thing* a, voxel_Thing* b) {
 }
 
 voxel_Thing* voxel_copyClosure(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Closure* closure = thing->value;
+    voxel_Closure* closure = (voxel_Closure*)thing->value;
 
     return voxel_newClosure(context, closure->position, closure->environment);
 }
@@ -2274,7 +2274,7 @@ voxel_Int voxel_getNumberInt(voxel_Thing* thing) {
         return 0;
     }
 
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -2290,7 +2290,7 @@ voxel_Float voxel_getNumberFloat(voxel_Thing* thing) {
         return 0;
     }
 
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -2322,7 +2322,7 @@ voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
 }
 
 voxel_Thing* voxel_copyNumber(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -2488,7 +2488,7 @@ VOXEL_ERRORABLE voxel_numberToByte(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing) {
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -2526,7 +2526,7 @@ voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byt
 VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_BUFFER);
 
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
 
     VOXEL_FREE(buffer->value); VOXEL_TAG_FREE_SIZE("voxel_Buffer->value", buffer->size);
     VOXEL_FREE(buffer); VOXEL_TAG_FREE(voxel_Buffer);
@@ -2536,26 +2536,26 @@ VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_compareBuffers(voxel_Thing* a, voxel_Thing* b) {
-    voxel_Buffer* aBuffer = a->value;
-    voxel_Buffer* bBuffer = b->value;
+    voxel_Buffer* aBuffer = (voxel_Buffer*)a->value;
+    voxel_Buffer* bBuffer = (voxel_Buffer*)b->value;
 
     return voxel_compare(aBuffer->value, bBuffer->value, aBuffer->size, bBuffer->size);
 }
 
 voxel_Thing* voxel_copyBuffer(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
     
     return voxel_newBuffer(context, buffer->size, buffer->value);
 }
 
 VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
 
     return VOXEL_OK_RET(voxel_newString(context, buffer->size, buffer->value));
 }
 
 VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "buffer([");
     voxel_Thing* hexPrefix = voxel_newStringTerminated(context, "0x");
     voxel_Thing* suffix = voxel_newStringTerminated(context, "])");
@@ -2565,14 +2565,14 @@ VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
         VOXEL_ERRORABLE hexString = voxel_numberToBaseString(context, number, 16, 2); VOXEL_MUST(hexString);
 
         VOXEL_MUST(voxel_appendToString(context, string, hexPrefix));
-        VOXEL_MUST(voxel_appendToString(context, string, hexString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)hexString.value));
 
         if (i < buffer->size - 1) {
             VOXEL_MUST(voxel_appendByteToString(context, string, ','));
         }
 
         VOXEL_MUST(voxel_unreferenceThing(context, number));
-        VOXEL_MUST(voxel_unreferenceThing(context, hexString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)hexString.value));
     }
 
     VOXEL_MUST(voxel_appendToString(context, string, suffix));
@@ -2584,13 +2584,13 @@ VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_bufferIsTruthy(voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
 
     return buffer->size != 0;
 }
 
 voxel_Count voxel_getBufferSize(voxel_Thing* thing) {
-    voxel_Buffer* buffer = thing->value;
+    voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
 
     return buffer->size;
 }
@@ -2628,7 +2628,7 @@ voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data)
 VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_STRING);
 
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     VOXEL_FREE(string->value); VOXEL_TAG_FREE_SIZE("voxel_String->value", string->size);
     VOXEL_FREE(string); VOXEL_TAG_FREE(voxel_String);
@@ -2638,21 +2638,21 @@ VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b) {
-    voxel_String* aString = a->value;
-    voxel_String* bString = b->value;
+    voxel_String* aString = (voxel_String*)a->value;
+    voxel_String* bString = (voxel_String*)b->value;
 
     return voxel_compare(aString->value, bString->value, aString->size, bString->size);
 }
 
 voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     return voxel_newString(context, string->size, string->value);
 }
 
 // @source https://stackoverflow.com/a/4392789
 VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     voxel_Count i = 0;
     voxel_Float result = 0;
@@ -2736,7 +2736,7 @@ VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing)
 }
 
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
     voxel_Thing* vxonString = voxel_newStringTerminated(context, "\"");
 
     for (voxel_Count i = 0; i < string->size; i++) {
@@ -2768,19 +2768,19 @@ VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_stringIsTruthy(voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     return string->size != 0;
 }
 
 voxel_Count voxel_getStringSize(voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     return string->size;
 }
 
 void voxel_logString(voxel_Thing* thing) {
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     for (voxel_Count i = 0; i < string->size; i++) {
         VOXEL_LOG_BYTE(string->value[i]);
@@ -2788,8 +2788,8 @@ void voxel_logString(voxel_Thing* thing) {
 }
 
 voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
-    voxel_String* aString = a->value;
-    voxel_String* bString = b->value;
+    voxel_String* aString = (voxel_String*)a->value;
+    voxel_String* bString = (voxel_String*)b->value;
 
     voxel_String* resultString = (voxel_String*)VOXEL_MALLOC(sizeof(voxel_String)); VOXEL_TAG_MALLOC(voxel_String);
 
@@ -2817,8 +2817,8 @@ voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, vo
 VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
     VOXEL_ASSERT(!a->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_String* aString = a->value;
-    voxel_String* bString = b->value;
+    voxel_String* aString = (voxel_String*)a->value;
+    voxel_String* bString = (voxel_String*)b->value;
 
     voxel_Count newSize = aString->size + bString->size;
 
@@ -2845,7 +2845,7 @@ VOXEL_ERRORABLE voxel_appendToStringTerminatedBytes(voxel_Context* context, voxe
 VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* thing, voxel_Byte byte) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     string->size++;
     string->value = (voxel_Byte*)VOXEL_REALLOC(string->value, string->size); VOXEL_TAG_REALLOC("voxel_String->value", string->size - 1, string->size);
@@ -2858,7 +2858,7 @@ VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* th
 VOXEL_ERRORABLE voxel_reverseString(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
     voxel_Byte sourceString[string->size];
 
     voxel_copy(string->value, sourceString, string->size);
@@ -2882,7 +2882,7 @@ VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, v
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     VOXEL_ASSERT(size > 0, VOXEL_ERROR_INVALID_ARG);
 
-    voxel_String* string = thing->value;
+    voxel_String* string = (voxel_String*)thing->value;
 
     if (string->size < size) {
         return VOXEL_OK;
@@ -2897,8 +2897,8 @@ VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, v
 VOXEL_ERRORABLE _voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, voxel_Count minSize, voxel_Thing* fill, voxel_Bool reversed) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_String* string = thing->value;
-    voxel_String* fillString = fill->value;
+    voxel_String* string = (voxel_String*)thing->value;
+    voxel_String* fillString = (voxel_String*)fill->value;
     voxel_Count padding = minSize - string->size;
     voxel_Count newSize = string->size + padding;
 
@@ -2954,7 +2954,7 @@ voxel_Thing* voxel_newObject(voxel_Context* context) {
 VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_OBJECT);
 
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_ObjectItem* nextItem;
 
@@ -2989,8 +2989,8 @@ VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) 
 }
 
 voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b) {
-    voxel_Object* aObject = a->value;
-    voxel_Object* bObject = b->value;
+    voxel_Object* aObject = (voxel_Object*)a->value;
+    voxel_Object* bObject = (voxel_Object*)b->value;
 
     // First check that `b` contains all values that `a` has
 
@@ -3032,7 +3032,7 @@ voxel_Bool voxel_compareObjects(voxel_Thing* a, voxel_Thing* b) {
 }
 
 void voxel_lockObject(voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
     while (currentItem) {
@@ -3045,7 +3045,7 @@ void voxel_lockObject(voxel_Thing* thing) {
 voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing) {
     // Shallow copy only; deep copying will be handled in the Voxel standard library
 
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_Thing* newObject = voxel_newObject(context);
     voxel_ObjectItem* currentItem = object->firstItem;
 
@@ -3059,7 +3059,7 @@ voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_Thing* string = voxel_newStringTerminated(context, "{");
 
@@ -3068,9 +3068,9 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
         VOXEL_ERRORABLE keyString = voxel_thingToVxon(context, currentItem->key); VOXEL_MUST(keyString);
         VOXEL_ERRORABLE valueString = voxel_thingToVxon(context, currentItem->value); VOXEL_MUST(valueString);
 
-        VOXEL_MUST(voxel_appendToString(context, string, keyString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)keyString.value));
         VOXEL_MUST(voxel_appendByteToString(context, string, ':'));
-        VOXEL_MUST(voxel_appendToString(context, string, valueString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)valueString.value));
 
         currentItem = currentItem->nextItem;
 
@@ -3078,8 +3078,8 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
             VOXEL_MUST(voxel_appendByteToString(context, string, ','));
         }
 
-        VOXEL_MUST(voxel_unreferenceThing(context, keyString.value));
-        VOXEL_MUST(voxel_unreferenceThing(context, valueString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)keyString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)valueString.value));
     }
 
     VOXEL_MUST(voxel_appendByteToString(context, string, '}'));
@@ -3088,13 +3088,13 @@ VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
 
     return voxel_getObjectLength(thing) != 0;
 }
 
 voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
     while (VOXEL_TRUE) {
@@ -3109,7 +3109,7 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
                 return VOXEL_NULL;
             }
 
-            voxel_List* prototypesList = prototypesThing->value;
+            voxel_List* prototypesList = (voxel_List*)prototypesThing->value;
             voxel_ListItem* currentPrototypeListItem = prototypesList->lastItem;
 
             while (currentPrototypeListItem) {
@@ -3141,7 +3141,7 @@ voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, 0);
 
     if (objectItem) {
@@ -3183,7 +3183,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
     voxel_ObjectItem* previousItem = VOXEL_NULL;
 
@@ -3234,7 +3234,7 @@ voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* cont
 }
 
 voxel_Count voxel_getObjectLength(voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
 
     // TODO: Maybe include lengths of prototypes as part of total returned length
 
@@ -3242,7 +3242,7 @@ voxel_Count voxel_getObjectLength(voxel_Thing* thing) {
 }
 
 voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Object* object = thing->value;
+    voxel_Object* object = (voxel_Object*)thing->value;
 
     if (object->prototypes) {
         return object->prototypes;
@@ -3280,7 +3280,7 @@ voxel_Thing* voxel_newList(voxel_Context* context) {
 VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_LIST);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* currentItem = list->firstItem;
     voxel_ListItem* nextItem;
 
@@ -3301,8 +3301,8 @@ VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_compareLists(voxel_Thing* a, voxel_Thing* b) {
-    voxel_List* aList = a->value;
-    voxel_List* bList = b->value;
+    voxel_List* aList = (voxel_List*)a->value;
+    voxel_List* bList = (voxel_List*)b->value;
 
     if (aList->length != bList->length) {
         return VOXEL_FALSE;
@@ -3336,7 +3336,7 @@ voxel_Bool voxel_compareLists(voxel_Thing* a, voxel_Thing* b) {
 }
 
 void voxel_lockList(voxel_Thing* thing) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* currentItem = list->firstItem;
 
     while (currentItem) {
@@ -3349,7 +3349,7 @@ void voxel_lockList(voxel_Thing* thing) {
 voxel_Thing* voxel_copyList(voxel_Context* context, voxel_Thing* thing) {
     // Shallow copy only; deep copying will be handled in the Voxel standard library
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_Thing* newList = voxel_newList(context);
     voxel_ListItem* currentItem = list->firstItem;
 
@@ -3372,15 +3372,15 @@ VOXEL_ERRORABLE voxel_listToString(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_listToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "[");
     voxel_ListItem* currentItem = list->firstItem;
 
     while (currentItem) {
         VOXEL_ERRORABLE itemString = voxel_thingToVxon(context, currentItem->value); VOXEL_MUST(itemString);
 
-        VOXEL_MUST(voxel_appendToString(context, string, itemString.value));
-        VOXEL_MUST(voxel_unreferenceThing(context, itemString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)itemString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)itemString.value));
 
         currentItem = currentItem->nextItem;
 
@@ -3395,13 +3395,13 @@ VOXEL_ERRORABLE voxel_listToVxon(voxel_Context* context, voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_listIsTruthy(voxel_Thing* thing) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     return list->length != 0;
 }
 
 VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* currentItem = list->firstItem;
 
     if (index >= list->length) {
@@ -3426,7 +3426,7 @@ VOXEL_ERRORABLE voxel_getListItem(voxel_Context* context, voxel_Thing* thing, vo
 VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
     VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARG);
@@ -3436,7 +3436,7 @@ VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, vo
     }
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
-    voxel_ListItem* listItem = listItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     VOXEL_MUST(voxel_unreferenceThing(context, listItem->value));
 
@@ -3449,13 +3449,13 @@ VOXEL_ERRORABLE voxel_setListItem(voxel_Context* context, voxel_Thing* thing, vo
 VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing, voxel_Count index) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
     VOXEL_ASSERT(index < list->length, VOXEL_ERROR_INVALID_ARG);
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
-    voxel_ListItem* listItem = listItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     if (listItem == list->firstItem) {
         list->firstItem = listItem->nextItem;
@@ -3484,7 +3484,7 @@ VOXEL_ERRORABLE voxel_removeListItem(voxel_Context* context, voxel_Thing* thing,
 VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* listItem = (voxel_ListItem*)VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
@@ -3509,7 +3509,7 @@ VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, v
 VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
     
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_ListItem* listItem = list->lastItem;
 
     if (!listItem) {
@@ -3539,7 +3539,7 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing) {
 VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     VOXEL_ASSERT(index >= 0, VOXEL_ERROR_INVALID_ARG);
     VOXEL_ASSERT(index <= list->length, VOXEL_ERROR_INVALID_ARG);
@@ -3549,7 +3549,7 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
     }
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
-    voxel_ListItem* currentListItem = listItemResult.value;
+    voxel_ListItem* currentListItem = (voxel_ListItem*)listItemResult.value;
     voxel_ListItem* listItem = (voxel_ListItem*)VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
@@ -3572,21 +3572,21 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 }
 
 voxel_Count voxel_getListLength(voxel_Thing* thing) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
 
     return list->length;
 }
 
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter) {
-    voxel_List* list = thing->value;
+    voxel_List* list = (voxel_List*)thing->value;
     voxel_Thing* string = voxel_newStringTerminated(context, "");
     voxel_ListItem* currentItem = list->firstItem;
 
     while (currentItem) {
         VOXEL_ERRORABLE itemString = voxel_thingToString(context, currentItem->value); VOXEL_MUST(itemString);
 
-        VOXEL_MUST(voxel_appendToString(context, string, itemString.value));
-        VOXEL_MUST(voxel_unreferenceThing(context, itemString.value));
+        VOXEL_MUST(voxel_appendToString(context, string, (voxel_Thing*)itemString.value));
+        VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)itemString.value));
 
         currentItem = currentItem->nextItem;
 
@@ -3607,7 +3607,7 @@ VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing) {
 VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
     if (a->type == VOXEL_TYPE_BYTE) {
         VOXEL_ERRORABLE bByteResult = voxel_thingToByte(context, b); VOXEL_MUST(bByteResult);
-        voxel_Thing* bByte = bByteResult.value;
+        voxel_Thing* bByte = (voxel_Thing*)bByteResult.value;
         voxel_Thing* result = voxel_newByte(context, (voxel_IntPtr)a->value & (voxel_IntPtr)bByte->value);
 
         VOXEL_MUST(voxel_unreferenceThing(context, bByte));
@@ -3617,7 +3617,7 @@ VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel
 
     if (a->type == VOXEL_TYPE_NUMBER) {
         VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
-        voxel_Thing* bNumber = bNumberResult.value;
+        voxel_Thing* bNumber = (voxel_Thing*)bNumberResult.value;
 
         VOXEL_MUST(voxel_unreferenceThing(context, bNumber));
 
@@ -3630,7 +3630,7 @@ VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel
 VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
     if (a->type == VOXEL_TYPE_BYTE) {
         VOXEL_ERRORABLE bByteResult = voxel_thingToByte(context, b); VOXEL_MUST(bByteResult);
-        voxel_Thing* bByte = bByteResult.value;
+        voxel_Thing* bByte = (voxel_Thing*)bByteResult.value;
         voxel_Thing* result = voxel_newByte(context, (voxel_IntPtr)a->value | (voxel_IntPtr)bByte->value);
 
         VOXEL_MUST(voxel_unreferenceThing(context, bByte));
@@ -3640,7 +3640,7 @@ VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_
 
     if (a->type == VOXEL_TYPE_NUMBER) {
         VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
-        voxel_Thing* bNumber = bNumberResult.value;
+        voxel_Thing* bNumber = (voxel_Thing*)bNumberResult.value;
 
         VOXEL_MUST(voxel_unreferenceThing(context, bNumber));
 
@@ -3658,10 +3658,10 @@ VOXEL_ERRORABLE voxel_lessThanOperation(voxel_Context* context, voxel_Thing* a, 
     VOXEL_ERRORABLE aNumberResult = voxel_thingToNumber(context, a); VOXEL_MUST(aNumberResult);
     VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
 
-    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) < voxel_getNumberFloat(bNumberResult.value);
+    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) < voxel_getNumberFloat((voxel_Thing*)bNumberResult.value);
 
-    VOXEL_MUST(voxel_unreferenceThing(context, aNumberResult.value));
-    VOXEL_MUST(voxel_unreferenceThing(context, bNumberResult.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)aNumberResult.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)bNumberResult.value));
 
     return VOXEL_OK_RET(voxel_newBoolean(context, result));
 }
@@ -3670,10 +3670,10 @@ VOXEL_ERRORABLE voxel_greaterThanOperation(voxel_Context* context, voxel_Thing* 
     VOXEL_ERRORABLE aNumberResult = voxel_thingToNumber(context, a); VOXEL_MUST(aNumberResult);
     VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
 
-    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) > voxel_getNumberFloat(bNumberResult.value);
+    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) > voxel_getNumberFloat((voxel_Thing*)bNumberResult.value);
 
-    VOXEL_MUST(voxel_unreferenceThing(context, aNumberResult.value));
-    VOXEL_MUST(voxel_unreferenceThing(context, bNumberResult.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)aNumberResult.value));
+    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)bNumberResult.value));
 
     return VOXEL_OK_RET(voxel_newBoolean(context, result));
 }
@@ -3728,7 +3728,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             token.data = voxel_newBoolean(context, tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE);
 
             VOXEL_DEBUG_LOG("[Token: bool (");
-            VOXEL_DEBUG_LOG(tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE ? "true" : "false");
+            VOXEL_DEBUG_LOG(tokenType == VOXEL_TOKEN_TYPE_BOOLEAN_TRUE ? (voxel_Byte*)"true" : (voxel_Byte*)"false");
             VOXEL_DEBUG_LOG(")]\n");
 
             break;
@@ -3922,7 +3922,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_THROW(VOXEL_ERROR_TOKENISATION_BYTE);
     }
 
-    token.type = tokenType;
+    token.type = (voxel_TokenType)tokenType;
 
     voxel_Token* tokenPtr = (voxel_Token*)VOXEL_MALLOC(sizeof(token)); VOXEL_TAG_MALLOC(voxel_Token);
 
@@ -3973,7 +3973,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
     voxel_Position* position = voxel_getExecutorPosition(executor);
     VOXEL_ERRORABLE tokenResult = voxel_nextToken(executor->context, position); VOXEL_MUST(tokenResult);
-    voxel_Token* token = tokenResult.value;
+    voxel_Token* token = (voxel_Token*)tokenResult.value;
 
     if (!token) {
         executor->isRunning = VOXEL_FALSE;
@@ -3985,7 +3985,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_CALL:
         {
             VOXEL_ERRORABLE callThingResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(callThingResult);
-            voxel_Thing* callThing = callThingResult.value;
+            voxel_Thing* callThing = (voxel_Thing*)callThingResult.value;
 
             VOXEL_ASSERT(callThing, VOXEL_ERROR_MISSING_ARG);
 
@@ -4012,13 +4012,13 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
                 voxel_stepInExecutor(executor, (voxel_Position)(voxel_IntPtr)callThing->value);
             } else if (callThing->type == VOXEL_TYPE_CLOSURE) {
-                voxel_Closure* closure = callThing->value;
+                voxel_Closure* closure = (voxel_Closure*)callThing->value;
 
                 voxel_stepInExecutor(executor, closure->position);
 
                 voxel_Scope* scope = executor->scope;
                 voxel_Thing* environment = closure->environment;
-                voxel_Object* environmentObject = environment->value;
+                voxel_Object* environmentObject = (voxel_Object*)environment->value;
                 voxel_ObjectItem* currentItem = environmentObject->firstItem;
 
                 while (currentItem) {
@@ -4046,7 +4046,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_SET_HANDLER:
         {
             VOXEL_ERRORABLE handlerFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(handlerFunctionResult);
-            voxel_Thing* handlerFunction = handlerFunctionResult.value;
+            voxel_Thing* handlerFunction = (voxel_Thing*)handlerFunctionResult.value;
 
             VOXEL_ASSERT(handlerFunction, VOXEL_ERROR_INVALID_ARG);
             VOXEL_ASSERT(handlerFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_INVALID_ARG);
@@ -4069,11 +4069,11 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_ASSERT(getKey.value, VOXEL_ERROR_MISSING_ARG);
 
-            voxel_ObjectItem* scopeItem = voxel_getScopeItem(executor->scope, getKey.value);
-            voxel_Thing* scopeValue = scopeItem ? scopeItem->value : voxel_newNull(executor->context);
+            voxel_ObjectItem* scopeItem = voxel_getScopeItem(executor->scope, (voxel_Thing*)getKey.value);
+            voxel_Thing* scopeValue = scopeItem ? (voxel_Thing*)scopeItem->value : voxel_newNull(executor->context);
 
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, scopeValue));
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, getKey.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)getKey.value));
 
             scopeValue->referenceCount++; // To ensure that builtins don't dereference the thing in the scope
 
@@ -4090,7 +4090,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(setValue, VOXEL_ERROR_MISSING_ARG);
 
             VOXEL_MUST((token->type == VOXEL_TOKEN_TYPE_VAR ? voxel_setLocalScopeItem : voxel_setScopeItem)(executor->scope, setKey.value, setValue));
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, setKey.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)setKey.value));
 
             break;
         }
@@ -4101,7 +4101,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_ASSERT(popResult.value, VOXEL_ERROR_MISSING_ARG);
 
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, popResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)popResult.value));
 
             break;
         }
@@ -4113,8 +4113,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(dupeStackLength > 0, VOXEL_ERROR_INVALID_ARG);
 
             VOXEL_ERRORABLE dupeListItemResult = voxel_getListItem(executor->context, executor->valueStack, dupeStackLength - 1); VOXEL_MUST(dupeListItemResult);
-            voxel_ListItem* dupeListItem = dupeListItemResult.value;
-            voxel_Thing* dupeThing = dupeListItem->value;
+            voxel_ListItem* dupeListItem = (voxel_ListItem*)dupeListItemResult.value;
+            voxel_Thing* dupeThing = (voxel_Thing*)dupeListItem->value;
 
             dupeThing->referenceCount++;
 
@@ -4131,8 +4131,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(swapAResult.value, VOXEL_ERROR_INVALID_ARG);
             VOXEL_ASSERT(swapBResult.value, VOXEL_ERROR_INVALID_ARG);
 
-            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, swapBResult.value));
-            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, swapAResult.value));
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, (voxel_Thing*)swapBResult.value));
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, (voxel_Thing*)swapAResult.value));
 
             break;
         }
@@ -4174,8 +4174,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             voxel_Thing* function = voxel_newFunctionPosRef(executor->context, referencedPosition);
 
-            VOXEL_MUST(voxel_setScopeItem(executor->scope, posRefKey.value, function));
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, posRefKey.value));
+            VOXEL_MUST(voxel_setScopeItem(executor->scope, (voxel_Thing*)posRefKey.value, function));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)posRefKey.value));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, function));
 
             break;
@@ -4185,7 +4185,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
         {
             VOXEL_ERRORABLE jumpFunctionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(jumpFunctionResult);
-            voxel_Thing* jumpFunction = jumpFunctionResult.value;
+            voxel_Thing* jumpFunction = (voxel_Thing*)jumpFunctionResult.value;
 
             VOXEL_ASSERT(jumpFunction, VOXEL_ERROR_INVALID_ARG);
             VOXEL_ASSERT(jumpFunction->type == VOXEL_TYPE_FUNCTION, VOXEL_ERROR_CANNOT_JUMP_TO_THING);
@@ -4193,7 +4193,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             if (token->type == VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY) {
                 VOXEL_ERRORABLE jumpConditionResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(jumpConditionResult);
-                voxel_Thing* jumpCondition = jumpConditionResult.value;
+                voxel_Thing* jumpCondition = (voxel_Thing*)jumpConditionResult.value;
 
                 if (jumpCondition) {
                     voxel_Bool truthiness = voxel_thingIsTruthy(jumpCondition);
@@ -4221,10 +4221,10 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_ASSERT(notValueResult.value, VOXEL_ERROR_INVALID_ARG);
 
-            VOXEL_ERRORABLE notResult = voxel_notOperation(executor->context, notValueResult.value); VOXEL_MUST(notResult);
+            VOXEL_ERRORABLE notResult = voxel_notOperation(executor->context, (voxel_Thing*)notValueResult.value); VOXEL_MUST(notResult);
 
-            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, notResult.value));
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, notValueResult.value));
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, (voxel_Thing*)notResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)notValueResult.value));
 
             break;
         }
@@ -4241,18 +4241,21 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(binaryAResult.value, VOXEL_ERROR_INVALID_ARG);
             VOXEL_ASSERT(binaryBResult.value, VOXEL_ERROR_INVALID_ARG);
 
+            voxel_Thing* binaryB = (voxel_Thing*)binaryBResult.value;
+            voxel_Thing* binaryA = (voxel_Thing*)binaryAResult.value;
+
             VOXEL_ERRORABLE binaryResult;
 
             if (token->type == VOXEL_TOKEN_TYPE_AND) {
-                binaryResult = voxel_andOperation(executor->context, binaryAResult.value, binaryBResult.value);
+                binaryResult = voxel_andOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_OR) {
-                binaryResult = voxel_orOperation(executor->context, binaryAResult.value, binaryBResult.value);
+                binaryResult = voxel_orOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_EQUAL) {
-                binaryResult = voxel_equalOperation(executor->context, binaryAResult.value, binaryBResult.value);
+                binaryResult = voxel_equalOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_LESS_THAN) {
-                binaryResult = voxel_lessThanOperation(executor->context, binaryAResult.value, binaryBResult.value);
+                binaryResult = voxel_lessThanOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_GREATER_THAN) {
-                binaryResult = voxel_greaterThanOperation(executor->context, binaryAResult.value, binaryBResult.value);
+                binaryResult = voxel_greaterThanOperation(executor->context, binaryA, binaryB);
             } else {
                 VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
             }
@@ -4260,15 +4263,15 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(binaryResult);
 
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, binaryResult.value));
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryAResult.value));
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryBResult.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryA));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryB));
 
             break;
         }
 
         default:
             // Token contains thing to be pushed onto value stack
-            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, token->data));
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, (voxel_Thing*)token->data));
             break;
     }
 
@@ -4334,7 +4337,7 @@ VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor) {
         if (executor->callStackHead == 0) {
             #ifdef VOXEL_LOG_UNHANDLED_EXCEPTIONS
                 voxel_Thing* valueStack = executor->valueStack;
-                voxel_List* valueStackList = valueStack->value;
+                voxel_List* valueStackList = (voxel_List*)valueStack->value;
                 voxel_ListItem* lastItem = valueStackList->lastItem;
 
                 if (lastItem) {
@@ -4443,7 +4446,7 @@ voxel_Thing* voxel_pop(voxel_Executor* executor) {
         return VOXEL_NULL;
     }
 
-    return result.value;
+    return (voxel_Thing*)result.value;
 }
 
 void voxel_popVoid(voxel_Executor* executor) {
@@ -4469,7 +4472,7 @@ voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
         return VOXEL_NULL;
     }
 
-    return result.value;
+    return (voxel_Thing*)result.value;
 }
 
 _VOXEL_HELPER_POP_VALUE(voxel_popNumberInt, voxel_Int, voxel_popNumber, voxel_getNumberInt, 0);
@@ -4494,7 +4497,7 @@ voxel_Thing* voxel_popString(voxel_Executor* executor) {
         return VOXEL_NULL;
     }
 
-    return result.value;
+    return (voxel_Thing*)result.value;
 }
 
 voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
@@ -4512,7 +4515,7 @@ voxel_Thing* voxel_peek(voxel_Executor* executor, voxel_Int index) {
         return VOXEL_NULL;
     }
 
-    voxel_ListItem* listItem = listItemResult.value;
+    voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     return listItem->value;
 }

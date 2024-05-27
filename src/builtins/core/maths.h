@@ -87,7 +87,7 @@ void voxel_builtins_core_increment(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:
@@ -112,7 +112,7 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_Number* number = thing->value;
+    voxel_Number* number = (voxel_Number*)thing->value;
 
     switch (number->type) {
         case VOXEL_NUMBER_TYPE_INT:

@@ -46,7 +46,7 @@
 #include <stdlib.h>
 
 void _voxel_log_stdlib(char* text) {
-    printf(text);
+    printf("%s", text);
 }
 
 void _voxel_logByte_stdlib(char byte) {
