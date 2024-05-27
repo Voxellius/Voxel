@@ -101,6 +101,12 @@ export function tokenise(sourceContainer) {
                 continue;
             }
 
+            if (matchToken(/^\\r/)) {
+                currentString += "\r";
+
+                continue;
+            }
+
             if (matchToken(/^\\n/)) {
                 currentString += "\n";
 

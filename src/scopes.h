@@ -12,6 +12,8 @@ VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope) {
     VOXEL_MUST(voxel_unreferenceThing(scope->context, scope->things));
 
     VOXEL_FREE(scope); VOXEL_TAG_FREE(voxel_Scope);
+
+    return VOXEL_OK;
 }
 
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key) {

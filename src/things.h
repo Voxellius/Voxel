@@ -243,5 +243,5 @@ VOXEL_ERRORABLE voxel_logThing(voxel_Context* context, voxel_Thing* thing) {
 
     voxel_logString((voxel_Thing*)string.value);
 
-    VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)string.value));
+    return voxel_unreferenceThing(context, (voxel_Thing*)string.value);
 }
