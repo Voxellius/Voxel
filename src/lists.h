@@ -1,5 +1,5 @@
 voxel_Thing* voxel_newList(voxel_Context* context) {
-    voxel_List* list = VOXEL_MALLOC(sizeof(voxel_List)); VOXEL_TAG_MALLOC(voxel_List);
+    voxel_List* list = (voxel_List*)VOXEL_MALLOC(sizeof(voxel_List)); VOXEL_TAG_MALLOC(voxel_List);
 
     list->length = 0;
     list->firstItem = VOXEL_NULL;
@@ -221,7 +221,7 @@ VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, v
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_List* list = thing->value;
-    voxel_ListItem* listItem = VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
+    voxel_ListItem* listItem = (voxel_ListItem*)VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
     value->referenceCount++;
@@ -286,7 +286,7 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
     voxel_ListItem* currentListItem = listItemResult.value;
-    voxel_ListItem* listItem = VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
+    voxel_ListItem* listItem = (voxel_ListItem*)VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
     value->referenceCount++;

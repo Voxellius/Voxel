@@ -1,5 +1,5 @@
 voxel_Thing* voxel_newThing(voxel_Context* context) {
-    voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing)); VOXEL_TAG_MALLOC(voxel_Thing);
+    voxel_Thing* thing = (voxel_Thing*)VOXEL_MALLOC(sizeof(voxel_Thing)); VOXEL_TAG_MALLOC(voxel_Thing);
 
     thing->type = VOXEL_TYPE_NULL;
     thing->value = VOXEL_NULL;

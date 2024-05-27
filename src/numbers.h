@@ -1,5 +1,5 @@
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
-    voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
+    voxel_Number* number = (voxel_Number*)VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
 
     number->type = VOXEL_NUMBER_TYPE_INT;
     number->value.asInt = value;
@@ -13,7 +13,7 @@ voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
 }
 
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value) {
-    voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
+    voxel_Number* number = (voxel_Number*)VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
 
     number->type = VOXEL_NUMBER_TYPE_FLOAT;
     number->value.asFloat = value;

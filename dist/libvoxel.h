@@ -1654,12 +1654,12 @@ voxel_Float voxel_maths_roundToPrecision(voxel_Float number, voxel_Count precisi
 // src/contexts.h
 
 voxel_Context* voxel_newContext() {
-    voxel_Context* context = VOXEL_MALLOC(sizeof(voxel_Context)); VOXEL_TAG_MALLOC(voxel_Context);
+    voxel_Context* context = (voxel_Context*)VOXEL_MALLOC(sizeof(voxel_Context)); VOXEL_TAG_MALLOC(voxel_Context);
 
     context->isInitialised = VOXEL_FALSE;
     context->code = VOXEL_NULL;
     context->codeLength = 0;
-    context->builtins = VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
+    context->builtins = (voxel_Builtin*)VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
     context->tokenisationState = VOXEL_STATE_NONE;
     context->firstTrackedThing = VOXEL_NULL;
@@ -1736,7 +1736,7 @@ VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, vo
 
     voxel_Count newSize = context->builtinCount * sizeof(voxel_Builtin);
 
-    context->builtins = VOXEL_REALLOC(context->builtins, newSize); VOXEL_TAG_REALLOC("voxel_Context->builtins", newSize - sizeof(voxel_Builtin), newSize);
+    context->builtins = (voxel_Builtin*)VOXEL_REALLOC(context->builtins, newSize); VOXEL_TAG_REALLOC("voxel_Context->builtins", newSize - sizeof(voxel_Builtin), newSize);
     context->builtins[context->builtinCount - 1] = builtin;
 
     voxel_Thing* function = voxel_newFunctionBuiltin(context, context->builtinCount - 1);
@@ -1749,7 +1749,7 @@ VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, vo
 // src/things.h
 
 voxel_Thing* voxel_newThing(voxel_Context* context) {
-    voxel_Thing* thing = VOXEL_MALLOC(sizeof(voxel_Thing)); VOXEL_TAG_MALLOC(voxel_Thing);
+    voxel_Thing* thing = (voxel_Thing*)VOXEL_MALLOC(sizeof(voxel_Thing)); VOXEL_TAG_MALLOC(voxel_Thing);
 
     thing->type = VOXEL_TYPE_NULL;
     thing->value = VOXEL_NULL;
@@ -2186,7 +2186,7 @@ voxel_Bool voxel_functionIsTruthy(voxel_Thing* thing) {
 // src/closures.h
 
 voxel_Thing* voxel_newClosure(voxel_Context* context, voxel_Position positionReference, voxel_Thing* environment) {
-    voxel_Closure* closure = VOXEL_MALLOC(sizeof(voxel_Closure)); VOXEL_TAG_MALLOC(voxel_Closure);
+    voxel_Closure* closure = (voxel_Closure*)VOXEL_MALLOC(sizeof(voxel_Closure)); VOXEL_TAG_MALLOC(voxel_Closure);
 
     closure->position = positionReference;
     closure->environment = environment;
@@ -2242,7 +2242,7 @@ voxel_Bool voxel_closureIsTruthy(voxel_Thing* thing) {
 // src/numbers.h
 
 voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
-    voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
+    voxel_Number* number = (voxel_Number*)VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
 
     number->type = VOXEL_NUMBER_TYPE_INT;
     number->value.asInt = value;
@@ -2256,7 +2256,7 @@ voxel_Thing* voxel_newNumberInt(voxel_Context* context, voxel_Int value) {
 }
 
 voxel_Thing* voxel_newNumberFloat(voxel_Context* context, voxel_Float value) {
-    voxel_Number* number = VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
+    voxel_Number* number = (voxel_Number*)VOXEL_MALLOC(sizeof(voxel_Number)); VOXEL_TAG_MALLOC(voxel_Number);
 
     number->type = VOXEL_NUMBER_TYPE_FLOAT;
     number->value.asFloat = value;
@@ -2502,10 +2502,10 @@ voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing) {
 // src/buffers.h
 
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data) {
-    voxel_Buffer* buffer = VOXEL_MALLOC(sizeof(voxel_Buffer)); VOXEL_TAG_MALLOC(voxel_Buffer);
+    voxel_Buffer* buffer = (voxel_Buffer*)VOXEL_MALLOC(sizeof(voxel_Buffer)); VOXEL_TAG_MALLOC(voxel_Buffer);
 
     buffer->size = size;
-    buffer->value = VOXEL_MALLOC(size); VOXEL_TAG_MALLOC_SIZE("voxel_Buffer->value", size);
+    buffer->value = (voxel_Byte*)VOXEL_MALLOC(size); VOXEL_TAG_MALLOC_SIZE("voxel_Buffer->value", size);
 
     voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_BUFFER);
 
@@ -2598,10 +2598,10 @@ voxel_Count voxel_getBufferSize(voxel_Thing* thing) {
 // src/strings.h
 
 voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data) {
-    voxel_String* string = VOXEL_MALLOC(sizeof(voxel_String)); VOXEL_TAG_MALLOC(voxel_String);
+    voxel_String* string = (voxel_String*)VOXEL_MALLOC(sizeof(voxel_String)); VOXEL_TAG_MALLOC(voxel_String);
 
     string->size = size;
-    string->value = VOXEL_MALLOC(size); VOXEL_TAG_MALLOC_SIZE("voxel_String->value", size);
+    string->value = (voxel_Byte*)VOXEL_MALLOC(size); VOXEL_TAG_MALLOC_SIZE("voxel_String->value", size);
 
     voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_STRING);
 
@@ -2791,10 +2791,10 @@ voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, vo
     voxel_String* aString = a->value;
     voxel_String* bString = b->value;
 
-    voxel_String* resultString = VOXEL_MALLOC(sizeof(voxel_String)); VOXEL_TAG_MALLOC(voxel_String);
+    voxel_String* resultString = (voxel_String*)VOXEL_MALLOC(sizeof(voxel_String)); VOXEL_TAG_MALLOC(voxel_String);
 
     resultString->size = aString->size + bString->size;
-    resultString->value = VOXEL_MALLOC(resultString->size); VOXEL_TAG_MALLOC_SIZE("voxel_String->value", resultString->size);
+    resultString->value = (voxel_Byte*)VOXEL_MALLOC(resultString->size); VOXEL_TAG_MALLOC_SIZE("voxel_String->value", resultString->size);
 
     voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_STRING);
 
@@ -2822,7 +2822,7 @@ VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, vox
 
     voxel_Count newSize = aString->size + bString->size;
 
-    aString->value = VOXEL_REALLOC(aString->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", aString->size, newSize);
+    aString->value = (voxel_Byte*)VOXEL_REALLOC(aString->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", aString->size, newSize);
 
     for (voxel_Count i = 0; i < bString->size; i++) {
         aString->value[aString->size + i] = bString->value[i];
@@ -2848,7 +2848,7 @@ VOXEL_ERRORABLE voxel_appendByteToString(voxel_Context* context, voxel_Thing* th
     voxel_String* string = thing->value;
 
     string->size++;
-    string->value = VOXEL_REALLOC(string->value, string->size); VOXEL_TAG_REALLOC("voxel_String->value", string->size - 1, string->size);
+    string->value = (voxel_Byte*)VOXEL_REALLOC(string->value, string->size); VOXEL_TAG_REALLOC("voxel_String->value", string->size - 1, string->size);
 
     string->value[string->size - 1] = byte;
 
@@ -2888,7 +2888,7 @@ VOXEL_ERRORABLE voxel_cutStringEnd(voxel_Context* context, voxel_Thing* thing, v
         return VOXEL_OK;
     }
 
-    string->value = VOXEL_REALLOC(string->value, size); VOXEL_TAG_REALLOC("voxel_String->value", string->size, size);
+    string->value = (voxel_Byte*)VOXEL_REALLOC(string->value, size); VOXEL_TAG_REALLOC("voxel_String->value", string->size, size);
     string->size = size;
 
     return VOXEL_OK;
@@ -2906,7 +2906,7 @@ VOXEL_ERRORABLE _voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, 
         return VOXEL_OK;
     }
 
-    string->value = VOXEL_REALLOC(string->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", string->size, newSize);
+    string->value = (voxel_Byte*)VOXEL_REALLOC(string->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", string->size, newSize);
 
     for (voxel_Count i = 0; i < padding; i++) {
         if (reversed) {
@@ -2936,7 +2936,7 @@ VOXEL_ERRORABLE voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, v
 // src/objects.h
 
 voxel_Thing* voxel_newObject(voxel_Context* context) {
-    voxel_Object* object = VOXEL_MALLOC(sizeof(voxel_Object)); VOXEL_TAG_MALLOC(voxel_Object);
+    voxel_Object* object = (voxel_Object*)VOXEL_MALLOC(sizeof(voxel_Object)); VOXEL_TAG_MALLOC(voxel_Object);
 
     object->length = 0;
     object->firstItem = VOXEL_NULL;
@@ -3155,7 +3155,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
 
     voxel_lockThing(key);
 
-    objectItem = VOXEL_MALLOC(sizeof(voxel_ObjectItem)); VOXEL_TAG_MALLOC(voxel_ObjectItem);
+    objectItem = (voxel_ObjectItem*)VOXEL_MALLOC(sizeof(voxel_ObjectItem)); VOXEL_TAG_MALLOC(voxel_ObjectItem);
 
     objectItem->key = key;
     key->referenceCount++;
@@ -3223,7 +3223,7 @@ voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* cont
         return objectItem->descriptor;
     }
 
-    voxel_ObjectItemDescriptor* descriptor = VOXEL_MALLOC(sizeof(voxel_ObjectItemDescriptor)); VOXEL_TAG_MALLOC(voxel_ObjectItemDescriptor);
+    voxel_ObjectItemDescriptor* descriptor = (voxel_ObjectItemDescriptor*)VOXEL_MALLOC(sizeof(voxel_ObjectItemDescriptor)); VOXEL_TAG_MALLOC(voxel_ObjectItemDescriptor);
 
     descriptor->getterFunction = VOXEL_NULL;
     descriptor->setterFunction = VOXEL_NULL;
@@ -3263,7 +3263,7 @@ voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thin
 // src/lists.h
 
 voxel_Thing* voxel_newList(voxel_Context* context) {
-    voxel_List* list = VOXEL_MALLOC(sizeof(voxel_List)); VOXEL_TAG_MALLOC(voxel_List);
+    voxel_List* list = (voxel_List*)VOXEL_MALLOC(sizeof(voxel_List)); VOXEL_TAG_MALLOC(voxel_List);
 
     list->length = 0;
     list->firstItem = VOXEL_NULL;
@@ -3485,7 +3485,7 @@ VOXEL_ERRORABLE voxel_pushOntoList(voxel_Context* context, voxel_Thing* thing, v
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_List* list = thing->value;
-    voxel_ListItem* listItem = VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
+    voxel_ListItem* listItem = (voxel_ListItem*)VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
     value->referenceCount++;
@@ -3550,7 +3550,7 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(context, thing, index); VOXEL_MUST(listItemResult);
     voxel_ListItem* currentListItem = listItemResult.value;
-    voxel_ListItem* listItem = VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
+    voxel_ListItem* listItem = (voxel_ListItem*)VOXEL_MALLOC(sizeof(voxel_ListItem)); VOXEL_TAG_MALLOC(voxel_ListItem);
 
     listItem->value = value;
     value->referenceCount++;
@@ -3839,10 +3839,10 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
                 voxel_Count neededSize = (((stringSize / VOXEL_STRING_BLOCK_SIZE) + 1) * VOXEL_STRING_BLOCK_SIZE);
 
                 if (currentString == VOXEL_NULL) {
-                    currentString = VOXEL_MALLOC(neededSize); VOXEL_TAG_MALLOC_SIZE("voxel_Byte[]", neededSize);
+                    currentString = (voxel_Byte*)VOXEL_MALLOC(neededSize); VOXEL_TAG_MALLOC_SIZE("voxel_Byte[]", neededSize);
                     currentSize = neededSize;
                 } else if (neededSize > currentSize) {
-                    currentString = VOXEL_REALLOC(currentString, neededSize); VOXEL_TAG_REALLOC("voxel_Byte[]", currentSize, neededSize);
+                    currentString = (voxel_Byte*)VOXEL_REALLOC(currentString, neededSize); VOXEL_TAG_REALLOC("voxel_Byte[]", currentSize, neededSize);
                     currentSize = neededSize;
                 }
 
@@ -3914,7 +3914,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
     token.type = tokenType;
 
-    voxel_Token* tokenPtr = VOXEL_MALLOC(sizeof(token)); VOXEL_TAG_MALLOC(voxel_Token);
+    voxel_Token* tokenPtr = (voxel_Token*)VOXEL_MALLOC(sizeof(token)); VOXEL_TAG_MALLOC(voxel_Token);
 
     VOXEL_INTO_PTR(token, tokenPtr);
 
@@ -3924,13 +3924,13 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 // src/executors.h
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context) {
-    voxel_Executor* executor = VOXEL_MALLOC(sizeof(voxel_Executor)); VOXEL_TAG_MALLOC(voxel_Executor);
+    voxel_Executor* executor = (voxel_Executor*)VOXEL_MALLOC(sizeof(voxel_Executor)); VOXEL_TAG_MALLOC(voxel_Executor);
 
     executor->context = context;
     executor->scope = context->globalScope;
     executor->isRunning = VOXEL_TRUE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
-    executor->callStack = VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
+    executor->callStack = (voxel_Call*)VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
     executor->callStack[0] = (voxel_Call) {.position = VOXEL_MAGIC_SIZE, .canHandleExceptions = VOXEL_FALSE};
     executor->callStackHead = 0;
     executor->valueStack = voxel_newList(context);
@@ -4260,7 +4260,7 @@ void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position) {
 
     if (executor->callStackSize < neededSize) {
         executor->callStackSize = neededSize;
-        executor->callStack = VOXEL_REALLOC(executor->callStack, neededSize); VOXEL_TAG_REALLOC("voxel_Executor->callStack", neededSize - sizeof(voxel_Call), neededSize);
+        executor->callStack = (voxel_Call*)VOXEL_REALLOC(executor->callStack, neededSize); VOXEL_TAG_REALLOC("voxel_Executor->callStack", neededSize - sizeof(voxel_Call), neededSize);
     }
 
     executor->callStack[executor->callStackHead] = (voxel_Call) {.position = position, .canHandleExceptions = VOXEL_FALSE};
@@ -4326,7 +4326,7 @@ VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor) {
 // src/scopes.h
 
 voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope) {
-    voxel_Scope* scope = VOXEL_MALLOC(sizeof(voxel_Scope)); VOXEL_TAG_MALLOC(voxel_Scope);
+    voxel_Scope* scope = (voxel_Scope*)VOXEL_MALLOC(sizeof(voxel_Scope)); VOXEL_TAG_MALLOC(voxel_Scope);
 
     scope->context = context;
     scope->parentScope = parentScope;

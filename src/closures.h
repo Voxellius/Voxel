@@ -1,5 +1,5 @@
 voxel_Thing* voxel_newClosure(voxel_Context* context, voxel_Position positionReference, voxel_Thing* environment) {
-    voxel_Closure* closure = VOXEL_MALLOC(sizeof(voxel_Closure)); VOXEL_TAG_MALLOC(voxel_Closure);
+    voxel_Closure* closure = (voxel_Closure*)VOXEL_MALLOC(sizeof(voxel_Closure)); VOXEL_TAG_MALLOC(voxel_Closure);
 
     closure->position = positionReference;
     closure->environment = environment;

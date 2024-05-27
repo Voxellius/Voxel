@@ -157,10 +157,10 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
                 voxel_Count neededSize = (((stringSize / VOXEL_STRING_BLOCK_SIZE) + 1) * VOXEL_STRING_BLOCK_SIZE);
 
                 if (currentString == VOXEL_NULL) {
-                    currentString = VOXEL_MALLOC(neededSize); VOXEL_TAG_MALLOC_SIZE("voxel_Byte[]", neededSize);
+                    currentString = (voxel_Byte*)VOXEL_MALLOC(neededSize); VOXEL_TAG_MALLOC_SIZE("voxel_Byte[]", neededSize);
                     currentSize = neededSize;
                 } else if (neededSize > currentSize) {
-                    currentString = VOXEL_REALLOC(currentString, neededSize); VOXEL_TAG_REALLOC("voxel_Byte[]", currentSize, neededSize);
+                    currentString = (voxel_Byte*)VOXEL_REALLOC(currentString, neededSize); VOXEL_TAG_REALLOC("voxel_Byte[]", currentSize, neededSize);
                     currentSize = neededSize;
                 }
 
@@ -232,7 +232,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
 
     token.type = tokenType;
 
-    voxel_Token* tokenPtr = VOXEL_MALLOC(sizeof(token)); VOXEL_TAG_MALLOC(voxel_Token);
+    voxel_Token* tokenPtr = (voxel_Token*)VOXEL_MALLOC(sizeof(token)); VOXEL_TAG_MALLOC(voxel_Token);
 
     VOXEL_INTO_PTR(token, tokenPtr);
 

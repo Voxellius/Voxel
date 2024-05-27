@@ -1,5 +1,5 @@
 voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope) {
-    voxel_Scope* scope = VOXEL_MALLOC(sizeof(voxel_Scope)); VOXEL_TAG_MALLOC(voxel_Scope);
+    voxel_Scope* scope = (voxel_Scope*)VOXEL_MALLOC(sizeof(voxel_Scope)); VOXEL_TAG_MALLOC(voxel_Scope);
 
     scope->context = context;
     scope->parentScope = parentScope;

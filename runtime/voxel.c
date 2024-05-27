@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     fseek(fp, 0, SEEK_END);
 
     size_t size = ftell(fp);
-    char* data = VOXEL_MALLOC(size + 1);
+    char* data = (char*)VOXEL_MALLOC(size + 1);
 
     fseek(fp, 0, SEEK_SET);
     fread(data, sizeof(char), size, fp);

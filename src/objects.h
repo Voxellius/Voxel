@@ -1,5 +1,5 @@
 voxel_Thing* voxel_newObject(voxel_Context* context) {
-    voxel_Object* object = VOXEL_MALLOC(sizeof(voxel_Object)); VOXEL_TAG_MALLOC(voxel_Object);
+    voxel_Object* object = (voxel_Object*)VOXEL_MALLOC(sizeof(voxel_Object)); VOXEL_TAG_MALLOC(voxel_Object);
 
     object->length = 0;
     object->firstItem = VOXEL_NULL;
@@ -218,7 +218,7 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
 
     voxel_lockThing(key);
 
-    objectItem = VOXEL_MALLOC(sizeof(voxel_ObjectItem)); VOXEL_TAG_MALLOC(voxel_ObjectItem);
+    objectItem = (voxel_ObjectItem*)VOXEL_MALLOC(sizeof(voxel_ObjectItem)); VOXEL_TAG_MALLOC(voxel_ObjectItem);
 
     objectItem->key = key;
     key->referenceCount++;
@@ -286,7 +286,7 @@ voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* cont
         return objectItem->descriptor;
     }
 
-    voxel_ObjectItemDescriptor* descriptor = VOXEL_MALLOC(sizeof(voxel_ObjectItemDescriptor)); VOXEL_TAG_MALLOC(voxel_ObjectItemDescriptor);
+    voxel_ObjectItemDescriptor* descriptor = (voxel_ObjectItemDescriptor*)VOXEL_MALLOC(sizeof(voxel_ObjectItemDescriptor)); VOXEL_TAG_MALLOC(voxel_ObjectItemDescriptor);
 
     descriptor->getterFunction = VOXEL_NULL;
     descriptor->setterFunction = VOXEL_NULL;
