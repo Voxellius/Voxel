@@ -24,7 +24,7 @@ voxel_Thing* voxel_copyBoolean(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing) {
-    return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? "true" : "false"));
+    return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? (voxel_Byte*)"true" : (voxel_Byte*)"false"));
 }
 
 VOXEL_ERRORABLE voxel_booleanToNumber(voxel_Context* context, voxel_Thing* thing) {

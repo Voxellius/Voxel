@@ -68,8 +68,8 @@ VOXEL_ERRORABLE voxel_destroyNumber(voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
-    voxel_Number* aNumber = a->value;
-    voxel_Number* bNumber = b->value;
+    voxel_Number* aNumber = (voxel_Number*)a->value;
+    voxel_Number* bNumber = (voxel_Number*)b->value;
 
     if (aNumber->type == VOXEL_NUMBER_TYPE_INT && bNumber->type == VOXEL_NUMBER_TYPE_INT) {
         return aNumber->value.asInt == bNumber->value.asInt;
@@ -107,7 +107,7 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
 
     #ifdef VOXEL_INFINITY
         if (value == VOXEL_INFINITY) {
-            return VOXEL_OK_RET(voxel_newStringTerminated(context, isNegative ? "-infinity" : "infinity"));
+            return VOXEL_OK_RET(voxel_newStringTerminated(context, isNegative ? (voxel_Byte*)"-infinity" : (voxel_Byte*)"infinity"));
         }
     #endif
 
@@ -194,10 +194,10 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
         voxel_Thing* exponentNumber = voxel_newNumberInt(context, exponent);
         VOXEL_ERRORABLE exponentString = voxel_numberToString(context, exponentNumber); VOXEL_MUST(exponentString);
 
-        voxel_appendToString(context, string, exponentString.value);
+        voxel_appendToString(context, string, (voxel_Thing*)exponentString.value);
 
         voxel_unreferenceThing(context, exponentNumber);
-        voxel_unreferenceThing(context, exponentString.value);
+        voxel_unreferenceThing(context, (voxel_Thing*)exponentString.value);
     }
 
     return VOXEL_OK_RET(string);

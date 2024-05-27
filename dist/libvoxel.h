@@ -2054,7 +2054,7 @@ voxel_Thing* voxel_copyBoolean(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_booleanToString(voxel_Context* context, voxel_Thing* thing) {
-    return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? "true" : "false"));
+    return VOXEL_OK_RET(voxel_newStringTerminated(context, thing->value ? (voxel_Byte*)"true" : (voxel_Byte*)"false"));
 }
 
 VOXEL_ERRORABLE voxel_booleanToNumber(voxel_Context* context, voxel_Thing* thing) {
@@ -2311,8 +2311,8 @@ VOXEL_ERRORABLE voxel_destroyNumber(voxel_Thing* thing) {
 }
 
 voxel_Bool voxel_compareNumbers(voxel_Thing* a, voxel_Thing* b) {
-    voxel_Number* aNumber = a->value;
-    voxel_Number* bNumber = b->value;
+    voxel_Number* aNumber = (voxel_Number*)a->value;
+    voxel_Number* bNumber = (voxel_Number*)b->value;
 
     if (aNumber->type == VOXEL_NUMBER_TYPE_INT && bNumber->type == VOXEL_NUMBER_TYPE_INT) {
         return aNumber->value.asInt == bNumber->value.asInt;
@@ -2350,7 +2350,7 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
 
     #ifdef VOXEL_INFINITY
         if (value == VOXEL_INFINITY) {
-            return VOXEL_OK_RET(voxel_newStringTerminated(context, isNegative ? "-infinity" : "infinity"));
+            return VOXEL_OK_RET(voxel_newStringTerminated(context, isNegative ? (voxel_Byte*)"-infinity" : (voxel_Byte*)"infinity"));
         }
     #endif
 
@@ -4262,7 +4262,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_MUST(binaryResult);
 
-            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, binaryResult.value));
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, (voxel_Thing*)binaryResult.value));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryA));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryB));
 
