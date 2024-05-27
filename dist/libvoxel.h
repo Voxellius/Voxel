@@ -3745,6 +3745,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_NUMBER_INT_8:
         case VOXEL_TOKEN_TYPE_NUMBER_INT_16:
         case VOXEL_TOKEN_TYPE_NUMBER_INT_32:
+        {
             VOXEL_MUST(voxel_safeToRead(context, position, 1));
 
             voxel_Int numberIntValue = context->code[(*position)++] & 0xFF;
@@ -3775,8 +3776,10 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_DEBUG_LOG("[Token: num (int)]\n");
 
             break;
+        }
 
         case VOXEL_TOKEN_TYPE_NUMBER_FLOAT:
+        {
             VOXEL_MUST(voxel_safeToRead(context, position, 4));
 
             voxel_Float numberFloatValue;
@@ -3789,9 +3792,11 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_DEBUG_LOG("[Token: num (float)]\n");
 
             break;
+        }
 
         case VOXEL_TOKEN_TYPE_BUFFER:
         case VOXEL_TOKEN_TYPE_BUFFER_EMPTY:
+        {
             VOXEL_MUST(voxel_safeToRead(context, position, 4));
 
             voxel_UInt32 bufferSize = 0;
@@ -3817,9 +3822,11 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_DEBUG_LOG("[Token: buffer (declared)]\n");
 
             break;
+        }
 
         case VOXEL_TOKEN_TYPE_STRING:
         case VOXEL_TOKEN_TYPE_SYSTEM_CALL:
+        {
             voxel_Byte currentByte = '\0';
             voxel_Byte* currentString = VOXEL_NULL;
             voxel_Count currentSize = 0;
@@ -3860,6 +3867,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             }
 
             break;
+        }
 
         case VOXEL_TOKEN_TYPE_CALL:
         case VOXEL_TOKEN_TYPE_RETURN:
@@ -3888,6 +3896,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
         case VOXEL_TOKEN_TYPE_POS_REF_BACKWARD:
         case VOXEL_TOKEN_TYPE_POS_REF_FORWARD:
+        {
             VOXEL_MUST(voxel_safeToRead(context, position, 4));
 
             voxel_UInt32 stepSize = 0;
@@ -3902,6 +3911,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_DEBUG_LOG("[Token: position reference]\n");
 
             break;
+        }
 
         case '\0':
             VOXEL_DEBUG_LOG("[Last byte]\n");
@@ -4224,6 +4234,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_EQUAL:
         case VOXEL_TOKEN_TYPE_LESS_THAN:
         case VOXEL_TOKEN_TYPE_GREATER_THAN:
+        {
             VOXEL_ERRORABLE binaryBResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryBResult);
             VOXEL_ERRORABLE binaryAResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(binaryAResult);
 
@@ -4253,6 +4264,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(voxel_unreferenceThing(executor->context, binaryBResult.value));
 
             break;
+        }
 
         default:
             // Token contains thing to be pushed onto value stack
