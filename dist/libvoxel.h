@@ -2437,10 +2437,10 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
         voxel_Thing* exponentNumber = voxel_newNumberInt(context, exponent);
         VOXEL_ERRORABLE exponentString = voxel_numberToString(context, exponentNumber); VOXEL_MUST(exponentString);
 
-        voxel_appendToString(context, string, exponentString.value);
+        voxel_appendToString(context, string, (voxel_Thing*)exponentString.value);
 
         voxel_unreferenceThing(context, exponentNumber);
-        voxel_unreferenceThing(context, exponentString.value);
+        voxel_unreferenceThing(context, (voxel_Thing*)exponentString.value);
     }
 
     return VOXEL_OK_RET(string);
@@ -3658,7 +3658,7 @@ VOXEL_ERRORABLE voxel_lessThanOperation(voxel_Context* context, voxel_Thing* a, 
     VOXEL_ERRORABLE aNumberResult = voxel_thingToNumber(context, a); VOXEL_MUST(aNumberResult);
     VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
 
-    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) < voxel_getNumberFloat((voxel_Thing*)bNumberResult.value);
+    voxel_Bool result = voxel_getNumberFloat((voxel_Thing*)aNumberResult.value) < voxel_getNumberFloat((voxel_Thing*)bNumberResult.value);
 
     VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)aNumberResult.value));
     VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)bNumberResult.value));
@@ -3670,7 +3670,7 @@ VOXEL_ERRORABLE voxel_greaterThanOperation(voxel_Context* context, voxel_Thing* 
     VOXEL_ERRORABLE aNumberResult = voxel_thingToNumber(context, a); VOXEL_MUST(aNumberResult);
     VOXEL_ERRORABLE bNumberResult = voxel_thingToNumber(context, b); VOXEL_MUST(bNumberResult);
 
-    voxel_Bool result = voxel_getNumberFloat(aNumberResult.value) > voxel_getNumberFloat((voxel_Thing*)bNumberResult.value);
+    voxel_Bool result = voxel_getNumberFloat((voxel_Thing*)aNumberResult.value) > voxel_getNumberFloat((voxel_Thing*)bNumberResult.value);
 
     VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)aNumberResult.value));
     VOXEL_MUST(voxel_unreferenceThing(context, (voxel_Thing*)bNumberResult.value));
@@ -4089,7 +4089,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(setKey.value, VOXEL_ERROR_MISSING_ARG);
             VOXEL_ASSERT(setValue, VOXEL_ERROR_MISSING_ARG);
 
-            VOXEL_MUST((token->type == VOXEL_TOKEN_TYPE_VAR ? voxel_setLocalScopeItem : voxel_setScopeItem)(executor->scope, setKey.value, setValue));
+            VOXEL_MUST((token->type == VOXEL_TOKEN_TYPE_VAR ? voxel_setLocalScopeItem : voxel_setScopeItem)(executor->scope, (voxel_Thing*)setKey.value, setValue));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)setKey.value));
 
             break;
