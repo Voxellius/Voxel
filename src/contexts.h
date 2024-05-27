@@ -30,7 +30,7 @@ VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
             VOXEL_THROW(VOXEL_ERROR_INVALID_MAGIC);
         }
 
-        voxel_Byte* magic = (voxel_Byte[VOXEL_MAGIC_SIZE]) {VOXEL_MAGIC};
+        static voxel_Byte* magic = (voxel_Byte[VOXEL_MAGIC_SIZE]) {VOXEL_MAGIC};
 
         for (voxel_Count i = 0; i < VOXEL_MAGIC_SIZE; i++) {
             if (context->code[i] != magic[i]) {
