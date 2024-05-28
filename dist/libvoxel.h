@@ -494,7 +494,7 @@ void voxel_lockObject(voxel_Thing* thing);
 voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing);
-voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth);
+voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth, voxel_Count* actualTraverseDepth);
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
@@ -3093,7 +3093,7 @@ voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing) {
     return voxel_getObjectLength(thing) != 0;
 }
 
-voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth) {
+voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth, voxel_Count* actualTraverseDepth) {
     voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
@@ -3114,9 +3114,13 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
 
             while (currentPrototypeListItem) {
                 voxel_Thing* currentPrototype = currentPrototypeListItem->value;
-                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(currentPrototype, key, traverseDepth - 1);
+                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(currentPrototype, key, traverseDepth - 1, actualTraverseDepth);
 
                 if (prototypeObjectItem) {
+                    if (actualTraverseDepth) {
+                        (*actualTraverseDepth)++;
+                    }
+
                     return prototypeObjectItem;
                 }
 
@@ -3135,25 +3139,30 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
 }
 
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
-    return voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH);
+    return voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, VOXEL_NULL);
 }
 
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
-    
+
+    voxel_Count actualTraverseDepth = 0;
     voxel_Object* object = (voxel_Object*)thing->value;
-    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, 0);
+    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, &actualTraverseDepth);
 
     if (objectItem) {
-        VOXEL_MUST(voxel_unreferenceThing(context, objectItem->value));
+        if (actualTraverseDepth == 0) {
+            VOXEL_MUST(voxel_unreferenceThing(context, objectItem->value));
 
-        objectItem->value = value;
-        value->referenceCount++;
+            objectItem->value = value;
+            value->referenceCount++;
 
-        return VOXEL_OK_RET(objectItem);
+            return VOXEL_OK_RET(objectItem);
+        }
+
+        key = objectItem->key;
+    } else {
+        voxel_lockThing(key);
     }
-
-    voxel_lockThing(key);
 
     objectItem = (voxel_ObjectItem*)VOXEL_MALLOC(sizeof(voxel_ObjectItem)); VOXEL_TAG_MALLOC(voxel_ObjectItem);
 

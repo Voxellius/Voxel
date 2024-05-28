@@ -7,6 +7,8 @@ instance2 multiply after accumulate result: 48
 Class without constructor value: 246
 ChildClass constructor called with extra arg: 6
 TestClass constructor called with args: 4, 5
+instance1 parent class prop: 123
+instance4 child class prop: 456
 instance4 multiply result: 120
 instance4 multiply after accumulate result: 3600
 Animal's name: George the Giraffe

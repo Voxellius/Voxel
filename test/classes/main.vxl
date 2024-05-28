@@ -1,4 +1,6 @@
 class TestClass {
+    propSetInChild = 123;
+
     constructor(a, b) {
         syscall log("TestClass constructor called with args: ");
         syscall log(a);
@@ -73,6 +75,16 @@ class ChildClass extends TestClass {
 }
 
 var instance4 = new ChildClass(4, 5, 6);
+
+instance4.propSetInChild = 456;
+
+syscall log("instance1 parent class prop: ");
+syscall log(instance1.propSetInChild);
+syscall log("\n");
+
+syscall log("instance4 child class prop: ");
+syscall log(instance4.propSetInChild);
+syscall log("\n");
 
 syscall log("instance4 multiply result: ");
 syscall log(instance4.multiply());
