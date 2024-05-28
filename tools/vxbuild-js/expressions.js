@@ -26,6 +26,7 @@ export class ThisNode extends ast.AstNode {
     }
 
     checkSymbolUsage(scope) {
+        console.log("this CSU");
         scope.addCoreNamespaceSymbol(this.getThisSymbol, this);
 
         super.checkSymbolUsage(scope);
@@ -1108,6 +1109,8 @@ export class ExpressionAssignmentNode extends ast.AstNode {
 
         if (target instanceof PropertyAccessorNode) {
             scope.addSymbol(target.propertySymbol, false, true);
+
+            subject.checkSymbolUsage(scope);
         }
 
         super.checkSymbolUsage(scope);
