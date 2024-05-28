@@ -179,7 +179,7 @@ export class ThingNode extends ast.AstNode {
             this.value instanceof namespaces.Symbol ||
             this.value instanceof namespaces.ForeignSymbolReference
         ) {
-            return this.scope.getSymbolTruthiness(this.value);
+            return this.scope?.getSymbolTruthiness(this.value) ?? null;
         }
 
         if (this.value == null) {
