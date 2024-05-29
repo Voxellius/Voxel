@@ -55,8 +55,6 @@ VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context) {
         currentExecutor = currentExecutor->nextExecutor;
     }
 
-    voxel_removeUnusedThings(context);
-
     return VOXEL_OK;
 }
 

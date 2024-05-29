@@ -200,7 +200,6 @@ VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, vo
 voxel_Thing* voxel_newThing(voxel_Context* context);
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thing);
-VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context);
 voxel_Bool voxel_compareThingTypes(voxel_Thing* a, voxel_Thing* b);
 voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b);
 void voxel_lockThing(voxel_Thing* thing);
