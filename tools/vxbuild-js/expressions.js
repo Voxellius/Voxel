@@ -1449,7 +1449,7 @@ export class UnarySuffixIncrementationOperatorExpressionNode extends UnarySuffix
     generateCode(options) {
         return codeGen.join(
             this.children[0].generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.COPY, codeGen.vxcTokens.SWAP),
+            codeGen.bytes(codeGen.vxcTokens.COPY, codeGen.vxcTokens.SWAP),
             codeGen.number(1),
             codeGen.systemCall(this.operatorToken.value),
             codeGen.bytes(codeGen.vxcTokens.POP)

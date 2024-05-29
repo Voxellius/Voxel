@@ -72,18 +72,19 @@ VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thin
     return VOXEL_OK;
 }
 
+// TODO: Pending removal as it doesn't have much of an effect and only makes things slower
 VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context) {
     voxel_Thing* currentThing = context->firstTrackedThing;
 
-    while (currentThing != VOXEL_NULL) {
-        voxel_Thing* nextThing = currentThing->nextTrackedThing;
+    // while (currentThing != VOXEL_NULL) {
+    //     voxel_Thing* nextThing = currentThing->nextTrackedThing;
 
-        if (currentThing->referenceCount == 0) {
-            VOXEL_MUST(voxel_unreferenceThing(context, currentThing));
-        }
+    //     if (currentThing->referenceCount == 0) {
+    //         VOXEL_MUST(voxel_unreferenceThing(context, currentThing));
+    //     }
 
-        currentThing = nextThing;
-    }
+    //     currentThing = nextThing;
+    // }
 
     return VOXEL_OK;
 }

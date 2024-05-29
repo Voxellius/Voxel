@@ -26,7 +26,7 @@ function instantiate(object, constructorArgs) {
 function setPrototypes(object, prototypes) {
     var currentPrototypes = syscall Op(object);
 
-    for (var i = 0; i < syscall Ll(prototypes); i++) {
+    for (var i = 0; i < syscall Ll(prototypes); ++i) {
         syscall Lu(prototypes[i], currentPrototypes);
     }
 }
@@ -209,7 +209,7 @@ function getProperty(thing, property) {
             return function(value) {
                 var length = syscall Ll(thing);
 
-                for (var i = 0; i < length; i++) {
+                for (var i = 0; i < length; ++i) {
                     if (thing[i] == value) {
                         return i;
                     }
@@ -223,7 +223,7 @@ function getProperty(thing, property) {
             return function(value) {
                 var length = syscall Ll(thing);
 
-                for (var i = 0; i < length; i++) {
+                for (var i = 0; i < length; ++i) {
                     if (thing[i] == value) {
                         return true;
                     }
@@ -237,7 +237,7 @@ function getProperty(thing, property) {
             return function(value) {
                 var length = syscall Ll(thing);
 
-                for (var i = 0; i < length; i++) {
+                for (var i = 0; i < length; ++i) {
                     if (thing[i] == value) {
                         syscall Lr(thing, i);
 
@@ -253,7 +253,7 @@ function getProperty(thing, property) {
             return function(callback) {
                 var length = syscall Ll(thing);
 
-                for (var i = 0; i < length; i++) {
+                for (var i = 0; i < length; ++i) {
                     callback(thing[i], i);
                 }
             };
@@ -264,7 +264,7 @@ function getProperty(thing, property) {
                 var length = syscall Ll(thing);
                 var result = [];
 
-                for (var i = 0; i < length; i++) {
+                for (var i = 0; i < length; ++i) {
                     syscall Lu(callback(thing[i], i), result);
                 }
 
@@ -277,7 +277,7 @@ function getProperty(thing, property) {
                 var length = syscall Ll(thing);
                 var result = [];
 
-                for (var i = 0; i < length; i++) {
+                for (var i = 0; i < length; ++i) {
                     var item = thing[i];
 
                     if (callback(item, i)) {
@@ -293,7 +293,7 @@ function getProperty(thing, property) {
             return function(callback, initialValue) {
                 var length = syscall Ll(thing);
 
-                for (var i = 0; i < length; i++) {
+                for (var i = 0; i < length; ++i) {
                     initialValue = callback(initialValue, thing[i]);
                 }
 

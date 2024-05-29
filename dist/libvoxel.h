@@ -659,8 +659,6 @@ void voxel_builtins_core_increment(voxel_Executor* executor) {
             break;
     }
 
-    thing->referenceCount++;
-
     voxel_push(executor, thing);
 }
 
@@ -683,8 +681,6 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
             number->value.asFloat--;
             break;
     }
-
-    thing->referenceCount++;
 
     voxel_push(executor, thing);
 }
@@ -1822,18 +1818,19 @@ VOXEL_ERRORABLE voxel_unreferenceThing(voxel_Context* context, voxel_Thing* thin
     return VOXEL_OK;
 }
 
+// TODO: Pending removal as it doesn't have much of an effect and only makes things slower
 VOXEL_ERRORABLE voxel_removeUnusedThings(voxel_Context* context) {
     voxel_Thing* currentThing = context->firstTrackedThing;
 
-    while (currentThing != VOXEL_NULL) {
-        voxel_Thing* nextThing = currentThing->nextTrackedThing;
+    // while (currentThing != VOXEL_NULL) {
+    //     voxel_Thing* nextThing = currentThing->nextTrackedThing;
 
-        if (currentThing->referenceCount == 0) {
-            VOXEL_MUST(voxel_unreferenceThing(context, currentThing));
-        }
+    //     if (currentThing->referenceCount == 0) {
+    //         VOXEL_MUST(voxel_unreferenceThing(context, currentThing));
+    //     }
 
-        currentThing = nextThing;
-    }
+    //     currentThing = nextThing;
+    // }
 
     return VOXEL_OK;
 }
@@ -4155,17 +4152,16 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
         case VOXEL_TOKEN_TYPE_COPY:
         {
-            voxel_Thing* copyThing = ((voxel_List*)executor->valueStack->value)->lastItem->value;
+            voxel_Count copyStackLength = voxel_getListLength(executor->valueStack);
 
-            VOXEL_ASSERT(copyThing, VOXEL_ERROR_MISSING_ARG);
+            VOXEL_ASSERT(copyStackLength > 0, VOXEL_ERROR_INVALID_ARG);
 
+            VOXEL_ERRORABLE copyListItemResult = voxel_getListItem(executor->context, executor->valueStack, copyStackLength - 1); VOXEL_MUST(copyListItemResult);
+            voxel_ListItem* dupeListItem = (voxel_ListItem*)copyListItemResult.value;
+            voxel_Thing* copyThing = (voxel_Thing*)dupeListItem->value;
             voxel_Thing* copiedThing = voxel_copyThing(executor->context, copyThing);
 
-            copiedThing->referenceCount++;
-
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, copiedThing));
-
-            voxel_unreferenceThing(executor->context, copyThing);
 
             break;
         }

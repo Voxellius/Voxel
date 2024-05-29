@@ -1,4 +1,5 @@
 import * as sources from "./sources.js";
+import * as codeGen from "./codegen.js";
 
 var nextAstId = 0;
 
@@ -241,5 +242,13 @@ export class AstNode {
 
     generateContextPath() {
         return this.parent?.generateContextPath() || "";
+    }
+}
+
+export class NullNode extends AstNode {
+    static HUMAN_READABLE_NAME = "null node";
+
+    generateCode(options) {
+        return codeGen.bytes();
     }
 }

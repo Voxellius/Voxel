@@ -204,17 +204,16 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
         case VOXEL_TOKEN_TYPE_COPY:
         {
-            voxel_Thing* copyThing = ((voxel_List*)executor->valueStack->value)->lastItem->value;
+            voxel_Count copyStackLength = voxel_getListLength(executor->valueStack);
 
-            VOXEL_ASSERT(copyThing, VOXEL_ERROR_MISSING_ARG);
+            VOXEL_ASSERT(copyStackLength > 0, VOXEL_ERROR_INVALID_ARG);
 
+            VOXEL_ERRORABLE copyListItemResult = voxel_getListItem(executor->context, executor->valueStack, copyStackLength - 1); VOXEL_MUST(copyListItemResult);
+            voxel_ListItem* dupeListItem = (voxel_ListItem*)copyListItemResult.value;
+            voxel_Thing* copyThing = (voxel_Thing*)dupeListItem->value;
             voxel_Thing* copiedThing = voxel_copyThing(executor->context, copyThing);
 
-            copiedThing->referenceCount++;
-
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, copiedThing));
-
-            voxel_unreferenceThing(executor->context, copyThing);
 
             break;
         }

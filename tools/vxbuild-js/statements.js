@@ -371,7 +371,7 @@ export class ForLoopNode extends ast.AstNode {
             instance.expectChildByMatching(tokens, [StatementNode], namespace);
             this.eat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)]);
         } else {
-            instance.children.push(expressions.ThingNode.createByValue(null));
+            instance.children.push(new ast.NullNode());
         }
 
         if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)])) {
@@ -385,7 +385,7 @@ export class ForLoopNode extends ast.AstNode {
             instance.expectChildByMatching(tokens, [StatementNode], namespace);
             this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
         } else {
-            instance.children.push(expressions.ThingNode.createByValue(null));
+            instance.children.push(new ast.NullNode());
         }
 
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);

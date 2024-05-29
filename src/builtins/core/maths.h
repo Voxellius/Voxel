@@ -99,8 +99,6 @@ void voxel_builtins_core_increment(voxel_Executor* executor) {
             break;
     }
 
-    thing->referenceCount++;
-
     voxel_push(executor, thing);
 }
 
@@ -123,8 +121,6 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
             number->value.asFloat--;
             break;
     }
-
-    thing->referenceCount++;
 
     voxel_push(executor, thing);
 }
