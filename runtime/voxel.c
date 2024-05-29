@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 
     VOXEL_MUST_CODE(voxel_initContext(context));
 
-    while (voxel_anyContextsRunning(context)) {
+    while (voxel_anyExecutorsRunning(context)) {
         VOXEL_MUST_CODE(voxel_stepContext(context));
     }
 

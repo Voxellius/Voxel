@@ -194,7 +194,7 @@ voxel_Float voxel_maths_roundToPrecision(voxel_Float number, voxel_Count precisi
 voxel_Context* voxel_newContext();
 VOXEL_ERRORABLE voxel_initContext(voxel_Context* context);
 VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context);
-voxel_Bool voxel_anyContextsRunning(voxel_Context* context);
+voxel_Bool voxel_anyExecutorsRunning(voxel_Context* context);
 VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, voxel_Builtin builtin);
 
 voxel_Thing* voxel_newThing(voxel_Context* context);

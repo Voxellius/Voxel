@@ -58,7 +58,7 @@ VOXEL_ERRORABLE voxel_stepContext(voxel_Context* context) {
     return VOXEL_OK;
 }
 
-voxel_Bool voxel_anyContextsRunning(voxel_Context* context) {
+voxel_Bool voxel_anyExecutorsRunning(voxel_Context* context) {
     voxel_Executor* currentExecutor = context->firstExecutor;
 
     while (currentExecutor) {
