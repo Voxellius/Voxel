@@ -3261,7 +3261,6 @@ voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thin
     }
 
     object->prototypes = prototypesList;
-    prototypesList->referenceCount++;
 
     return prototypesList;
 }
