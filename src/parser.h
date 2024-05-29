@@ -208,7 +208,14 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
         case VOXEL_TOKEN_TYPE_NOT:
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
-            VOXEL_DEBUG_LOG("[Non-thing token]\n");
+            #ifdef VOXEL_DEBUG
+                voxel_Byte charString[2] = {(voxel_Byte)tokenType, '\0'};
+
+                VOXEL_DEBUG_LOG("[Non-thing token ");
+                VOXEL_DEBUG_LOG(charString);
+                VOXEL_DEBUG_LOG("]\n");
+            #endif
+
             break;
 
         case VOXEL_TOKEN_TYPE_POS_REF_ABSOLUTE:
