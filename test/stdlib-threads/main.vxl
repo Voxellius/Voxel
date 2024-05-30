@@ -1,0 +1,25 @@
+import threads;
+
+var currentTurn = 0;
+
+function repeat(value, times) {
+    var myTurn = currentTurn;
+
+    for (var i = 0; i < times; i++) {
+        while (currentTurn != myTurn) {}
+
+        syscall log(value);
+
+        currentTurn = (currentTurn + 1) % 3;
+    }
+}
+
+var thread1 = new threads.Thread(repeat, ["Thread 1\n", 5]);
+var thread2 = new threads.Thread(repeat, ["Thread 2\n", 5]);
+
+thread1.start();
+thread2.start();
+
+repeat("Main executor\n", 5);
+
+// TODO: Allow threads to be closed when done with to prevent memory leaks

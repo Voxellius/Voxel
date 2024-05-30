@@ -1,0 +1,10 @@
+class Thread {
+    constructor(callFunction, callArgs) {
+        this.callFunction = callFunction;
+        this.callArgs = callArgs;
+    }
+
+    start() {
+        this._id = syscall Thn(this.callFunction, this.callArgs);
+    }
+}
