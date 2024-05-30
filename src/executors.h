@@ -3,7 +3,9 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
 
     executor->context = context;
     executor->scope = context->globalScope;
+    executor->id = context->executorCount++;
     executor->isRunning = VOXEL_TRUE;
+    executor->tokenisationState = VOXEL_STATE_NONE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
     executor->callStack = (voxel_Call*)VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
     executor->callStack[0] = (voxel_Call) {.position = VOXEL_MAGIC_SIZE, .canHandleExceptions = VOXEL_FALSE};
@@ -25,6 +27,36 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     return executor;
 }
 
+voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor) {
+    voxel_Context* context = executor->context;
+    voxel_Executor* newExecutor = (voxel_Executor*)VOXEL_MALLOC(sizeof(voxel_Executor)); VOXEL_TAG_MALLOC(voxel_Executor);
+
+    newExecutor->context = context;
+    newExecutor->scope = executor->scope;
+    newExecutor->id = context->executorCount++;
+    newExecutor->isRunning = VOXEL_TRUE;
+    newExecutor->tokenisationState = VOXEL_STATE_NONE;
+    newExecutor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
+    newExecutor->callStack = (voxel_Call*)VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
+    newExecutor->callStack[0] = (voxel_Call) {.position = *voxel_getExecutorPosition(executor), .canHandleExceptions = VOXEL_FALSE};
+    newExecutor->callStackHead = 0;
+    newExecutor->valueStack = voxel_copyThing(context, executor->valueStack);
+    newExecutor->previousExecutor = context->lastExecutor;
+    newExecutor->nextExecutor = VOXEL_NULL;
+
+    if (!context->firstExecutor) {
+        context->firstExecutor = newExecutor;
+    }
+    
+    if (context->lastExecutor) {
+        context->lastExecutor->nextExecutor = newExecutor;
+    }
+
+    context->lastExecutor = newExecutor;
+
+    return newExecutor;
+}
+
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor) {
     return &executor->callStack[executor->callStackHead].position;
 }
@@ -37,7 +69,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
     }
 
     voxel_Position* position = voxel_getExecutorPosition(executor);
-    VOXEL_ERRORABLE tokenResult = voxel_nextToken(executor->context, position); VOXEL_MUST(tokenResult);
+    voxel_Position oldPos = *position;
+    VOXEL_ERRORABLE tokenResult = voxel_nextToken(executor, position); VOXEL_MUST(tokenResult);
     voxel_Token* token = (voxel_Token*)tokenResult.value;
 
     if (!token) {

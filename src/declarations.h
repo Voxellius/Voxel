@@ -21,10 +21,10 @@ typedef struct voxel_Context {
     voxel_Count codeLength;
     voxel_Builtin* builtins;
     voxel_Count builtinCount;
-    voxel_TokenisationState tokenisationState;
     struct voxel_Scope* globalScope;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
+    voxel_Count executorCount;
     struct voxel_Executor* firstExecutor;
     struct voxel_Executor* lastExecutor;
 } voxel_Context;
@@ -174,7 +174,9 @@ typedef struct voxel_Call {
 typedef struct voxel_Executor {
     voxel_Context* context;
     voxel_Scope* scope;
+    voxel_Count id;
     voxel_Bool isRunning;
+    voxel_TokenisationState tokenisationState;
     voxel_Call* callStack;
     voxel_Count callStackHead;
     voxel_Count callStackSize;
@@ -331,7 +333,7 @@ VOXEL_ERRORABLE voxel_lessThanOperation(voxel_Context* context, voxel_Thing* a, 
 VOXEL_ERRORABLE voxel_greaterThanOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead);
-VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position);
+VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* position);
 
 voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope);
 VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope);
@@ -340,6 +342,7 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
 VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
+voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);

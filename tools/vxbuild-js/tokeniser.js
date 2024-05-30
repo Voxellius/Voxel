@@ -150,7 +150,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^\/\/.*?\n/)) {
+        if (matchToken(/^\/\/.*?(?:\n|$)/)) {
             continue;
         }
 

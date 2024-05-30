@@ -216,10 +216,10 @@ typedef struct voxel_Context {
     voxel_Count codeLength;
     voxel_Builtin* builtins;
     voxel_Count builtinCount;
-    voxel_TokenisationState tokenisationState;
     struct voxel_Scope* globalScope;
     struct voxel_Thing* firstTrackedThing;
     struct voxel_Thing* lastTrackedThing;
+    voxel_Count executorCount;
     struct voxel_Executor* firstExecutor;
     struct voxel_Executor* lastExecutor;
 } voxel_Context;
@@ -369,7 +369,9 @@ typedef struct voxel_Call {
 typedef struct voxel_Executor {
     voxel_Context* context;
     voxel_Scope* scope;
+    voxel_Count id;
     voxel_Bool isRunning;
+    voxel_TokenisationState tokenisationState;
     voxel_Call* callStack;
     voxel_Count callStackHead;
     voxel_Count callStackSize;
@@ -526,7 +528,7 @@ VOXEL_ERRORABLE voxel_lessThanOperation(voxel_Context* context, voxel_Thing* a, 
 VOXEL_ERRORABLE voxel_greaterThanOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead);
-VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position);
+VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* position);
 
 voxel_Scope* voxel_newScope(voxel_Context* context, voxel_Scope* parentScope);
 VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope);
@@ -535,6 +537,7 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
 VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
+voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
@@ -1432,6 +1435,50 @@ void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, list);
 }
 
+void voxel_builtins_core_newThread(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* callArgs = voxel_pop(executor);
+    voxel_Thing* callFunction = voxel_pop(executor);
+
+    if (
+        !callFunction || callFunction->type != VOXEL_TYPE_FUNCTION ||
+        !callArgs || callArgs->type != VOXEL_TYPE_LIST || argCount < 2
+    ) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callFunction);
+
+    if (functionType != VOXEL_FUNCTION_TYPE_POS_REF) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Executor* newExecutor = voxel_cloneExecutor(executor);
+
+    *voxel_getExecutorPosition(newExecutor) = (voxel_Position)(voxel_IntPtr)callFunction->value;
+
+    newExecutor->scope = voxel_newScope(executor->context, executor->scope);
+
+    voxel_List* argList = (voxel_List*)callArgs->value;
+    voxel_ListItem* currentItem = argList->firstItem;
+    voxel_Count callArgCount = 0;
+
+    while (currentItem) {
+        voxel_pushOntoList(newExecutor->context, newExecutor->valueStack, currentItem->value);
+
+        currentItem->value->referenceCount++;
+
+        currentItem = currentItem->nextItem;
+        callArgCount++;
+    }
+
+    voxel_pushOntoList(newExecutor->context, newExecutor->valueStack, voxel_newNumberInt(newExecutor->context, callArgCount));
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, newExecutor->id));
+
+    voxel_unreferenceThing(executor->context, callArgs);
+}
+
 void voxel_builtins_core_copyThing(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* thing = voxel_pop(executor);
@@ -1535,6 +1582,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
     voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
     voxel_defineBuiltin(context, ".Au", &voxel_builtins_core_pushArgs);
+    voxel_defineBuiltin(context, ".Thn", &voxel_builtins_core_newThread);
 
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);
@@ -1656,9 +1704,9 @@ voxel_Context* voxel_newContext() {
     context->codeLength = 0;
     context->builtins = (voxel_Builtin*)VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
-    context->tokenisationState = VOXEL_STATE_NONE;
     context->firstTrackedThing = VOXEL_NULL;
     context->lastTrackedThing = VOXEL_NULL;
+    context->executorCount = 0;
     context->firstExecutor = VOXEL_NULL;
     context->lastExecutor = VOXEL_NULL;
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
@@ -1712,14 +1760,14 @@ voxel_Bool voxel_anyExecutorsRunning(voxel_Context* context) {
     voxel_Executor* currentExecutor = context->firstExecutor;
 
     while (currentExecutor) {
-        if (!currentExecutor->isRunning) {
-            return VOXEL_FALSE;
+        if (currentExecutor->isRunning) {
+            return VOXEL_TRUE;
         }
 
         currentExecutor = currentExecutor->nextExecutor;
     }
 
-    return VOXEL_TRUE;
+    return VOXEL_FALSE;
 }
 
 VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, voxel_Builtin builtin) {
@@ -3673,21 +3721,23 @@ VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* positio
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position) {
+VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* position) {
+    voxel_Context* context = executor->context;
+
     VOXEL_ASSERT(context->code, VOXEL_ERROR_NO_CODE);
-    
+
     voxel_Token token;
     voxel_Byte tokenType;
 
-    switch (context->tokenisationState) {
+    switch (executor->tokenisationState) {
         case VOXEL_STATE_SYSTEM_CALL_GET:
             tokenType = VOXEL_TOKEN_TYPE_GET;
-            context->tokenisationState = VOXEL_STATE_SYSTEM_CALL_CALL;
+            executor->tokenisationState = VOXEL_STATE_SYSTEM_CALL_CALL;
             break;
 
         case VOXEL_STATE_SYSTEM_CALL_CALL:
             tokenType = VOXEL_TOKEN_TYPE_CALL;
-            context->tokenisationState = VOXEL_STATE_NONE;
+            executor->tokenisationState = VOXEL_STATE_NONE;
             break;
 
         default:
@@ -3848,7 +3898,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_DEBUG_LOG("[Token: string]\n");
 
             if (tokenType == VOXEL_TOKEN_TYPE_SYSTEM_CALL) {
-                context->tokenisationState = VOXEL_STATE_SYSTEM_CALL_GET;
+                executor->tokenisationState = VOXEL_STATE_SYSTEM_CALL_GET;
             }
 
             break;
@@ -3930,7 +3980,9 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
 
     executor->context = context;
     executor->scope = context->globalScope;
+    executor->id = context->executorCount++;
     executor->isRunning = VOXEL_TRUE;
+    executor->tokenisationState = VOXEL_STATE_NONE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
     executor->callStack = (voxel_Call*)VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
     executor->callStack[0] = (voxel_Call) {.position = VOXEL_MAGIC_SIZE, .canHandleExceptions = VOXEL_FALSE};
@@ -3952,6 +4004,36 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     return executor;
 }
 
+voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor) {
+    voxel_Context* context = executor->context;
+    voxel_Executor* newExecutor = (voxel_Executor*)VOXEL_MALLOC(sizeof(voxel_Executor)); VOXEL_TAG_MALLOC(voxel_Executor);
+
+    newExecutor->context = context;
+    newExecutor->scope = executor->scope;
+    newExecutor->id = context->executorCount++;
+    newExecutor->isRunning = VOXEL_TRUE;
+    newExecutor->tokenisationState = VOXEL_STATE_NONE;
+    newExecutor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
+    newExecutor->callStack = (voxel_Call*)VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
+    newExecutor->callStack[0] = (voxel_Call) {.position = *voxel_getExecutorPosition(executor), .canHandleExceptions = VOXEL_FALSE};
+    newExecutor->callStackHead = 0;
+    newExecutor->valueStack = voxel_copyThing(context, executor->valueStack);
+    newExecutor->previousExecutor = context->lastExecutor;
+    newExecutor->nextExecutor = VOXEL_NULL;
+
+    if (!context->firstExecutor) {
+        context->firstExecutor = newExecutor;
+    }
+    
+    if (context->lastExecutor) {
+        context->lastExecutor->nextExecutor = newExecutor;
+    }
+
+    context->lastExecutor = newExecutor;
+
+    return newExecutor;
+}
+
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor) {
     return &executor->callStack[executor->callStackHead].position;
 }
@@ -3964,7 +4046,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
     }
 
     voxel_Position* position = voxel_getExecutorPosition(executor);
-    VOXEL_ERRORABLE tokenResult = voxel_nextToken(executor->context, position); VOXEL_MUST(tokenResult);
+    voxel_Position oldPos = *position;
+    VOXEL_ERRORABLE tokenResult = voxel_nextToken(executor, position); VOXEL_MUST(tokenResult);
     voxel_Token* token = (voxel_Token*)tokenResult.value;
 
     if (!token) {

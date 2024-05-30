@@ -1,0 +1,12 @@
+function repeat(value, times) {
+    for (var i = 0; i < times; i++) {
+        syscall log(value);
+    }
+}
+
+syscall Thn(repeat, ["Thread 1\n", 5]);
+syscall Thn(repeat, ["Thread 2\n", 5]);
+
+repeat("Main executor\n", 5);
+
+// TODO: Allow threads to be closed when done with to prevent memory leaks

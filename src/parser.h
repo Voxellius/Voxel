@@ -6,21 +6,23 @@ VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* positio
     return VOXEL_OK;
 }
 
-VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position) {
+VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* position) {
+    voxel_Context* context = executor->context;
+
     VOXEL_ASSERT(context->code, VOXEL_ERROR_NO_CODE);
-    
+
     voxel_Token token;
     voxel_Byte tokenType;
 
-    switch (context->tokenisationState) {
+    switch (executor->tokenisationState) {
         case VOXEL_STATE_SYSTEM_CALL_GET:
             tokenType = VOXEL_TOKEN_TYPE_GET;
-            context->tokenisationState = VOXEL_STATE_SYSTEM_CALL_CALL;
+            executor->tokenisationState = VOXEL_STATE_SYSTEM_CALL_CALL;
             break;
 
         case VOXEL_STATE_SYSTEM_CALL_CALL:
             tokenType = VOXEL_TOKEN_TYPE_CALL;
-            context->tokenisationState = VOXEL_STATE_NONE;
+            executor->tokenisationState = VOXEL_STATE_NONE;
             break;
 
         default:
@@ -181,7 +183,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Context* context, voxel_Position* position
             VOXEL_DEBUG_LOG("[Token: string]\n");
 
             if (tokenType == VOXEL_TOKEN_TYPE_SYSTEM_CALL) {
-                context->tokenisationState = VOXEL_STATE_SYSTEM_CALL_GET;
+                executor->tokenisationState = VOXEL_STATE_SYSTEM_CALL_GET;
             }
 
             break;

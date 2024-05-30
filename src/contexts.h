@@ -6,9 +6,9 @@ voxel_Context* voxel_newContext() {
     context->codeLength = 0;
     context->builtins = (voxel_Builtin*)VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
-    context->tokenisationState = VOXEL_STATE_NONE;
     context->firstTrackedThing = VOXEL_NULL;
     context->lastTrackedThing = VOXEL_NULL;
+    context->executorCount = 0;
     context->firstExecutor = VOXEL_NULL;
     context->lastExecutor = VOXEL_NULL;
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
@@ -62,14 +62,14 @@ voxel_Bool voxel_anyExecutorsRunning(voxel_Context* context) {
     voxel_Executor* currentExecutor = context->firstExecutor;
 
     while (currentExecutor) {
-        if (!currentExecutor->isRunning) {
-            return VOXEL_FALSE;
+        if (currentExecutor->isRunning) {
+            return VOXEL_TRUE;
         }
 
         currentExecutor = currentExecutor->nextExecutor;
     }
 
-    return VOXEL_TRUE;
+    return VOXEL_FALSE;
 }
 
 VOXEL_ERRORABLE voxel_defineBuiltin(voxel_Context* context, voxel_Byte* name, voxel_Builtin builtin) {
