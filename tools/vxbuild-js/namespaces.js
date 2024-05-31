@@ -368,7 +368,7 @@ export class Scope {
         var usage = this.symbolUses.find((usage) => usage.id == id);
 
         if (!usage && !defining && this.parentScope != null) {
-            usage = this.parentScope.getSymbolById(id);
+            usage = this.parentScope.getSymbolById(id, false, readOnly);
         }
 
         if (usage) {
