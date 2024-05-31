@@ -38,7 +38,7 @@ function callSuperMethod(object, property, args) {
         return null;
     }
 
-    for (var i = syscall Ll(inheritedPrototypes) - 1; i >= 0; i--) {
+    for (var i = syscall Ll(inheritedPrototypes) - 1; i >= 0; --i) {
         var methodFunction = inheritedPrototypes[i][property];
 
         if (syscall T(methodFunction) == "@" ||| syscall T(methodFunction) == "C") {
@@ -62,7 +62,9 @@ function callSuperConstructors(object, constructorArgs) {
         return null;
     }
 
-    for (var i = 0; i < syscall Ll(inheritedPrototypes); i = i + 1) {
+    var prototypesLength = syscall Ll(inheritedPrototypes);
+
+    for (var i = 0; i < prototypesLength; i++) {
         var constructorFunction = inheritedPrototypes[i][#prop(constructor)];
 
         if (syscall T(constructorFunction) == "@" ||| syscall T(constructorFunction) == "C") {
