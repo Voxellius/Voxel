@@ -73,7 +73,7 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
     if (!list || list->type != VOXEL_TYPE_LIST || argCount < 3) {
-        return;
+        return voxel_pushNull(executor);
     }
 
     if (index < 0) {
@@ -81,7 +81,7 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
     }
 
     if (index < 0) {
-        return;
+        return voxel_pushNull(executor);
     }
 
     VOXEL_ERRORABLE getListItemResult = voxel_getListItem(executor->context, list, index);
@@ -93,6 +93,18 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
     voxel_ListItem* listItem = (voxel_ListItem*)getListItemResult.value;
 
     if (!listItem) {
+        if (index == voxel_getListLength(list)) {
+            if (VOXEL_IS_ERROR(voxel_pushOntoList(executor->context, list, value))) {
+                return voxel_pushNull(executor);
+            }
+
+            value->referenceCount++;
+
+            voxel_unreferenceThing(executor->context, list);
+
+            return voxel_push(executor, value);
+        }
+
         return voxel_pushNull(executor);
     }
 

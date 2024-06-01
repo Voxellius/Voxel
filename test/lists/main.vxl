@@ -50,6 +50,18 @@ syscall log("Set item at index -1 in list: ");
 syscall log(list);
 syscall log("\n");
 
+list[4] = "new";
+
+syscall log("Set item at index 4 in list: ");
+syscall log(list);
+syscall log("\n");
+
+syscall log("Popping item from list: ");
+syscall log(list.pop());
+syscall log(" => ");
+syscall log(list);
+syscall log("\n");
+
 syscall log("Popping item from list: ");
 syscall log(list.pop());
 syscall log(" => ");

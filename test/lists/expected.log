@@ -9,6 +9,8 @@ Get item at index -2 from list: 3
 Get item at index -4 from list: a
 Set item at index 2 in list: a,b,123,d
 Set item at index -1 in list: a,b,123,true
+Set item at index 4 in list: a,b,123,true,new
+Popping item from list: new => a,b,123,true
 Popping item from list: true => a,b,123
 Popping item from list: 123 => a,b
 Popping item from list: b => a
