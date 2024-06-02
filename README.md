@@ -44,6 +44,7 @@ More examples of Voxel programs can be found in the [`examples`](examples) direc
     * **Truthiness estimation** so that unreachable code in `if` statements and `while` loops (due to condition always being `true` or `false`) is removed
     * **Tree shaking** to remove functions that are never called and variables that are never read
     * **Potential side effect detection** when deciding how unused variables should be removed so that their assigned value is still evaluated if its expression contains a function call or getter method
+* **Multithreading** through the `threads` library, which allows multiple functions to be executed concurrently
 
 ## Key features of the VxC bytecode format
 * **Stack-based virtual machine** that enables powerful manipulation of data and easy passing of data as arguments to commands
