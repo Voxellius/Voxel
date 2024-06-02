@@ -538,6 +538,7 @@ VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, vo
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
 voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor);
+VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
@@ -4044,6 +4045,34 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor) {
     context->lastExecutor = newExecutor;
 
     return newExecutor;
+}
+
+VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
+    VOXEL_FREE(executor->callStack); VOXEL_TAG_FREE_SIZE("voxel_Executor->callStack", executor->callStackSize);
+
+    VOXEL_MUST(voxel_destroyScope(executor->scope));
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->valueStack));
+
+
+    if (executor == executor->context->firstExecutor) {
+        executor->context->firstExecutor = executor->nextExecutor;
+    }
+
+    if (executor == executor->context->lastExecutor) {
+        executor->context->lastExecutor = executor->previousExecutor;
+    }
+
+    if (executor->previousExecutor) {
+        executor->previousExecutor->nextExecutor = executor->nextExecutor;
+    }
+
+    if (executor->nextExecutor) {
+        executor->nextExecutor->previousExecutor = executor->previousExecutor;
+    }
+
+    VOXEL_FREE(executor); VOXEL_TAG_FREE(voxel_Executor);
+
+    return VOXEL_OK;
 }
 
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor) {

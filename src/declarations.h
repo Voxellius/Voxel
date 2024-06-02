@@ -343,6 +343,7 @@ VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, vo
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
 voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor);
+VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
