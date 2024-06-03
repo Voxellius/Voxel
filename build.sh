@@ -29,6 +29,7 @@ include src/builtins/core/maths.h
 include src/builtins/core/strings.h
 include src/builtins/core/objects.h
 include src/builtins/core/lists.h
+include src/builtins/core/threads.h
 include src/builtins/core/core.h
 include src/maths.h
 include src/contexts.h
