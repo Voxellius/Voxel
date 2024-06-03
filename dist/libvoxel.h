@@ -539,6 +539,7 @@ VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, vo
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
 voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor);
+voxel_Executor* voxel_getExecutorById(voxel_Context* context, voxel_Count id);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
@@ -551,6 +552,7 @@ void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
 void voxel_pushNull(voxel_Executor* executor);
 voxel_Thing* voxel_pop(voxel_Executor* executor);
 void voxel_popVoid(voxel_Executor* executor);
+voxel_Bool voxel_popBoolean(voxel_Executor* executor);
 voxel_Thing* voxel_popNumber(voxel_Executor* executor);
 voxel_Int voxel_popNumberInt(voxel_Executor* executor);
 voxel_Float voxel_popNumberFloat(voxel_Executor* executor);
@@ -1331,56 +1333,6 @@ void voxel_builtins_core_joinList(voxel_Executor* executor) {
 
 #endif
 
-// src/builtins/core/threads.h
-
-#ifdef VOXEL_BUILTINS_CORE
-
-void voxel_builtins_core_newThread(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
-    voxel_Thing* callArgs = voxel_pop(executor);
-    voxel_Thing* callFunction = voxel_pop(executor);
-
-    if (
-        !callFunction || callFunction->type != VOXEL_TYPE_FUNCTION ||
-        !callArgs || callArgs->type != VOXEL_TYPE_LIST || argCount < 2
-    ) {
-        return voxel_pushNull(executor);
-    }
-
-    voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callFunction);
-
-    if (functionType != VOXEL_FUNCTION_TYPE_POS_REF) {
-        return voxel_pushNull(executor);
-    }
-
-    voxel_Executor* newExecutor = voxel_cloneExecutor(executor);
-
-    *voxel_getExecutorPosition(newExecutor) = (voxel_Position)(voxel_IntPtr)callFunction->value;
-
-    newExecutor->scope = voxel_newScope(executor->context, executor->scope);
-
-    voxel_List* argList = (voxel_List*)callArgs->value;
-    voxel_ListItem* currentItem = argList->firstItem;
-    voxel_Count callArgCount = 0;
-
-    while (currentItem) {
-        voxel_pushOntoList(newExecutor->context, newExecutor->valueStack, currentItem->value);
-
-        currentItem->value->referenceCount++;
-
-        currentItem = currentItem->nextItem;
-        callArgCount++;
-    }
-
-    voxel_pushOntoList(newExecutor->context, newExecutor->valueStack, voxel_newNumberInt(newExecutor->context, callArgCount));
-
-    voxel_push(executor, voxel_newNumberInt(executor->context, newExecutor->id));
-
-    voxel_unreferenceThing(executor->context, callArgs);
-}
-
-#endif
-
 // src/builtins/core/core.h
 
 #ifdef VOXEL_BUILTINS_CORE
@@ -1649,13 +1601,125 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Li", &voxel_builtins_core_insertIntoList);
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
-
-    voxel_defineBuiltin(context, ".Thn", &voxel_builtins_core_newThread);
 }
 
 #else
 
 void voxel_builtins_core(voxel_Context* context) {}
+
+#endif
+
+// src/builtins/threads/threads.h
+
+#ifdef VOXEL_BUILTINS_THREADS
+
+void voxel_builtins_threads_newThread(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* callArgs = voxel_pop(executor);
+    voxel_Thing* callFunction = voxel_pop(executor);
+
+    if (
+        !callFunction || callFunction->type != VOXEL_TYPE_FUNCTION ||
+        !callArgs || callArgs->type != VOXEL_TYPE_LIST || argCount < 2
+    ) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callFunction);
+
+    if (functionType != VOXEL_FUNCTION_TYPE_POS_REF) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Executor* newExecutor = voxel_cloneExecutor(executor);
+
+    *voxel_getExecutorPosition(newExecutor) = (voxel_Position)(voxel_IntPtr)callFunction->value;
+
+    // newExecutor->isRunning = VOXEL_FALSE;
+    newExecutor->scope = voxel_newScope(executor->context, executor->scope);
+
+    voxel_List* argList = (voxel_List*)callArgs->value;
+    voxel_ListItem* currentItem = argList->firstItem;
+    voxel_Count callArgCount = 0;
+
+    while (currentItem) {
+        voxel_pushOntoList(newExecutor->context, newExecutor->valueStack, voxel_copyThing(executor->context, currentItem->value));
+
+        currentItem->value->referenceCount++;
+
+        currentItem = currentItem->nextItem;
+        callArgCount++;
+    }
+
+    voxel_pushOntoList(newExecutor->context, newExecutor->valueStack, voxel_newNumberInt(newExecutor->context, callArgCount));
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, newExecutor->id));
+
+    voxel_unreferenceThing(executor->context, callArgs);
+    voxel_unreferenceThing(executor->context, callFunction);
+}
+
+void voxel_builtins_threads_destroyThread(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Count executorId = voxel_popNumberInt(executor);
+
+    voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
+
+    if (!targetExecutor) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_destroyExecutor(targetExecutor);
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_threads_getOwnThreadId(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, executor->id));
+}
+
+void voxel_builtins_threads_threadIsRunning(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Count executorId = voxel_popNumberInt(executor);
+
+    voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
+
+    if (!targetExecutor) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newBoolean(executor->context, targetExecutor->isRunning));
+}
+
+void voxel_builtins_threads_setThreadIsRunning(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Count executorId = voxel_popNumberInt(executor);
+    voxel_Bool isRunning = voxel_popBoolean(executor);
+
+    voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
+
+    if (!targetExecutor) {
+        return voxel_pushNull(executor);
+    }
+
+    targetExecutor->isRunning = isRunning;
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_threads(voxel_Context* context) {
+    voxel_defineBuiltin(context, ".Thn", &voxel_builtins_threads_newThread);
+    voxel_defineBuiltin(context, ".Thd", &voxel_builtins_threads_destroyThread);
+    voxel_defineBuiltin(context, ".Thoi", &voxel_builtins_threads_getOwnThreadId);
+    voxel_defineBuiltin(context, ".Thir", &voxel_builtins_threads_threadIsRunning);
+    voxel_defineBuiltin(context, ".Thsr", &voxel_builtins_threads_setThreadIsRunning);
+}
+
+#else
+
+void voxel_builtins_threads(voxel_Context* context) {}
 
 #endif
 
@@ -1734,6 +1798,7 @@ voxel_Context* voxel_newContext() {
     voxel_newExecutor(context);
 
     voxel_builtins_core(context);
+    voxel_builtins_threads(context);
 
     return context;
 }
@@ -4057,9 +4122,11 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor) {
 VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
     VOXEL_FREE(executor->callStack); VOXEL_TAG_FREE_SIZE("voxel_Executor->callStack", executor->callStackSize);
 
-    VOXEL_MUST(voxel_destroyScope(executor->scope));
-    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->valueStack));
+    if (executor->scope != executor->context->globalScope) {
+        VOXEL_MUST(voxel_destroyScope(executor->scope));
+    }
 
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->valueStack));
 
     if (executor == executor->context->firstExecutor) {
         executor->context->firstExecutor = executor->nextExecutor;
@@ -4080,6 +4147,20 @@ VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
     VOXEL_FREE(executor); VOXEL_TAG_FREE(voxel_Executor);
 
     return VOXEL_OK;
+}
+
+voxel_Executor* voxel_getExecutorById(voxel_Context* context, voxel_Count id) {
+    voxel_Executor* currentExecutor = context->firstExecutor;
+
+    while (currentExecutor) {
+        if (currentExecutor->id == id) {
+            return currentExecutor;
+        }
+
+        currentExecutor = currentExecutor->nextExecutor;
+    }
+
+    return VOXEL_NULL;
 }
 
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor) {
@@ -4575,6 +4656,20 @@ voxel_Thing* voxel_pop(voxel_Executor* executor) {
 
 void voxel_popVoid(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, voxel_pop(executor));
+}
+
+voxel_Bool voxel_popBoolean(voxel_Executor* executor) {
+    voxel_Thing* poppedThing = voxel_pop(executor);
+
+    if (!poppedThing) {
+        return VOXEL_NULL;
+    }
+
+    voxel_Bool isTruthy = voxel_thingIsTruthy(poppedThing);
+
+    voxel_unreferenceThing(executor->context, poppedThing);
+
+    return isTruthy;
 }
 
 voxel_Thing* voxel_popNumber(voxel_Executor* executor) {

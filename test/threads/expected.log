@@ -13,3 +13,5 @@ Main executor
 Thread 1
 Thread 2
 Main executor
+Destroyed thread 1
+Destroyed thread 2

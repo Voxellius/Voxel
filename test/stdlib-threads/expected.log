@@ -13,3 +13,5 @@ Main executor
 Thread 1
 Thread 2
 Main executor
+Closed thread 1
+Closed thread 2

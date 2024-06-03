@@ -264,8 +264,6 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Li", &voxel_builtins_core_insertIntoList);
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
-
-    voxel_defineBuiltin(context, ".Thn", &voxel_builtins_core_newThread);
 }
 
 #else

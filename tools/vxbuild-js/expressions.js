@@ -26,7 +26,6 @@ export class ThisNode extends ast.AstNode {
     }
 
     checkSymbolUsage(scope) {
-        console.log("this CSU");
         scope.addCoreNamespaceSymbol(this.getThisSymbol, this);
 
         super.checkSymbolUsage(scope);

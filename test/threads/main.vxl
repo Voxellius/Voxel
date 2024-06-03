@@ -4,9 +4,17 @@ function repeat(value, times) {
     }
 }
 
-syscall Thn(repeat, ["Thread 1\n", 5]);
-syscall Thn(repeat, ["Thread 2\n", 5]);
+var thread1 = syscall Thn(repeat, ["Thread 1\n", 5]);
+var thread2 = syscall Thn(repeat, ["Thread 2\n", 5]);
 
 repeat("Main executor\n", 5);
 
-// TODO: Allow threads to be closed when done with to prevent memory leaks
+while (syscall Thir(thread1)) {}
+
+syscall Thd(thread1);
+syscall log("Destroyed thread 1\n");
+
+while (syscall Thir(thread2)) {}
+
+syscall Thd(thread2);
+syscall log("Destroyed thread 2\n");

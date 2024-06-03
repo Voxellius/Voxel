@@ -344,6 +344,7 @@ VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, vo
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
 voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor);
+voxel_Executor* voxel_getExecutorById(voxel_Context* context, voxel_Count id);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor);
 void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position);
@@ -356,6 +357,7 @@ void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
 void voxel_pushNull(voxel_Executor* executor);
 voxel_Thing* voxel_pop(voxel_Executor* executor);
 void voxel_popVoid(voxel_Executor* executor);
+voxel_Bool voxel_popBoolean(voxel_Executor* executor);
 voxel_Thing* voxel_popNumber(voxel_Executor* executor);
 voxel_Int voxel_popNumberInt(voxel_Executor* executor);
 voxel_Float voxel_popNumberFloat(voxel_Executor* executor);

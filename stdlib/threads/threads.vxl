@@ -1,10 +1,122 @@
+import errors;
+
+var ThreadState = {
+    NOT_STARTED: 0,
+    RUNNING: 1,
+    FINISHED: 2,
+    CLOSED: 3
+};
+
+var _existingThreads = [];
+
+class ThreadError extends errors.Error {}
+
+// TODO: Implement setter/getter method syntax and use it here
 class Thread {
+    _hasBeenClosed = false;
+    _hasStarted = false;
+    _isPaused = false;
+
     constructor(callFunction, callArgs) {
         this.callFunction = callFunction;
         this.callArgs = callArgs;
+
+        _existingThreads.push(this);
+    }
+
+    _checkThreadExists() {
+        if (this._hasBeenClosed) {
+            throw new ThreadError("This thread has been closed");
+        }
+    }
+
+    close() {
+        if (this._hasBeenClosed) {
+            return;
+        }
+
+        if (this._hasStarted) {
+            syscall Thd(this._id);
+        }
+
+        this._hasBeenClosed = true;
     }
 
     start() {
+        this._checkThreadExists();
+
+        if (this._isPaused) {
+            syscall Thsr(true, this._id);
+
+            this._isPaused = false;
+
+            return;
+        }
+
+        if (this._hasStarted) {
+            throw new ThreadError("This thread is already running or has finished");
+        }
+
         this._id = syscall Thn(this.callFunction, this.callArgs);
+        this._hasStarted = true;
     }
+
+    pause() {
+        this._checkThreadExists();
+
+        if (!this.isRunning() || this.hasFinished()) {
+            throw new ThreadError("This thread is not running or has finished");
+        }
+
+        syscall Thsr(false, this._id);
+
+        this._isPaused = true;
+    }
+
+    isRunning() {
+        if (this._hasBeenClosed || !this._hasStarted) {
+            return false;
+        }
+
+        return syscall Thir(this._id);
+    }
+
+    isPaused() {
+        return this._isPaused;
+    }
+
+    hasFinished() {
+        return this._hasStarted && !this.isRunning() && !this._isPaused;
+    }
+
+    getState() {
+        if (this._hasBeenClosed) {
+            return ThreadState.CLOSED;
+        }
+
+        if (!this._hasStarted) {
+            return ThreadState.NOT_STARTED;
+        }
+
+        if (this.isRunning()) {
+            return ThreadState.RUNNING;
+        }
+
+        return ThreadState.FINISHED;
+    }
+}
+
+class MainThread extends Thread {
+    constructor(id) {
+        super(null, null);
+
+        this._id = id;
+        this._hasStarted = true;
+    }
+}
+
+function getOwnThread() {
+    var id = syscall Thoi();
+
+    return _existingThreads.find((thread) => thread._id == id) ?? new MainThread(id);
 }

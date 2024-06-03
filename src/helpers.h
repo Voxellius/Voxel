@@ -38,6 +38,20 @@ void voxel_popVoid(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, voxel_pop(executor));
 }
 
+voxel_Bool voxel_popBoolean(voxel_Executor* executor) {
+    voxel_Thing* poppedThing = voxel_pop(executor);
+
+    if (!poppedThing) {
+        return VOXEL_NULL;
+    }
+
+    voxel_Bool isTruthy = voxel_thingIsTruthy(poppedThing);
+
+    voxel_unreferenceThing(executor->context, poppedThing);
+
+    return isTruthy;
+}
+
 voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
     voxel_Thing* poppedThing = voxel_pop(executor);
 

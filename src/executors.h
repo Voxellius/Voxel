@@ -60,9 +60,11 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor) {
 VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
     VOXEL_FREE(executor->callStack); VOXEL_TAG_FREE_SIZE("voxel_Executor->callStack", executor->callStackSize);
 
-    VOXEL_MUST(voxel_destroyScope(executor->scope));
-    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->valueStack));
+    if (executor->scope != executor->context->globalScope) {
+        VOXEL_MUST(voxel_destroyScope(executor->scope));
+    }
 
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->valueStack));
 
     if (executor == executor->context->firstExecutor) {
         executor->context->firstExecutor = executor->nextExecutor;
@@ -83,6 +85,20 @@ VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
     VOXEL_FREE(executor); VOXEL_TAG_FREE(voxel_Executor);
 
     return VOXEL_OK;
+}
+
+voxel_Executor* voxel_getExecutorById(voxel_Context* context, voxel_Count id) {
+    voxel_Executor* currentExecutor = context->firstExecutor;
+
+    while (currentExecutor) {
+        if (currentExecutor->id == id) {
+            return currentExecutor;
+        }
+
+        currentExecutor = currentExecutor->nextExecutor;
+    }
+
+    return VOXEL_NULL;
 }
 
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor) {

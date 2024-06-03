@@ -22,4 +22,12 @@ thread2.start();
 
 repeat("Main executor\n", 5);
 
-// TODO: Allow threads to be closed when done with to prevent memory leaks
+while (!thread1.hasFinished()) {}
+
+thread1.close();
+syscall log("Closed thread 1\n");
+
+while (!thread2.hasFinished()) {}
+
+thread2.close();
+syscall log("Closed thread 2\n");
