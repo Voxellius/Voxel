@@ -18,7 +18,7 @@ void voxel_builtins_threads_newThread(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_Executor* newExecutor = voxel_cloneExecutor(executor);
+    voxel_Executor* newExecutor = voxel_cloneExecutor(executor, VOXEL_FALSE);
 
     *voxel_getExecutorPosition(newExecutor) = (voxel_Position)(voxel_IntPtr)callFunction->value;
 
@@ -30,8 +30,6 @@ void voxel_builtins_threads_newThread(voxel_Executor* executor) {
 
     while (currentItem) {
         voxel_pushOntoList(newExecutor->context, newExecutor->valueStack, voxel_copyThing(executor->context, currentItem->value));
-
-        currentItem->value->referenceCount++;
 
         currentItem = currentItem->nextItem;
         callArgCount++;

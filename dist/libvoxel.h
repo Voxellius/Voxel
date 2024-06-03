@@ -537,7 +537,7 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
 VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
-voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor);
+voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyValueStack);
 VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor);
 voxel_Executor* voxel_getExecutorById(voxel_Context* context, voxel_Count id);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);
@@ -1631,11 +1631,10 @@ void voxel_builtins_threads_newThread(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_Executor* newExecutor = voxel_cloneExecutor(executor);
+    voxel_Executor* newExecutor = voxel_cloneExecutor(executor, VOXEL_FALSE);
 
     *voxel_getExecutorPosition(newExecutor) = (voxel_Position)(voxel_IntPtr)callFunction->value;
 
-    // newExecutor->isRunning = VOXEL_FALSE;
     newExecutor->scope = voxel_newScope(executor->context, executor->scope);
 
     voxel_List* argList = (voxel_List*)callArgs->value;
@@ -1644,8 +1643,6 @@ void voxel_builtins_threads_newThread(voxel_Executor* executor) {
 
     while (currentItem) {
         voxel_pushOntoList(newExecutor->context, newExecutor->valueStack, voxel_copyThing(executor->context, currentItem->value));
-
-        currentItem->value->referenceCount++;
 
         currentItem = currentItem->nextItem;
         callArgCount++;
@@ -4089,7 +4086,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     return executor;
 }
 
-voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor) {
+voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyValueStack) {
     voxel_Context* context = executor->context;
     voxel_Executor* newExecutor = (voxel_Executor*)VOXEL_MALLOC(sizeof(voxel_Executor)); VOXEL_TAG_MALLOC(voxel_Executor);
 
@@ -4102,7 +4099,7 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor) {
     newExecutor->callStack = (voxel_Call*)VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
     newExecutor->callStack[0] = (voxel_Call) {.position = *voxel_getExecutorPosition(executor), .canHandleExceptions = VOXEL_FALSE};
     newExecutor->callStackHead = 0;
-    newExecutor->valueStack = voxel_copyThing(context, executor->valueStack);
+    newExecutor->valueStack = copyValueStack ? voxel_copyThing(context, executor->valueStack) : voxel_newList(context);
     newExecutor->previousExecutor = context->lastExecutor;
     newExecutor->nextExecutor = VOXEL_NULL;
 
@@ -4124,6 +4121,15 @@ VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
 
     if (executor->scope != executor->context->globalScope) {
         VOXEL_MUST(voxel_destroyScope(executor->scope));
+    }
+
+    voxel_List* valueStackList = (voxel_List*)executor->valueStack->value;
+    voxel_ListItem* currentItem = valueStackList->firstItem;
+
+    while (currentItem) {
+        currentItem->value->referenceCount--;
+
+        currentItem = currentItem->nextItem;
     }
 
     VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->valueStack));

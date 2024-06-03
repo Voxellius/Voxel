@@ -342,7 +342,7 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
 VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
-voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor);
+voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyValueStack);
 VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor);
 voxel_Executor* voxel_getExecutorById(voxel_Context* context, voxel_Count id);
 voxel_Position* voxel_getExecutorPosition(voxel_Executor* executor);

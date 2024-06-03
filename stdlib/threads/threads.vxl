@@ -40,6 +40,8 @@ class Thread {
         }
 
         this._hasBeenClosed = true;
+
+        _existingThreads.remove(this);
     }
 
     start() {
