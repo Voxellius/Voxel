@@ -22,7 +22,6 @@ void voxel_builtins_threads_newThread(voxel_Executor* executor) {
 
     *voxel_getExecutorPosition(newExecutor) = (voxel_Position)(voxel_IntPtr)callFunction->value;
 
-    // newExecutor->isRunning = VOXEL_FALSE;
     newExecutor->scope = voxel_newScope(executor->context, executor->scope);
 
     voxel_List* argList = (voxel_List*)callArgs->value;
