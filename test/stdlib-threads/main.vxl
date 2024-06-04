@@ -1,3 +1,4 @@
+import io;
 import threads;
 
 var currentTurn = 0;
@@ -8,26 +9,26 @@ function repeat(value, times) {
     for (var i = 0; i < times; i++) {
         while (currentTurn != myTurn) {}
 
-        syscall log(value);
+        io.println(value);
 
         currentTurn = (currentTurn + 1) % 3;
     }
 }
 
-var thread1 = new threads.Thread(repeat, ["Thread 1\n", 5]);
-var thread2 = new threads.Thread(repeat, ["Thread 2\n", 5]);
+var thread1 = new threads.Thread(repeat, ["Thread 1", 5]);
+var thread2 = new threads.Thread(repeat, ["Thread 2", 5]);
 
 thread1.start();
 thread2.start();
 
-repeat("Main executor\n", 5);
+repeat("Main executor", 5);
 
 while (!thread1.hasFinished()) {}
 
 thread1.close();
-syscall log("Closed thread 1\n");
+io.println("Closed thread 1");
 
 while (!thread2.hasFinished()) {}
 
 thread2.close();
-syscall log("Closed thread 2\n");
+io.println("Closed thread 2");
