@@ -171,6 +171,30 @@ syscall log(values.filter(function(value) {
 }));
 syscall log("\n");
 
+syscall log("Finding the first even number: ");
+syscall log(values.find(function(value) {
+    return value % 2 == 0;
+}));
+syscall log("\n");
+
+syscall log("Finding the index of the first even number: ");
+syscall log(values.findIndex(function(value) {
+    return value % 2 == 0;
+}));
+syscall log("\n");
+
+syscall log("Finding the number 6: ");
+syscall log(values.find(function(value) {
+    return value == 6;
+}));
+syscall log("\n");
+
+syscall log("Finding the index of the number 6: ");
+syscall log(values.findIndex(function(value) {
+    return value == 6;
+}));
+syscall log("\n");
+
 syscall log("Reducing to find sum: ");
 syscall log(values.reduce(function(accumulator, value) {
     return accumulator + value;

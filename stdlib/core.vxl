@@ -291,6 +291,36 @@ function getProperty(thing, property) {
             }
         }
 
+        if (#usedprop(find) &&& property == #prop(find)) {
+            return function(callback) {
+                var length = syscall Ll(thing);
+
+                for (var i = 0; i < length; ++i) {
+                    var item = thing[i];
+
+                    if (callback(item)) {
+                        return item;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        if (#usedprop(findIndex) &&& property == #prop(findIndex)) {
+            return function(callback) {
+                var length = syscall Ll(thing);
+
+                for (var i = 0; i < length; ++i) {
+                    if (callback(thing[i])) {
+                        return i;
+                    }
+                }
+
+                return -1;
+            }
+        }
+
         if (#usedprop(reduce) &&& property == #prop(reduce)) {
             return function(callback, initialValue) {
                 var length = syscall Ll(thing);
