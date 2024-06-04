@@ -120,7 +120,6 @@ class MainThread extends Thread {
 function getOwnThread() {
     var id = syscall Thoi();
 
-    // TODO: Implement `find` method
     return _existingThreads.find(function(thread) {
         return thread._id == id;
     }) ?? new MainThread(id);

@@ -1,3 +1,4 @@
+// TODO: See if there are problems with these stacks interacting with threads
 var thisStack = [];
 var nextThis = null;
 var superStack = [];
@@ -78,8 +79,6 @@ function callSuperConstructors(object, constructorArgs) {
 }
 
 function getProperty(thing, property) {
-    nextThis = thing;
-
     if (syscall T(thing) == "\"") {
         if (#usedprop(toNumber) &&& property == #prop(toNumber)) {
             return function() {
@@ -335,6 +334,8 @@ function getProperty(thing, property) {
     }
 
     if (syscall T(thing) == "O") {
+        nextThis = thing;
+
         var getter = syscall Ogg(thing, property);
 
         if (getter) {
@@ -380,5 +381,5 @@ function popThis() {
 }
 
 function getThis() {
-    return nextThis;
+    return syscall Lg(thisStack, -1);
 }
