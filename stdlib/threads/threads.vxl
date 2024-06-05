@@ -40,6 +40,7 @@ class Thread {
         }
 
         this._hasBeenClosed = true;
+        this._id = null;
 
         _existingThreads.remove(this);
     }
@@ -75,6 +76,10 @@ class Thread {
         this._isPaused = true;
     }
 
+    getId() {
+        return this._id;
+    }
+
     isRunning() {
         if (this._hasBeenClosed || !this._hasStarted) {
             return false;
@@ -89,6 +94,10 @@ class Thread {
 
     hasFinished() {
         return this._hasStarted && !this.isRunning() && !this._isPaused;
+    }
+
+    waitUntilFinished() {
+        while (!this.hasFinished()) {}
     }
 
     getState() {

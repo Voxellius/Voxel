@@ -13,5 +13,9 @@ Main executor
 Thread 1
 Thread 2
 Main executor
+My thread ID: 1
+My thread ID: 2
+My thread ID: 0
 Closed thread 1
 Closed thread 2
+Main executor ID: 0
