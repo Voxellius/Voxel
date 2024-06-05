@@ -19,7 +19,7 @@ class Thread {
 
     constructor(callFunction, callArgs) {
         this.callFunction = callFunction;
-        this.callArgs = callArgs;
+        this.callArgs = callArgs ?? [];
 
         _existingThreads.push(this);
     }
@@ -97,6 +97,10 @@ class Thread {
     }
 
     waitUntilFinished() {
+        if (!this._hasStarted || this._isPaused) {
+            this.start();
+        }
+
         while (!this.hasFinished()) {}
     }
 
