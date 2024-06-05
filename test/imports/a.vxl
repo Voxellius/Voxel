@@ -1,7 +1,7 @@
 import "b.vxl" as b;
 
 var value = "value in module A";
-var count = 1 + b.count;
+var count = 1 + (b.count ?? 0);
 
 function test() {
     syscall log("Module A test function called\n");

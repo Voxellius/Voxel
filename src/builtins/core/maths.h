@@ -17,12 +17,47 @@
         voxel_unreferenceThing(executor->context, b); \
     }
 
-_VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_add, +);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_subtract, -);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_multiply, *);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_divide, /);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_lessThanOrEqualTo, <=);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_greaterThanOrEqualTo, >=);
+
+void voxel_builtins_core_add(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* b = voxel_pop(executor);
+    voxel_Thing* a = voxel_pop(executor);
+
+    if (a->type != VOXEL_TYPE_NUMBER || b->type != VOXEL_TYPE_NUMBER) {
+        VOXEL_ERRORABLE aStringResult = voxel_thingToString(executor->context, a);
+        VOXEL_ERRORABLE bStringResult = voxel_thingToString(executor->context, b);
+
+        if (VOXEL_IS_ERROR(aStringResult) || VOXEL_IS_ERROR(bStringResult)) {
+            return voxel_pushNull(executor);
+        }
+
+        voxel_Thing* aString = (voxel_Thing*)aStringResult.value;
+        voxel_Thing* bString = (voxel_Thing*)bStringResult.value;
+
+        voxel_unreferenceThing(executor->context, a);
+        voxel_unreferenceThing(executor->context, b);
+
+        voxel_push(executor, voxel_concatenateStrings(executor->context, aString, bString));
+
+        voxel_unreferenceThing(executor->context, aString);
+        voxel_unreferenceThing(executor->context, bString);
+
+        return;
+    }
+
+    voxel_Float aFloat = voxel_getNumberFloat(a);
+    voxel_Float bFloat = voxel_getNumberFloat(b);
+
+    voxel_unreferenceThing(executor->context, a);
+    voxel_unreferenceThing(executor->context, b);
+
+    voxel_push(executor, voxel_newNumberFloat(executor->context, aFloat + bFloat));
+}
 
 void voxel_builtins_core_modulo(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);

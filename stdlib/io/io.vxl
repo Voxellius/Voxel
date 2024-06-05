@@ -34,6 +34,5 @@ function print(data) {
 }
 
 function println(data) {
-    syscall log(data);
-    syscall log("\n");
+    syscall log(data + "\n");
 }
