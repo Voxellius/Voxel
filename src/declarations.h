@@ -174,6 +174,7 @@ typedef struct voxel_Call {
 typedef struct voxel_Executor {
     voxel_Context* context;
     voxel_Scope* scope;
+    voxel_Thing* preserveSymbols;
     voxel_Count id;
     voxel_Bool isRunning;
     voxel_TokenisationState tokenisationState;

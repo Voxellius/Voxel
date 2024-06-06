@@ -369,6 +369,7 @@ typedef struct voxel_Call {
 typedef struct voxel_Executor {
     voxel_Context* context;
     voxel_Scope* scope;
+    voxel_Thing* preserveSymbols;
     voxel_Count id;
     voxel_Bool isRunning;
     voxel_TokenisationState tokenisationState;
@@ -1672,6 +1673,23 @@ void voxel_builtins_threads_newThread(voxel_Executor* executor) {
 
     newExecutor->scope = voxel_newScope(executor->context, executor->scope);
 
+    voxel_Thing* symbolsToPreserve = newExecutor->preserveSymbols;
+
+    if (symbolsToPreserve && symbolsToPreserve->type == VOXEL_TYPE_LIST) {
+        voxel_List* symbolList = (voxel_List*)symbolsToPreserve->value;
+        voxel_ListItem* currentSymbol = symbolList->firstItem;
+
+        while (currentSymbol) {
+            voxel_ObjectItem* symbolValue = voxel_getScopeItem(newExecutor->scope, currentSymbol->value);
+
+            if (symbolValue) {
+                voxel_setLocalScopeItem(newExecutor->scope, currentSymbol->value, symbolValue->value);
+            }
+
+            currentSymbol = currentSymbol->nextItem;
+        }
+    }
+
     voxel_List* argList = (voxel_List*)callArgs->value;
     voxel_ListItem* currentItem = argList->firstItem;
     voxel_Count callArgCount = 0;
@@ -1741,12 +1759,42 @@ void voxel_builtins_threads_setThreadIsRunning(voxel_Executor* executor) {
     voxel_pushNull(executor);
 }
 
+void voxel_builtins_threads_preserveSymbols(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* symbolListThing = voxel_pop(executor);
+
+    if (
+        !symbolListThing || symbolListThing->type != VOXEL_TYPE_LIST
+    ) {
+        return voxel_pushNull(executor);
+    }
+
+    if (executor->preserveSymbols && executor->preserveSymbols->type == VOXEL_TYPE_LIST) {
+        voxel_List* symbolList = (voxel_List*)symbolListThing->value;
+        voxel_ListItem* currentSymbol = symbolList->firstItem;
+
+        while (currentSymbol) {
+            voxel_pushOntoList(executor->context, executor->preserveSymbols, currentSymbol->value);
+
+            currentSymbol = currentSymbol->nextItem;
+        }
+
+        voxel_unreferenceThing(executor->context, symbolListThing);
+    } else {
+        executor->preserveSymbols = symbolListThing;
+        symbolListThing->referenceCount++;
+    }
+
+    voxel_pushNull(executor);
+}
+
 void voxel_builtins_threads(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Thn", &voxel_builtins_threads_newThread);
     voxel_defineBuiltin(context, ".Thd", &voxel_builtins_threads_destroyThread);
     voxel_defineBuiltin(context, ".Thoi", &voxel_builtins_threads_getOwnThreadId);
     voxel_defineBuiltin(context, ".Thir", &voxel_builtins_threads_threadIsRunning);
     voxel_defineBuiltin(context, ".Thsr", &voxel_builtins_threads_setThreadIsRunning);
+    voxel_defineBuiltin(context, ".Thps", &voxel_builtins_threads_preserveSymbols);
 }
 
 #else
@@ -4097,6 +4145,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
 
     executor->context = context;
     executor->scope = context->globalScope;
+    executor->preserveSymbols = VOXEL_NULL;
     executor->id = context->executorCount++;
     executor->isRunning = VOXEL_TRUE;
     executor->tokenisationState = VOXEL_STATE_NONE;
@@ -4127,6 +4176,7 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
 
     newExecutor->context = context;
     newExecutor->scope = executor->scope;
+    newExecutor->preserveSymbols = executor->preserveSymbols;
     newExecutor->id = context->executorCount++;
     newExecutor->isRunning = VOXEL_TRUE;
     newExecutor->tokenisationState = VOXEL_STATE_NONE;
@@ -4137,6 +4187,10 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
     newExecutor->valueStack = copyValueStack ? voxel_copyThing(context, executor->valueStack) : voxel_newList(context);
     newExecutor->previousExecutor = context->lastExecutor;
     newExecutor->nextExecutor = VOXEL_NULL;
+
+    if (executor->preserveSymbols) {
+        executor->preserveSymbols->referenceCount++;
+    }
 
     if (!context->firstExecutor) {
         context->firstExecutor = newExecutor;
@@ -4156,6 +4210,10 @@ VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
 
     if (executor->scope != executor->context->globalScope) {
         VOXEL_MUST(voxel_destroyScope(executor->scope));
+    }
+
+    if (executor->preserveSymbols) {
+        VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->preserveSymbols));
     }
 
     voxel_List* valueStackList = (voxel_List*)executor->valueStack->value;

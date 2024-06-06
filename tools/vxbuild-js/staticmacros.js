@@ -36,6 +36,22 @@ export class StaticMacro {
     }
 }
 
+export class SymbolStaticMacro extends StaticMacro {
+    static NAME = "#symbol";
+
+    constructor(astNode, namespace, closingToken = undefined) {
+        super(astNode, namespace, closingToken);
+
+        this.targetSymbol = new namespaces.Symbol(this.namespace, this.arguments[0]);
+    }
+
+    generateCode(options) {
+        this.argumentCountRequired(1);
+
+        return this.targetSymbol.generateCode(options);
+    }
+}
+
 export class PropertyStaticMacro extends StaticMacro {
     static NAME = "#prop";
 
@@ -146,4 +162,4 @@ export class StaticMacroNode extends ast.AstNode {
     }
 }
 
-export const STATIC_MACROS = [PropertyStaticMacro, UsedStaticMacro, UsedPropertyStaticMacro];
+export const STATIC_MACROS = [SymbolStaticMacro, PropertyStaticMacro, UsedStaticMacro, UsedPropertyStaticMacro];

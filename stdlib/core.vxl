@@ -1,7 +1,12 @@
-// TODO: See if there are problems with these stacks interacting with threads
 var thisStack = [];
 var nextThis = null;
 var superStack = [];
+
+syscall Thps([
+    #symbol(thisStack),
+    #symbol(nextThis),
+    #symbol(superStack)
+]);
 
 function instantiate(object, constructorArgs) {
     var instance = {};

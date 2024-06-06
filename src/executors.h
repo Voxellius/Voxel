@@ -3,6 +3,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
 
     executor->context = context;
     executor->scope = context->globalScope;
+    executor->preserveSymbols = VOXEL_NULL;
     executor->id = context->executorCount++;
     executor->isRunning = VOXEL_TRUE;
     executor->tokenisationState = VOXEL_STATE_NONE;
@@ -33,6 +34,7 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
 
     newExecutor->context = context;
     newExecutor->scope = executor->scope;
+    newExecutor->preserveSymbols = executor->preserveSymbols;
     newExecutor->id = context->executorCount++;
     newExecutor->isRunning = VOXEL_TRUE;
     newExecutor->tokenisationState = VOXEL_STATE_NONE;
@@ -43,6 +45,10 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
     newExecutor->valueStack = copyValueStack ? voxel_copyThing(context, executor->valueStack) : voxel_newList(context);
     newExecutor->previousExecutor = context->lastExecutor;
     newExecutor->nextExecutor = VOXEL_NULL;
+
+    if (executor->preserveSymbols) {
+        executor->preserveSymbols->referenceCount++;
+    }
 
     if (!context->firstExecutor) {
         context->firstExecutor = newExecutor;
@@ -62,6 +68,10 @@ VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
 
     if (executor->scope != executor->context->globalScope) {
         VOXEL_MUST(voxel_destroyScope(executor->scope));
+    }
+
+    if (executor->preserveSymbols) {
+        VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->preserveSymbols));
     }
 
     voxel_List* valueStackList = (voxel_List*)executor->valueStack->value;

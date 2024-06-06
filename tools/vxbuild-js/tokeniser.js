@@ -170,7 +170,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:#usedprop|#prop|#used)\b/)) {
+        if (matchToken(/^(?:#symbol|#usedprop|#prop|#used)\b/)) {
             addToken(StaticMacroToken);
             continue;
         }
