@@ -39,9 +39,9 @@
      inkscape:pagecheckerboard="1"
      inkscape:deskcolor="#505050"
      showgrid="false"
-     inkscape:zoom="1.6324906"
-     inkscape:cx="302.91139"
-     inkscape:cy="91.271582"
+     inkscape:zoom="0.8162453"
+     inkscape:cx="393.87669"
+     inkscape:cy="165.39146"
      inkscape:window-width="1920"
      inkscape:window-height="1026"
      inkscape:window-x="0"
@@ -51,8 +51,7 @@
   <g
      aria-label="VOXEL"
      id="text344"
-     style="font-size:159.848px;line-height:1.25;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:0px;word-spacing:0px;stroke-width:3.9962"
-     transform="translate(130.30338)">
+     style="font-size:159.848px;line-height:1.25;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:0px;word-spacing:0px;stroke-width:3.9962">
     <path
        d="M 71.475884,2.5073727 H 94.653845 L 69.39786,111.20402 H 28.636618 L 3.3806329,2.5073727 H 26.558594 L 45.420659,92.022257 h 7.19316 z"
        style="font-weight:bold;font-family:'Titillium Web';-inkscape-font-specification:'Titillium Web';fill:#000000"
@@ -76,7 +75,7 @@
   </g>
   <g
      id="g1674"
-     transform="matrix(1.0383683,0,0,1.0383683,-781.47501,-188.2934)">
+     transform="matrix(1.0383683,0,0,1.0383683,-310.47502,-188.2934)">
     <rect
        style="fill:#219bff;fill-opacity:1;stroke:none;stroke-width:0.3;stop-color:#000000"
        id="rect1705-6"
