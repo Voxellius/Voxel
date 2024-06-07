@@ -1,3 +1,5 @@
 Byte 1: A
 Byte 2: B
-Buffer: Hello, world! This is a buffer. ABC
+Buffer: ABC Hello, world! This is a buffer.
+Get byte at index 1 from buffer: B
+Set byte at index 1 in buffer: D

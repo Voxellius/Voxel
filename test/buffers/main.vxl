@@ -9,8 +9,18 @@ syscall log("Byte 2: ");
 syscall log(byte2);
 syscall log("\n");
 
-var buffer = Buffer("Hello, world! ", "This is a buffer. ", 0x41, 0x42, 0x43);
+var buffer = Buffer(0x41, 0x42, 0x43, " Hello, world! ", "This is a buffer.");
 
 syscall log("Buffer: ");
 syscall log(buffer);
+syscall log("\n");
+
+syscall log("Get byte at index 1 from buffer: ");
+syscall log(buffer[1]);
+syscall log("\n");
+
+buffer[1] = Byte(0x44);
+
+syscall log("Set byte at index 1 in buffer: ");
+syscall log(buffer[1]);
 syscall log("\n");

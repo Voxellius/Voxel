@@ -36,7 +36,7 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
     voxel_List* listValue = (voxel_List*)list->value;
 
     if (index < 0) {
-        index = voxel_getListLength(list) + index;
+        index = listValue->length + index;
     }
 
     if (index < 0 || index >= listValue->length) {

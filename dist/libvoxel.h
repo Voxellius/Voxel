@@ -554,6 +554,7 @@ void voxel_pushNull(voxel_Executor* executor);
 voxel_Thing* voxel_pop(voxel_Executor* executor);
 void voxel_popVoid(voxel_Executor* executor);
 voxel_Bool voxel_popBoolean(voxel_Executor* executor);
+voxel_Thing* voxel_popByte(voxel_Executor* executor);
 voxel_Thing* voxel_popNumber(voxel_Executor* executor);
 voxel_Int voxel_popNumberInt(voxel_Executor* executor);
 voxel_Float voxel_popNumberFloat(voxel_Executor* executor);
@@ -724,6 +725,73 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
     }
 
     voxel_push(executor, thing);
+}
+
+#endif
+
+// src/builtins/core/buffers.h
+
+#ifdef VOXEL_BUILTINS_CORE
+
+void voxel_builtins_core_getBufferByte(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int index = voxel_popNumberInt(executor);
+    voxel_Thing* bufferThing = voxel_pop(executor);
+
+    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || argCount < 2) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Buffer* buffer = (voxel_Buffer*)bufferThing->value;
+
+    if (index < 0) {
+        index = buffer->size + index;
+    }
+
+    if (index < 0 || index >= buffer->size) {
+        voxel_unreferenceThing(executor->context, bufferThing);
+
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Byte byte = buffer->value[index];
+
+    voxel_unreferenceThing(executor->context, bufferThing);
+
+    voxel_push(executor, voxel_newByte(executor->context, byte));
+}
+
+void voxel_builtins_core_setBufferByte(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int index = voxel_popNumberInt(executor);
+    voxel_Thing* bufferThing = voxel_pop(executor);
+    voxel_Thing* value = voxel_popByte(executor);
+
+    voxel_push(executor, value);
+
+    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || argCount < 3) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Buffer* buffer = (voxel_Buffer*)bufferThing->value;
+
+    if (index < 0) {
+        index = buffer->size + index;
+    }
+
+    if (index < 0 || index >= buffer->size) {
+        voxel_unreferenceThing(executor->context, bufferThing);
+
+        return voxel_pushNull(executor);
+    }
+
+    buffer->value[index] = (voxel_Byte)(voxel_IntPtr)value->value;
+
+    voxel_unreferenceThing(executor->context, bufferThing);
+
+    value->referenceCount++;
+
+    voxel_push(executor, value);
 }
 
 #endif
@@ -1146,7 +1214,7 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
     voxel_List* listValue = (voxel_List*)list->value;
 
     if (index < 0) {
-        index = voxel_getListLength(list) + index;
+        index = listValue->length + index;
     }
 
     if (index < 0 || index >= listValue->length) {
@@ -1509,6 +1577,7 @@ void voxel_builtins_core_getItem(voxel_Executor* executor) {
     voxel_Thing* thing = voxel_peek(executor, 2);
 
     switch (thing->type) {
+        case VOXEL_TYPE_BUFFER: return voxel_builtins_core_getBufferByte(executor);
         case VOXEL_TYPE_OBJECT: return voxel_builtins_core_getObjectItem(executor);
         case VOXEL_TYPE_LIST: return voxel_builtins_core_getListItem(executor);
     }
@@ -1530,6 +1599,7 @@ void voxel_builtins_core_setItem(voxel_Executor* executor) {
     voxel_Thing* thing = voxel_peek(executor, 2);
 
     switch (thing->type) {
+        case VOXEL_TYPE_BUFFER: return voxel_builtins_core_setBufferByte(executor);
         case VOXEL_TYPE_OBJECT: return voxel_builtins_core_setObjectItem(executor);
         case VOXEL_TYPE_LIST: return voxel_builtins_core_setListItem(executor);
     }
@@ -1606,6 +1676,9 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ts", &voxel_builtins_core_setItem);
     voxel_defineBuiltin(context, ".Tr", &voxel_builtins_core_removeItem);
     voxel_defineBuiltin(context, ".Tl", &voxel_builtins_core_getLength);
+
+    voxel_defineBuiltin(context, ".Bg", &voxel_builtins_core_getBufferByte);
+    voxel_defineBuiltin(context, ".Bs", &voxel_builtins_core_setBufferByte);
 
     voxel_defineBuiltin(context, ".S2N", &voxel_builtins_core_stringToNumber);
     voxel_defineBuiltin(context, ".Ss", &voxel_builtins_core_getStringSize);
@@ -2746,9 +2819,9 @@ VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing)
 
 VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
-    voxel_Thing* string = voxel_newStringTerminated(context, "buffer([");
+    voxel_Thing* string = voxel_newStringTerminated(context, "Buffer(");
     voxel_Thing* hexPrefix = voxel_newStringTerminated(context, "0x");
-    voxel_Thing* suffix = voxel_newStringTerminated(context, "])");
+    voxel_Thing* suffix = voxel_newStringTerminated(context, ")");
 
     for (voxel_Count i = 0; i < buffer->size; i++) {
         voxel_Thing* number = voxel_newNumberInt(context, buffer->value[i]);
@@ -4769,6 +4842,28 @@ voxel_Bool voxel_popBoolean(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, poppedThing);
 
     return isTruthy;
+}
+
+voxel_Thing* voxel_popByte(voxel_Executor* executor) {
+    voxel_Thing* poppedThing = voxel_pop(executor);
+
+    if (!poppedThing) {
+        return VOXEL_NULL;
+    }
+
+    if (poppedThing->type == VOXEL_TYPE_BYTE) {
+        return poppedThing; // Saves us from having to copy the thing
+    }
+
+    VOXEL_ERRORABLE result = voxel_thingToByte(executor->context, poppedThing);
+
+    voxel_unreferenceThing(executor->context, poppedThing);
+
+    if (VOXEL_IS_ERROR(result)) {
+        return VOXEL_NULL;
+    }
+
+    return (voxel_Thing*)result.value;
 }
 
 voxel_Thing* voxel_popNumber(voxel_Executor* executor) {

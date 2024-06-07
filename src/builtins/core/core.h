@@ -136,6 +136,7 @@ void voxel_builtins_core_getItem(voxel_Executor* executor) {
     voxel_Thing* thing = voxel_peek(executor, 2);
 
     switch (thing->type) {
+        case VOXEL_TYPE_BUFFER: return voxel_builtins_core_getBufferByte(executor);
         case VOXEL_TYPE_OBJECT: return voxel_builtins_core_getObjectItem(executor);
         case VOXEL_TYPE_LIST: return voxel_builtins_core_getListItem(executor);
     }
@@ -157,6 +158,7 @@ void voxel_builtins_core_setItem(voxel_Executor* executor) {
     voxel_Thing* thing = voxel_peek(executor, 2);
 
     switch (thing->type) {
+        case VOXEL_TYPE_BUFFER: return voxel_builtins_core_setBufferByte(executor);
         case VOXEL_TYPE_OBJECT: return voxel_builtins_core_setObjectItem(executor);
         case VOXEL_TYPE_LIST: return voxel_builtins_core_setListItem(executor);
     }
@@ -233,6 +235,9 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ts", &voxel_builtins_core_setItem);
     voxel_defineBuiltin(context, ".Tr", &voxel_builtins_core_removeItem);
     voxel_defineBuiltin(context, ".Tl", &voxel_builtins_core_getLength);
+
+    voxel_defineBuiltin(context, ".Bg", &voxel_builtins_core_getBufferByte);
+    voxel_defineBuiltin(context, ".Bs", &voxel_builtins_core_setBufferByte);
 
     voxel_defineBuiltin(context, ".S2N", &voxel_builtins_core_stringToNumber);
     voxel_defineBuiltin(context, ".Ss", &voxel_builtins_core_getStringSize);

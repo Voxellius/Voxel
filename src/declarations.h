@@ -359,6 +359,7 @@ void voxel_pushNull(voxel_Executor* executor);
 voxel_Thing* voxel_pop(voxel_Executor* executor);
 void voxel_popVoid(voxel_Executor* executor);
 voxel_Bool voxel_popBoolean(voxel_Executor* executor);
+voxel_Thing* voxel_popByte(voxel_Executor* executor);
 voxel_Thing* voxel_popNumber(voxel_Executor* executor);
 voxel_Int voxel_popNumberInt(voxel_Executor* executor);
 voxel_Float voxel_popNumberFloat(voxel_Executor* executor);
