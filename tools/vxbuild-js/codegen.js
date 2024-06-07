@@ -38,7 +38,7 @@ export const vxcTokens = {
 };
 
 export function byte(char) {
-    return char.charCodeAt(0);
+    return new TextEncoder().encode(char)[0] || 0x00;
 }
 
 export function bytes(...bytes) {

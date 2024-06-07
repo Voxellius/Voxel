@@ -1,6 +1,7 @@
 import * as path from "https://deno.land/std@0.220.1/path/mod.ts";
 
 import * as common from "./common.js";
+import * as sources from "./sources.js";
 import * as tokeniser from "./tokeniser.js";
 import * as namespaces from "./namespaces.js";
 import * as ast from "./ast.js";
@@ -62,7 +63,7 @@ export class StatementBlockNode extends ast.AstNode {
                     continue;
                 }
 
-                throw new SyntaxError("Expected statement or \`}\`", tokens[0]?.location);
+                throw new sources.SourceError("Expected statement or \`}\`", tokens[0]?.sourceContainer, tokens[0]?.location);
             }
         } else {
             instance.expectChildByMatching(tokens, [StatementNode], namespace);

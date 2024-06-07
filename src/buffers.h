@@ -53,9 +53,9 @@ VOXEL_ERRORABLE voxel_bufferToString(voxel_Context* context, voxel_Thing* thing)
 
 VOXEL_ERRORABLE voxel_bufferToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_Buffer* buffer = (voxel_Buffer*)thing->value;
-    voxel_Thing* string = voxel_newStringTerminated(context, "buffer([");
+    voxel_Thing* string = voxel_newStringTerminated(context, "Buffer(");
     voxel_Thing* hexPrefix = voxel_newStringTerminated(context, "0x");
-    voxel_Thing* suffix = voxel_newStringTerminated(context, "])");
+    voxel_Thing* suffix = voxel_newStringTerminated(context, ")");
 
     for (voxel_Count i = 0; i < buffer->size; i++) {
         voxel_Thing* number = voxel_newNumberInt(context, buffer->value[i]);

@@ -25,6 +25,7 @@ export class Token {
 
 export class KeywordToken extends Token {static HUMAN_READABLE_NAME = "keyword";}
 export class AtomToken extends Token {static HUMAN_READABLE_NAME = "atom";}
+export class TypeLiteralToken extends Token {static HUMAN_READABLE_NAME = "type literal";}
 export class StaticMacroToken extends Token {static HUMAN_READABLE_NAME = "static function name";}
 export class BracketToken extends Token {static HUMAN_READABLE_NAME = "bracket";}
 export class DelimeterToken extends Token {static HUMAN_READABLE_NAME = "delimeter (,)";}
@@ -170,6 +171,11 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
+        if (matchToken(/^(?:Byte|Buffer)\b/)) {
+            addToken(TypeLiteralToken);
+            continue;
+        }
+
         if (matchToken(/^(?:#symbol|#usedprop|#prop|#used)\b/)) {
             addToken(StaticMacroToken);
             continue;
@@ -222,6 +228,21 @@ export function tokenise(sourceContainer) {
 
         if (matchToken(/^(?:[0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)(?:[eE][+-]?[0-9]+)?\b/)) {
             addToken(NumberToken, parseFloat(match[0]));
+            continue;
+        }
+
+        if (matchToken(/^0b(?:[01]+)\b/)) {
+            addToken(NumberToken, parseInt(match[0], 2));
+            continue;
+        }
+
+        if (matchToken(/^0o(?:[0-7]+)\b/)) {
+            addToken(NumberToken, parseInt(match[0], 8));
+            continue;
+        }
+
+        if (matchToken(/^0x(?:[0-9a-fA-F]+)\b/)) {
+            addToken(NumberToken, parseInt(match[0], 16));
             continue;
         }
 

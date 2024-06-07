@@ -115,12 +115,17 @@ export class ThingNode extends ast.AstNode {
 
     static MATCH_QUERIES = [
         new ast.TokenQuery(tokeniser.AtomToken),
+        new ast.TokenQuery(tokeniser.TypeLiteralToken),
         new ast.TokenQuery(tokeniser.IdentifierToken),
         new ast.TokenQuery(tokeniser.StringToken),
         new ast.TokenQuery(tokeniser.NumberToken)
     ];
 
     value = null;
+    containedValueTokens = [];
+    containerType = null;
+    memoisedContainedTypeValue = null;
+    bufferLength = null;
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -133,6 +138,40 @@ export class ThingNode extends ast.AstNode {
                 "false": false,
                 "null": null
             }[token.value] ?? null;
+        } else if (token instanceof tokeniser.TypeLiteralToken) {
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);
+
+            if (token.value == "Byte") {
+                instance.containedValueTokens.push(tokens[0]);
+
+                instance.expectChildByMatching(tokens, [ThingNode], namespace);
+
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
+
+                instance.containerType = "byte";
+            } else if (token.value == "Buffer") {
+                var addedFirstItem = false;
+
+                while (true) {
+                    if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")])) {
+                        break;
+                    }
+
+                    if (addedFirstItem) {
+                        this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
+                    }
+
+                    instance.containedValueTokens.push(tokens[0]);
+
+                    instance.expectChildByMatching(tokens, [ThingNode], namespace);
+
+                    addedFirstItem = true;
+                }
+
+                instance.containerType = "buffer";
+            } else {
+                throw new Error("Not implemented");
+            }
         } else if (token instanceof tokeniser.IdentifierToken) {
             if (namespace.hasImport(token.value)) {
                 this.eat(tokens, [new ast.TokenQuery(tokeniser.PropertyAccessorToken)]);
@@ -160,6 +199,56 @@ export class ThingNode extends ast.AstNode {
         return instance;
     }
 
+    getContainerTypeValue() {
+        var thisScope = this;
+
+        if (this.memoisedContainedTypeValue != null) {
+            return this.memoisedContainedTypeValue;
+        }
+
+        function getByte(index) {
+            var childValue = thisScope.children[index].value;
+
+            if (typeof(childValue) == "boolean") {
+                return childValue ? 0x01 : 0x00;
+            }
+
+            if (typeof(childValue) == "string") {
+                return codeGen.byte(childValue);
+            }
+
+            if (typeof(childValue) == "number") {
+                return childValue % 256;
+            }
+
+            var invalidToken = thisScope.containedValueTokens[index];
+
+            throw new sources.SourceError("Invalid inner value for type literal", invalidToken?.sourceContainer, invalidToken?.location);
+        }
+
+        if (this.containerType == "byte") {
+            return this.memoisedContainedTypeValue = getByte(0);
+        }
+
+        if (this.containerType == "buffer") {
+            this.memoisedContainedTypeValue = this.children.map(function(child, index) {
+                if (typeof(child.value) == "string") {
+                    return codeGen.join(
+                        new TextEncoder().encode(child.value)
+                    );
+                }
+
+                return codeGen.bytes(getByte(index));
+            });
+
+            this.bufferLength = this.memoisedContainedTypeValue.reduce((accumulator, value) => accumulator + value.length, 0);
+
+            return this.memoisedContainedTypeValue;
+        }
+
+        return null;
+    }
+
     checkSymbolUsage(scope) {
         scope.addSymbol(this.value, true, false, this);
 
@@ -175,6 +264,14 @@ export class ThingNode extends ast.AstNode {
     }
 
     estimateTruthiness() {
+        if (this.containerType == "byte") {
+            return this.getContainerTypeValue() != 0;
+        }
+
+        if (this.containerType == "buffer") {
+            return this.bufferLength > 0;
+        }
+
         if (
             this.value instanceof namespaces.Symbol ||
             this.value instanceof namespaces.ForeignSymbolReference
@@ -202,6 +299,20 @@ export class ThingNode extends ast.AstNode {
     }
 
     generateCode(options) {
+        if (this.containerType == "byte") {
+            return codeGen.bytes(codeGen.vxcTokens.BYTE, this.getContainerTypeValue());
+        }
+
+        if (this.containerType == "buffer") {
+            var value = this.getContainerTypeValue();
+
+            return codeGen.join(
+                codeGen.bytes(codeGen.vxcTokens.BUFFER),
+                codeGen.int32(this.bufferLength),
+                codeGen.join(...value)
+            );
+        }
+
         if (
             this.value instanceof namespaces.Symbol ||
             this.value instanceof namespaces.ForeignSymbolReference

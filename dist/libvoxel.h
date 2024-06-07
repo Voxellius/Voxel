@@ -2287,7 +2287,7 @@ VOXEL_ERRORABLE voxel_byteToString(voxel_Context* context, voxel_Thing* thing) {
 }
 
 VOXEL_ERRORABLE voxel_byteToVxon(voxel_Context* context, voxel_Thing* thing) {
-    voxel_Thing* string = voxel_newStringTerminated(context, "byte(0x");
+    voxel_Thing* string = voxel_newStringTerminated(context, "Byte(0x");
     voxel_Thing* number = voxel_newNumberInt(context, (voxel_IntPtr)thing->value);
     VOXEL_ERRORABLE hexString = voxel_numberToBaseString(context, number, 16, 2); VOXEL_MUST(hexString);
 

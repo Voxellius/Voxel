@@ -1,0 +1,16 @@
+var byte1 = Byte(0x41);
+var byte2 = Byte("B");
+
+syscall log("Byte 1: ");
+syscall log(byte1);
+syscall log("\n");
+
+syscall log("Byte 2: ");
+syscall log(byte2);
+syscall log("\n");
+
+var buffer = Buffer("Hello, world! ", "This is a buffer. ", 0x41, 0x42, 0x43);
+
+syscall log("Buffer: ");
+syscall log(buffer);
+syscall log("\n");
