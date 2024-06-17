@@ -1,0 +1,11 @@
+function create(size, value) {
+    value = value ?? Byte(0);
+
+    var buffer = syscall B(size);
+
+    if (value) {
+        buffer.fill(value, 0, size);
+    }
+
+    return buffer;
+}

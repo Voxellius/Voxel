@@ -1,3 +1,5 @@
+import buffers;
+
 var byte1 = Byte(0x41);
 var byte2 = Byte("B");
 
@@ -23,4 +25,16 @@ buffer[1] = Byte(0x44);
 
 syscall log("Set byte at index 1 in buffer: ");
 syscall log(buffer[1]);
+syscall log("\n");
+
+var bigBuffer = buffers.create(65536 * 4, Byte("."));
+
+syscall log("Section of big buffer: ");
+syscall log(bigBuffer.section((65536 * 2) + 4, (65536 * 2) + 12));
+syscall log("\n");
+
+buffer.copy(bigBuffer, (65536 * 2) + 4, 4);
+
+syscall log("Write small buffer into big buffer: ");
+syscall log(bigBuffer.section((65536 * 2) + 4, (65536 * 2) + 12));
 syscall log("\n");

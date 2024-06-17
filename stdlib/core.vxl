@@ -84,6 +84,43 @@ function callSuperConstructors(object, constructorArgs) {
 }
 
 function getProperty(thing, property) {
+    if (syscall T(thing) == "B") {
+        if (#usedprop(fill) &&& property == #prop(fill)) {
+            return function(value, start, end) {
+                start = start ?? 0;
+                end = end ?? syscall Bz(thing);
+
+                while (start >= 0) {
+                    start = syscall Bf(thing, value, start, end);
+                }
+            };
+        }
+
+        if (#usedprop(copy) &&& property == #prop(copy)) {
+            return function(destination, offset, start, end) {
+                start = start ?? 0;
+                end = end ?? syscall Bz(thing);
+                offset = offset ?? 0;
+
+                while (start >= 0) {
+                    start = syscall Bc(thing, destination, offset, start, end);
+                }
+            };
+        }
+
+        if (#usedprop(section) &&& property == #prop(section)) {
+            return function(start, end) {
+                var destination = syscall B(end - start);
+
+                while (start >= 0) {
+                    start = syscall Bc(thing, destination, 0, start, end);
+                }
+
+                return destination;
+            };
+        }
+    }
+
     if (syscall T(thing) == "\"") {
         if (#usedprop(toNumber) &&& property == #prop(toNumber)) {
             return function() {
@@ -98,19 +135,19 @@ function getProperty(thing, property) {
         if (#usedprop(reverse) &&& property == #prop(reverse)) {
             return function() {
                 return syscall Sr(&thing);
-            }
+            };
         }
 
         if (#usedprop(cutStart) &&& property == #prop(cutStart)) {
             return function(maxSize) {
                 return syscall Scs(&thing, maxSize);
-            }
+            };
         }
 
         if (#usedprop(cutEnd) &&& property == #prop(cutEnd)) {
             return function(maxSize) {
                 return syscall Sce(&thing, maxSize);
-            }
+            };
         }
 
         if (#usedprop(padStart) &&& property == #prop(padStart)) {
@@ -120,7 +157,7 @@ function getProperty(thing, property) {
                 }
 
                 return syscall Sps(&thing, minSize, fill);
-            }
+            };
         }
 
         if (#usedprop(padEnd) &&& property == #prop(padEnd)) {
@@ -130,7 +167,7 @@ function getProperty(thing, property) {
                 }
 
                 return syscall Spe(&thing, minSize, fill);
-            }
+            };
         }
 
         if (#usedprop(substring) &&& property == #prop(substring)) {
@@ -150,7 +187,7 @@ function getProperty(thing, property) {
                 }
 
                 return syscall Sce(cutStart, end - start);
-            }
+            };
         }
     }
 

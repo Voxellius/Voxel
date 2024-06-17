@@ -212,6 +212,26 @@ void voxel_builtins_core_getLength(voxel_Executor* executor) {
     voxel_pushNull(executor);
 }
 
+void voxel_builtins_core_getSize(voxel_Executor* executor) {
+    voxel_Thing* argCount = voxel_peek(executor, 0);
+
+    if (voxel_getNumberInt(argCount) < 1) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Thing* thing = voxel_peek(executor, 1);
+
+    switch (thing->type) {
+        case VOXEL_TYPE_BUFFER: return voxel_builtins_core_getBufferSize(executor);
+        case VOXEL_TYPE_STRING: return voxel_builtins_core_getStringSize(executor);
+    }
+
+    voxel_popVoid(executor); // Arg count
+    voxel_popVoid(executor); // Thing
+
+    voxel_pushNull(executor);
+}
+
 void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
@@ -235,9 +255,14 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ts", &voxel_builtins_core_setItem);
     voxel_defineBuiltin(context, ".Tr", &voxel_builtins_core_removeItem);
     voxel_defineBuiltin(context, ".Tl", &voxel_builtins_core_getLength);
+    voxel_defineBuiltin(context, ".Tz", &voxel_builtins_core_getSize);
 
+    voxel_defineBuiltin(context, ".B", &voxel_builtins_core_newBuffer);
     voxel_defineBuiltin(context, ".Bg", &voxel_builtins_core_getBufferByte);
     voxel_defineBuiltin(context, ".Bs", &voxel_builtins_core_setBufferByte);
+    voxel_defineBuiltin(context, ".Bf", &voxel_builtins_core_fillBuffer);
+    voxel_defineBuiltin(context, ".Bc", &voxel_builtins_core_copyBufferInto);
+    voxel_defineBuiltin(context, ".Bz", &voxel_builtins_core_getBufferSize);
 
     voxel_defineBuiltin(context, ".S2N", &voxel_builtins_core_stringToNumber);
     voxel_defineBuiltin(context, ".Ss", &voxel_builtins_core_getStringSize);
