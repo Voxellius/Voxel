@@ -127,6 +127,12 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
             }
 
             if (tokenType == VOXEL_TOKEN_TYPE_BUFFER_EMPTY) {
+                #ifdef VOXEL_MAX_BUFFER_INIT_SIZE
+                    if (bufferSize > VOXEL_MAX_BUFFER_INIT_SIZE) {
+                        bufferSize = VOXEL_MAX_BUFFER_INIT_SIZE;
+                    }
+                #endif
+
                 token.data = voxel_newBuffer(context, bufferSize, VOXEL_NULL);
 
                 VOXEL_DEBUG_LOG("[Token: buffer (empty)]\n");

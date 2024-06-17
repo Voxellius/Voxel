@@ -4,6 +4,12 @@ void voxel_builtins_core_newBuffer(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Int bufferSize = voxel_popNumberInt(executor);
 
+    #ifdef VOXEL_MAX_BUFFER_INIT_SIZE
+        if (bufferSize > VOXEL_MAX_BUFFER_INIT_SIZE) {
+            bufferSize = VOXEL_MAX_BUFFER_INIT_SIZE;
+        }
+    #endif
+
     voxel_push(executor, voxel_newBuffer(executor->context, bufferSize, VOXEL_NULL));
 }
 
