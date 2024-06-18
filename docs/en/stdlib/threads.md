@@ -13,7 +13,7 @@ function repeat(value, times) {
         io.println(value);
     }
 
-    io.println("My thread ID: " + threads.getOwnThread().getId());
+    io.println("My thread ID: " + threads.getOwnThread().id);
 }
 
 var thread1 = new threads.Thread(repeat, ["Thread 1", 5]);
@@ -66,8 +66,8 @@ Start running the thread or resume it if it was paused.
 #### `pause()`
 Pause the execution of the thread. The thread can resume execution by calling the `start` method again.
 
-#### `getId(): Number`
-Get the ID of the thread.
+#### `id: Number`
+The ID of the thread.
 
 #### `isRunning(): Boolean`
 Return `true` if the thread is running, or `false` otherwise. This will return `false` in cases where the thread is paused or has finished execution.
@@ -78,8 +78,8 @@ Return `true` if the thread has finished execution, or `false` otherwise. This w
 #### `waitUntilFinished()`
 Wait until the thread has finished execution. This method will also start the thread if it has not been started yet or resume execution if it is paused.
 
-#### `getState(): ThreadState`
-Get the current state of the thread.
+#### `state: ThreadState`
+The current state of the thread.
 
 ### `class MainThread extends Thread`
 This class represents the main thread which is created by the Voxel runtime when a program is run.
