@@ -496,7 +496,7 @@ void voxel_lockObject(voxel_Thing* thing);
 voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_objectToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing);
-voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth, voxel_Count* actualTraverseDepth);
+voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth, voxel_Count* actualTraverseDepth, voxel_Thing** actualParentObject);
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
@@ -782,7 +782,7 @@ void voxel_builtins_core_setBufferByte(voxel_Executor* executor) {
 
     voxel_push(executor, value);
 
-    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || argCount < 3) {
+    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || bufferThing->isLocked || argCount < 3) {
         return voxel_pushNull(executor);
     }
 
@@ -830,6 +830,7 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
     if (
         !byteThing || !bufferThing ||
         byteThing->type != VOXEL_TYPE_BYTE || bufferThing->type != VOXEL_TYPE_BUFFER ||
+        bufferThing->isLocked ||
         argCount < 4
     ) {
         return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
@@ -892,6 +893,7 @@ void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
         !sourceBufferThing || !destinationBufferThing ||
         sourceBufferThing->type != VOXEL_TYPE_BUFFER ||
         destinationBufferThing->type != VOXEL_TYPE_BUFFER ||
+        destinationBufferThing->isLocked ||
         argCount < 5
     ) {
         return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
@@ -976,7 +978,7 @@ void voxel_builtins_core_appendToString(voxel_Executor* executor) {
     voxel_Thing* appendString = voxel_popString(executor);
     voxel_Thing* baseString = voxel_peek(executor, 0); // Keep as return value
 
-    if (!appendString || !baseString || baseString->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!appendString || !baseString || baseString->type != VOXEL_TYPE_STRING || baseString->isLocked || argCount < 2) {
         return;
     }
 
@@ -989,7 +991,7 @@ void voxel_builtins_core_reverseString(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 1) {
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 1) {
         return;
     }
 
@@ -1001,7 +1003,7 @@ void voxel_builtins_core_cutStringStart(voxel_Executor* executor) {
     voxel_Int size = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
         return;
     }
 
@@ -1017,7 +1019,7 @@ void voxel_builtins_core_cutStringEnd(voxel_Executor* executor) {
     voxel_Int size = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
         return;
     }
 
@@ -1034,7 +1036,7 @@ void voxel_builtins_core_padStringStart(voxel_Executor* executor) {
     voxel_Int minSize = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!fill || !string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!fill || !string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
         return;
     }
 
@@ -1053,7 +1055,7 @@ void voxel_builtins_core_padStringEnd(voxel_Executor* executor) {
     voxel_Int minSize = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!fill || !string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!fill || !string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
         return;
     }
 
@@ -1112,7 +1114,7 @@ void voxel_builtins_core_setObjectItem(voxel_Executor* executor) {
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
         return;
     }
 
@@ -1131,7 +1133,7 @@ void voxel_builtins_core_removeObjectItem(voxel_Executor* executor) {
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 2) {
         return voxel_pushNull(executor);
     }
 
@@ -1180,7 +1182,7 @@ void voxel_builtins_core_setObjectItemGetter(voxel_Executor* executor) {
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
         return;
     }
 
@@ -1249,7 +1251,7 @@ void voxel_builtins_core_setObjectItemSetter(voxel_Executor* executor) {
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
         return;
     }
 
@@ -1389,7 +1391,7 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 3) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 3) {
         return voxel_pushNull(executor);
     }
 
@@ -1442,7 +1444,7 @@ void voxel_builtins_core_removeListItem(voxel_Executor* executor) {
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 2) {
         return voxel_pushNull(executor);
     }
 
@@ -1468,7 +1470,7 @@ void voxel_builtins_core_pushOntoList(voxel_Executor* executor) {
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 2) {
         return voxel_pushNull(executor);
     }
 
@@ -1487,7 +1489,7 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked) {
         return voxel_pushNull(executor);
     }
 
@@ -1521,7 +1523,7 @@ void voxel_builtins_core_insertIntoList(voxel_Executor* executor) {
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 3) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 3) {
         return;
     }
 
@@ -3520,7 +3522,7 @@ voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing) {
     return voxel_getObjectLength(thing) != 0;
 }
 
-voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth, voxel_Count* actualTraverseDepth) {
+voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth, voxel_Count* actualTraverseDepth, voxel_Thing** actualParentObject) {
     voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
@@ -3541,11 +3543,15 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
 
             while (currentPrototypeListItem) {
                 voxel_Thing* currentPrototype = currentPrototypeListItem->value;
-                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(currentPrototype, key, traverseDepth - 1, actualTraverseDepth);
+                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(currentPrototype, key, traverseDepth - 1, actualTraverseDepth, actualParentObject);
 
                 if (prototypeObjectItem) {
                     if (actualTraverseDepth) {
                         (*actualTraverseDepth)++;
+                    }
+
+                    if (actualParentObject) {
+                        *actualParentObject = currentPrototype;
                     }
 
                     return prototypeObjectItem;
@@ -3558,6 +3564,10 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
         }
 
         if (voxel_compareThings(currentItem->key, key)) {
+            if (actualParentObject) {
+                *actualParentObject = thing;
+            }
+
             return currentItem;
         }
 
@@ -3566,15 +3576,16 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
 }
 
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
-    return voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, VOXEL_NULL);
+    return voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, VOXEL_NULL, VOXEL_NULL);
 }
 
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_Count actualTraverseDepth = 0;
+    voxel_Thing* actualParentObject = VOXEL_NULL;
     voxel_Object* object = (voxel_Object*)thing->value;
-    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, &actualTraverseDepth);
+    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, &actualTraverseDepth, &actualParentObject);
 
     if (objectItem) {
         if (actualTraverseDepth == 0) {
@@ -3584,6 +3595,10 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
             value->referenceCount++;
 
             return VOXEL_OK_RET(objectItem);
+        }
+
+        if (actualParentObject->isLocked) {
+            VOXEL_THROW(VOXEL_ERROR_THING_LOCKED);
         }
 
         key = objectItem->key;

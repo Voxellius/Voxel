@@ -72,7 +72,7 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 3) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 3) {
         return voxel_pushNull(executor);
     }
 
@@ -125,7 +125,7 @@ void voxel_builtins_core_removeListItem(voxel_Executor* executor) {
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 2) {
         return voxel_pushNull(executor);
     }
 
@@ -151,7 +151,7 @@ void voxel_builtins_core_pushOntoList(voxel_Executor* executor) {
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 2) {
         return voxel_pushNull(executor);
     }
 
@@ -170,7 +170,7 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked) {
         return voxel_pushNull(executor);
     }
 
@@ -204,7 +204,7 @@ void voxel_builtins_core_insertIntoList(voxel_Executor* executor) {
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 3) {
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 3) {
         return;
     }
 

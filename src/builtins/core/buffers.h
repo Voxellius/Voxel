@@ -49,7 +49,7 @@ void voxel_builtins_core_setBufferByte(voxel_Executor* executor) {
 
     voxel_push(executor, value);
 
-    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || argCount < 3) {
+    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || bufferThing->isLocked || argCount < 3) {
         return voxel_pushNull(executor);
     }
 
@@ -97,6 +97,7 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
     if (
         !byteThing || !bufferThing ||
         byteThing->type != VOXEL_TYPE_BYTE || bufferThing->type != VOXEL_TYPE_BUFFER ||
+        bufferThing->isLocked ||
         argCount < 4
     ) {
         return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
@@ -159,6 +160,7 @@ void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
         !sourceBufferThing || !destinationBufferThing ||
         sourceBufferThing->type != VOXEL_TYPE_BUFFER ||
         destinationBufferThing->type != VOXEL_TYPE_BUFFER ||
+        destinationBufferThing->isLocked ||
         argCount < 5
     ) {
         return voxel_push(executor, voxel_newNumberInt(executor->context, -1));

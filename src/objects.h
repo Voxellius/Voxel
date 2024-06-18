@@ -156,7 +156,7 @@ voxel_Bool voxel_objectIsTruthy(voxel_Thing* thing) {
     return voxel_getObjectLength(thing) != 0;
 }
 
-voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth, voxel_Count* actualTraverseDepth) {
+voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing* key, voxel_Count traverseDepth, voxel_Count* actualTraverseDepth, voxel_Thing** actualParentObject) {
     voxel_Object* object = (voxel_Object*)thing->value;
     voxel_ObjectItem* currentItem = object->firstItem;
 
@@ -177,11 +177,15 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
 
             while (currentPrototypeListItem) {
                 voxel_Thing* currentPrototype = currentPrototypeListItem->value;
-                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(currentPrototype, key, traverseDepth - 1, actualTraverseDepth);
+                voxel_ObjectItem* prototypeObjectItem = voxel_getPrototypedObjectItem(currentPrototype, key, traverseDepth - 1, actualTraverseDepth, actualParentObject);
 
                 if (prototypeObjectItem) {
                     if (actualTraverseDepth) {
                         (*actualTraverseDepth)++;
+                    }
+
+                    if (actualParentObject) {
+                        *actualParentObject = currentPrototype;
                     }
 
                     return prototypeObjectItem;
@@ -194,6 +198,10 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
         }
 
         if (voxel_compareThings(currentItem->key, key)) {
+            if (actualParentObject) {
+                *actualParentObject = thing;
+            }
+
             return currentItem;
         }
 
@@ -202,15 +210,16 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
 }
 
 voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key) {
-    return voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, VOXEL_NULL);
+    return voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, VOXEL_NULL, VOXEL_NULL);
 }
 
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value) {
     VOXEL_ASSERT(!thing->isLocked, VOXEL_ERROR_THING_LOCKED);
 
     voxel_Count actualTraverseDepth = 0;
+    voxel_Thing* actualParentObject = VOXEL_NULL;
     voxel_Object* object = (voxel_Object*)thing->value;
-    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, &actualTraverseDepth);
+    voxel_ObjectItem* objectItem = voxel_getPrototypedObjectItem(thing, key, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH, &actualTraverseDepth, &actualParentObject);
 
     if (objectItem) {
         if (actualTraverseDepth == 0) {
@@ -220,6 +229,10 @@ VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, 
             value->referenceCount++;
 
             return VOXEL_OK_RET(objectItem);
+        }
+
+        if (actualParentObject->isLocked) {
+            VOXEL_THROW(VOXEL_ERROR_THING_LOCKED);
         }
 
         key = objectItem->key;

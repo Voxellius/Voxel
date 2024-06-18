@@ -37,7 +37,7 @@ void voxel_builtins_core_appendToString(voxel_Executor* executor) {
     voxel_Thing* appendString = voxel_popString(executor);
     voxel_Thing* baseString = voxel_peek(executor, 0); // Keep as return value
 
-    if (!appendString || !baseString || baseString->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!appendString || !baseString || baseString->type != VOXEL_TYPE_STRING || baseString->isLocked || argCount < 2) {
         return;
     }
 
@@ -50,7 +50,7 @@ void voxel_builtins_core_reverseString(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 1) {
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 1) {
         return;
     }
 
@@ -62,7 +62,7 @@ void voxel_builtins_core_cutStringStart(voxel_Executor* executor) {
     voxel_Int size = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
         return;
     }
 
@@ -78,7 +78,7 @@ void voxel_builtins_core_cutStringEnd(voxel_Executor* executor) {
     voxel_Int size = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
         return;
     }
 
@@ -95,7 +95,7 @@ void voxel_builtins_core_padStringStart(voxel_Executor* executor) {
     voxel_Int minSize = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!fill || !string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!fill || !string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
         return;
     }
 
@@ -114,7 +114,7 @@ void voxel_builtins_core_padStringEnd(voxel_Executor* executor) {
     voxel_Int minSize = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!fill || !string || string->type != VOXEL_TYPE_STRING || argCount < 2) {
+    if (!fill || !string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
         return;
     }
 

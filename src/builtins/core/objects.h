@@ -40,7 +40,7 @@ void voxel_builtins_core_setObjectItem(voxel_Executor* executor) {
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
         return;
     }
 
@@ -59,7 +59,7 @@ void voxel_builtins_core_removeObjectItem(voxel_Executor* executor) {
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 2) {
         return voxel_pushNull(executor);
     }
 
@@ -108,7 +108,7 @@ void voxel_builtins_core_setObjectItemGetter(voxel_Executor* executor) {
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
         return;
     }
 
@@ -177,7 +177,7 @@ void voxel_builtins_core_setObjectItemSetter(voxel_Executor* executor) {
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 3) {
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
         return;
     }
 
