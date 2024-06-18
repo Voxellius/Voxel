@@ -32,7 +32,7 @@ More examples of Voxel programs can be found in the [`examples`](examples) direc
 * **Objects**
     * **Object-oriented programming** features including classes and prototype-based multiple inheritance
     * **Methods** that have access to their associated object by using `this` keyword, including constructor methods that are called by using `new`
-    * **Getters and setters** to simplify object interfaces and perform data validation (implemented in VxC interpreter only so far)
+    * **Getters and setters** to simplify object interfaces and perform data validation (by prefixing class method declarations with `get` or `set`)
     * **Calling parent methods** by using the `super` keyword to call the constructor method (`super()`) or other methods (`super.methodName()`)
 * **Imports** of other Voxel files and libraries
     * **Modular, namespaced approach** where each imported file is called in the correct dependency order and where symbol names across files won't collide
