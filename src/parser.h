@@ -210,6 +210,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_JUMP:
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
+        case VOXEL_TOKEN_TYPE_IDENTICAL:
         case VOXEL_TOKEN_TYPE_EQUAL:
         case VOXEL_TOKEN_TYPE_LESS_THAN:
         case VOXEL_TOKEN_TYPE_GREATER_THAN:

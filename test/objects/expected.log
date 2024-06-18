@@ -14,3 +14,5 @@ Get value using property accessor on mangled object: key = 123
 Set value using property accessor on mangled object: key = 456
 Get value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey1 = value1
 Set new value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey3 = value3
+Object A is equal to object B: true
+Object A is identical to object B: false

@@ -48,6 +48,10 @@ VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_
     return VOXEL_OK_RET(voxel_newBoolean(context, voxel_thingIsTruthy(a) || voxel_thingIsTruthy(b)));
 }
 
+VOXEL_ERRORABLE voxel_identicalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
+    return VOXEL_OK_RET(voxel_newBoolean(context, a == b));
+}
+
 VOXEL_ERRORABLE voxel_equalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
     return VOXEL_OK_RET(voxel_newBoolean(context, voxel_compareThings(a, b)));
 }

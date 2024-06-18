@@ -391,6 +391,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
+        case VOXEL_TOKEN_TYPE_IDENTICAL:
         case VOXEL_TOKEN_TYPE_EQUAL:
         case VOXEL_TOKEN_TYPE_LESS_THAN:
         case VOXEL_TOKEN_TYPE_GREATER_THAN:
@@ -410,6 +411,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
                 binaryResult = voxel_andOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_OR) {
                 binaryResult = voxel_orOperation(executor->context, binaryA, binaryB);
+            } else if (token->type == VOXEL_TOKEN_TYPE_IDENTICAL) {
+                binaryResult = voxel_identicalOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_EQUAL) {
                 binaryResult = voxel_equalOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_LESS_THAN) {

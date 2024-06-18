@@ -341,6 +341,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_POS_REF_FORWARD = ']',
     VOXEL_TOKEN_TYPE_JUMP = 'J',
     VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY = 'I',
+    VOXEL_TOKEN_TYPE_IDENTICAL = 'i',
     VOXEL_TOKEN_TYPE_EQUAL = '=',
     VOXEL_TOKEN_TYPE_LESS_THAN = '<',
     VOXEL_TOKEN_TYPE_GREATER_THAN = '>',
@@ -524,6 +525,7 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
 VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
+VOXEL_ERRORABLE voxel_identicalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 VOXEL_ERRORABLE voxel_equalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 VOXEL_ERRORABLE voxel_lessThanOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 VOXEL_ERRORABLE voxel_greaterThanOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
@@ -4100,6 +4102,10 @@ VOXEL_ERRORABLE voxel_orOperation(voxel_Context* context, voxel_Thing* a, voxel_
     return VOXEL_OK_RET(voxel_newBoolean(context, voxel_thingIsTruthy(a) || voxel_thingIsTruthy(b)));
 }
 
+VOXEL_ERRORABLE voxel_identicalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
+    return VOXEL_OK_RET(voxel_newBoolean(context, a == b));
+}
+
 VOXEL_ERRORABLE voxel_equalOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {
     return VOXEL_OK_RET(voxel_newBoolean(context, voxel_compareThings(a, b)));
 }
@@ -4342,6 +4348,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
         case VOXEL_TOKEN_TYPE_JUMP:
         case VOXEL_TOKEN_TYPE_JUMP_IF_TRUTHY:
+        case VOXEL_TOKEN_TYPE_IDENTICAL:
         case VOXEL_TOKEN_TYPE_EQUAL:
         case VOXEL_TOKEN_TYPE_LESS_THAN:
         case VOXEL_TOKEN_TYPE_GREATER_THAN:
@@ -4791,6 +4798,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
+        case VOXEL_TOKEN_TYPE_IDENTICAL:
         case VOXEL_TOKEN_TYPE_EQUAL:
         case VOXEL_TOKEN_TYPE_LESS_THAN:
         case VOXEL_TOKEN_TYPE_GREATER_THAN:
@@ -4810,6 +4818,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
                 binaryResult = voxel_andOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_OR) {
                 binaryResult = voxel_orOperation(executor->context, binaryA, binaryB);
+            } else if (token->type == VOXEL_TOKEN_TYPE_IDENTICAL) {
+                binaryResult = voxel_identicalOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_EQUAL) {
                 binaryResult = voxel_equalOperation(executor->context, binaryA, binaryB);
             } else if (token->type == VOXEL_TOKEN_TYPE_LESS_THAN) {

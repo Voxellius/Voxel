@@ -29,6 +29,7 @@ export const vxcTokens = {
     POS_REF_FORWARD: byte("]"),
     JUMP: byte("J"),
     JUMP_IF_TRUTHY: byte("I"),
+    IDENTICAL: byte("i"),
     EQUAL: byte("="),
     LESS_THAN: byte("<"),
     GREATER_THAN: byte(">"),
