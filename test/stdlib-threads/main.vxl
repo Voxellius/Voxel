@@ -14,7 +14,7 @@ function repeat(value, times) {
         currentTurn = (currentTurn + 1) % 3;
     }
 
-    io.println("My thread ID: " + threads.getOwnThread().getId());
+    io.println("My thread ID: " + threads.getOwnThread().id);
 }
 
 var thread1 = new threads.Thread(repeat, ["Thread 1", 5]);
@@ -35,4 +35,4 @@ thread2.waitUntilFinished();
 thread2.close();
 io.println("Closed thread 2");
 
-io.println("Main executor ID: " + threads.getOwnThread().getId());
+io.println("Main executor ID: " + threads.getOwnThread().id);

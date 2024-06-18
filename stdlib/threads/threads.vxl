@@ -11,7 +11,6 @@ var _existingThreads = [];
 
 class ThreadError extends errors.Error {}
 
-// TODO: Implement setter/getter method syntax and use it here
 class Thread {
     _hasBeenClosed = false;
     _hasStarted = false;
@@ -76,7 +75,7 @@ class Thread {
         this._isPaused = true;
     }
 
-    getId() {
+    get id() {
         return this._id;
     }
 
@@ -104,7 +103,7 @@ class Thread {
         while (!this.hasFinished()) {}
     }
 
-    getState() {
+    get state() {
         if (this._hasBeenClosed) {
             return ThreadState.CLOSED;
         }
