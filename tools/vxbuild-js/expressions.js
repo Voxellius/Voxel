@@ -779,6 +779,7 @@ export class ClassNode extends ast.AstNode {
     extendsOtherClasses = false;
     setPrototypesSymbol = null;
     propertySymbols = [];
+    propertyDescriptorTypes = [];
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -805,10 +806,37 @@ export class ClassNode extends ast.AstNode {
                 break;
             }
 
-            var retain = !!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "retain")]);
-            var propertyToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+            var retain = false;
+            var descriptorType = null;
+            var propertyToken;
+
+            while (true) {
+                if (!retain && this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "retain")])) {
+                    retain = true;
+
+                    continue;
+                }
+
+                if (descriptorType == null) {
+                    var descriptorTypeToken = this.maybeEat(tokens, [
+                        new ast.TokenQuery(tokeniser.KeywordToken, "get"),
+                        new ast.TokenQuery(tokeniser.KeywordToken, "set")
+                    ]);
+
+                    if (descriptorTypeToken) {
+                        descriptorType = descriptorTypeToken.value;
+
+                        continue;
+                    }
+                }
+
+                propertyToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+                break;
+            }
 
             instance.propertySymbols.push(namespaces.Symbol.generateForProperty(propertyToken.value, retain));
+            instance.propertyDescriptorTypes.push(descriptorType);
 
             if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
                 instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
@@ -877,7 +905,7 @@ export class ClassNode extends ast.AstNode {
                 (
                     !options.removeDeadCode ||
                     namespaces.propertyIsUsed(this.propertySymbols[i]) ||
-                    !dce.hasNoEffect(this, [child])
+                    (this.propertyDescriptorTypes[i] == "set" || !dce.hasNoEffect(this, [child]))
                 ) ?
                 codeGen.join(
                     codeGen.bytes(codeGen.vxcTokens.DUPE),
@@ -885,7 +913,10 @@ export class ClassNode extends ast.AstNode {
                     codeGen.bytes(codeGen.vxcTokens.SWAP),
                     this.propertySymbols[i].generateCode(options),
                     codeGen.number(3),
-                    codeGen.systemCall("Os"),
+                    codeGen.systemCall({
+                        "get": "Osg",
+                        "set": "Oss"
+                    }[this.propertyDescriptorTypes[i]] || "Os"),
                     codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
                 ) :
                 codeGen.bytes()

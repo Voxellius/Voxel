@@ -381,7 +381,13 @@ function getProperty(thing, property) {
         var getter = syscall Ogg(thing, property);
 
         if (getter) {
-            return getter();
+            pushThis();
+
+            var value = getter();
+
+            popThis();
+
+            return value;
         }
 
         var value = syscall Og(thing, property);
@@ -405,7 +411,15 @@ function setProperty(thing, property, value) {
         var setter = syscall Ogs(thing, property);
 
         if (setter) {
+            nextThis = thing;
+
+            pushThis();
+
             setter(value);
+
+            syscall Td(value);
+
+            popThis();
 
             return value;
         }

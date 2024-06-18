@@ -12,6 +12,15 @@ class TestClass {
         this.b = b;
     }
 
+    get added() {
+        return this.a + this.b;
+    }
+
+    set both(value) {
+        this.a = value;
+        this.b = value;
+    }
+
     multiply() {
         return this.a * this.b;
     }
@@ -36,9 +45,19 @@ syscall log("instance1 multiply result: ");
 syscall log(instance1.multiply());
 syscall log("\n");
 
+syscall log("instance1 added result: ");
+syscall log(instance1.added);
+syscall log("\n");
+
 instance1.accumulate();
 
 syscall log("instance1 multiply after accumulate result: ");
+syscall log(instance1.multiply());
+syscall log("\n");
+
+instance1.both = 3;
+
+syscall log("instance1 multiply after set both result: ");
 syscall log(instance1.multiply());
 syscall log("\n");
 

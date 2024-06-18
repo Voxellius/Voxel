@@ -28,9 +28,6 @@ VOXEL_ERRORABLE voxel_destroyObject(voxel_Context* context, voxel_Thing* thing) 
         VOXEL_MUST(voxel_unreferenceThing(context, currentItem->value));
 
         if (descriptor) {
-            VOXEL_MUST(voxel_unreferenceThing(context, descriptor->getterFunction));
-            VOXEL_MUST(voxel_unreferenceThing(context, descriptor->setterFunction));
-
             VOXEL_FREE(descriptor); VOXEL_TAG_FREE(voxel_ObjectItemDescriptor);
         }
 
