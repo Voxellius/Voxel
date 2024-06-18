@@ -1116,7 +1116,6 @@ export class PropertyAccessorNode extends ast.AstNode {
         instance.getPropertySymbol = new namespaces.Symbol(namespaces.coreNamespace, "getProperty");
         instance.setPropertySymbol = new namespaces.Symbol(namespaces.coreNamespace, "setProperty");
 
-        // TODO: Create a special symbol class for properties so that they can be mangled but are not confined to namespaces
         instance.propertySymbol = namespaces.Symbol.generateForProperty(this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value);
 
         return instance;
