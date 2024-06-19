@@ -1169,6 +1169,27 @@ export class IndexAccessorNode extends ast.AstNode {
             codeGen.bytes(codeGen.vxcTokens.POP)
         );
     }
+
+    generateOperatorSetterCode(targetCode, valueCode, operatorCode, options) {
+        return codeGen.join(
+            targetCode,
+            this.children[0].generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.DUPE),
+            codeGen.number(2),
+            codeGen.bytes(codeGen.vxcTokens.OVER, codeGen.vxcTokens.SWAP),
+            codeGen.number(2),
+            codeGen.systemCall("Tg"),
+            valueCode,
+            operatorCode,
+            codeGen.number(2),
+            codeGen.bytes(codeGen.vxcTokens.OVER),
+            codeGen.number(2),
+            codeGen.bytes(codeGen.vxcTokens.OVER),
+            codeGen.number(3),
+            codeGen.systemCall("Ts"),
+            codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP, codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP)
+        );
+    }
 }
 
 export class PropertyAccessorNode extends ast.AstNode {
@@ -1214,6 +1235,24 @@ export class PropertyAccessorNode extends ast.AstNode {
             targetCode,
             this.propertySymbol.generateCode(options),
             valueCode,
+            codeGen.number(3),
+            this.setPropertySymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
+        );
+    }
+
+    generateOperatorSetterCode(targetCode, valueCode, operatorCode, options) {
+        return codeGen.join(
+            targetCode,
+            this.propertySymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.DUPE),
+            codeGen.number(2),
+            codeGen.bytes(codeGen.vxcTokens.OVER, codeGen.vxcTokens.SWAP),
+            codeGen.number(2),
+            this.getPropertySymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL),
+            valueCode,
+            operatorCode,
             codeGen.number(3),
             this.setPropertySymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
@@ -1346,6 +1385,15 @@ export class ExpressionAssignmentNode extends ast.AstNode {
 
         if (this.targetInstance.children.length > 0) {
             if (target instanceof IndexAccessorNode || target instanceof PropertyAccessorNode) {
+                if (this.operatorAssignment != null) {
+                    return target.generateOperatorSetterCode(
+                        this.targetInstance.generateCode(options),
+                        valueCode,
+                        this.constructor.OPERATOR_ASSIGNMENT_CODE[this.operatorAssignment],
+                        options
+                    );
+                }
+
                 return target.generateSetterCode(
                     this.targetInstance.generateCode(options),
                     valueCode,

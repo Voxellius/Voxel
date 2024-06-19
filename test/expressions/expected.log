@@ -13,4 +13,10 @@ New count value: 4
 Count operator assignment decrement: 2
 New count value: 2
 Index accessor count prefix increment: 3
+New count value: 3
+Index accessor operator assignment increment: 5
+New count value: 5
 Property accessor count prefix increment: 3
+New count value: 3
+Property accessor operator assignment increment: 5
+New count value: 5

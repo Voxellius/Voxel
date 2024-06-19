@@ -138,6 +138,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_VAR = 'v',
     VOXEL_TOKEN_TYPE_POP = 'p',
     VOXEL_TOKEN_TYPE_DUPE = 'd',
+    VOXEL_TOKEN_TYPE_OVER = 'o',
     VOXEL_TOKEN_TYPE_SWAP = 's',
     VOXEL_TOKEN_TYPE_COPY = 'c',
     VOXEL_TOKEN_TYPE_POS_REF_HERE = '@',

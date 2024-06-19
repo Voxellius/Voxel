@@ -333,6 +333,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_VAR = 'v',
     VOXEL_TOKEN_TYPE_POP = 'p',
     VOXEL_TOKEN_TYPE_DUPE = 'd',
+    VOXEL_TOKEN_TYPE_OVER = 'o',
     VOXEL_TOKEN_TYPE_SWAP = 's',
     VOXEL_TOKEN_TYPE_COPY = 'c',
     VOXEL_TOKEN_TYPE_POS_REF_HERE = '@',
@@ -4354,6 +4355,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_VAR:
         case VOXEL_TOKEN_TYPE_POP:
         case VOXEL_TOKEN_TYPE_DUPE:
+        case VOXEL_TOKEN_TYPE_OVER:
         case VOXEL_TOKEN_TYPE_SWAP:
         case VOXEL_TOKEN_TYPE_COPY:
         case VOXEL_TOKEN_TYPE_POS_REF_HERE:
@@ -4691,13 +4693,40 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_ASSERT(dupeStackLength > 0, VOXEL_ERROR_INVALID_ARG);
 
-            VOXEL_ERRORABLE dupeListItemResult = voxel_getListItem(executor->context, executor->valueStack, dupeStackLength - 1); VOXEL_MUST(dupeListItemResult);
-            voxel_ListItem* dupeListItem = (voxel_ListItem*)dupeListItemResult.value;
+            voxel_List* dupeList = (voxel_List*)executor->valueStack->value;
+            voxel_ListItem* dupeListItem = dupeList->lastItem;
             voxel_Thing* dupeThing = (voxel_Thing*)dupeListItem->value;
 
             dupeThing->referenceCount++;
 
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, dupeThing));
+
+            break;
+        }
+
+        case VOXEL_TOKEN_TYPE_OVER:
+        {
+            VOXEL_ERRORABLE overDistanceResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(overDistanceResult);
+            voxel_Thing* overDistanceThing = (voxel_Thing*)overDistanceResult.value;
+
+            VOXEL_ASSERT(overDistanceThing, VOXEL_ERROR_MISSING_ARG);
+            VOXEL_ASSERT(overDistanceThing->type == VOXEL_TYPE_NUMBER, VOXEL_ERROR_INVALID_ARG);
+
+            voxel_Int overDistance = voxel_getNumberInt(overDistanceThing);
+            voxel_Count overStackLength = voxel_getListLength(executor->valueStack);
+
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, overDistanceThing));
+
+            VOXEL_ASSERT(overDistance >= 0, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(overStackLength > overDistance, VOXEL_ERROR_INVALID_ARG);
+
+            VOXEL_ERRORABLE overItemResult = voxel_getListItem(executor->context, executor->valueStack, overStackLength - overDistance - 1); VOXEL_MUST(overItemResult);
+            voxel_ListItem* overListItem = (voxel_ListItem*)overItemResult.value;
+            voxel_Thing* overThing = (voxel_Thing*)overListItem->value;
+
+            overThing->referenceCount++;
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, overThing));
 
             break;
         }
