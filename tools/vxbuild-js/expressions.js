@@ -43,8 +43,7 @@ export const ALL_BINARY_OPERATOR_CODE = {
     "===": codeGen.bytes(codeGen.vxcTokens.IDENTICAL),
     "==": codeGen.bytes(codeGen.vxcTokens.EQUAL),
     "&&&": codeGen.bytes(codeGen.vxcTokens.AND),
-    "|||": codeGen.bytes(codeGen.vxcTokens.OR),
-
+    "|||": codeGen.bytes(codeGen.vxcTokens.OR)
 };
 
 export class ThisNode extends ast.AstNode {
