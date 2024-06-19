@@ -222,7 +222,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:<=|>=|!=|===|==|&&&|\|\|\||&&|\|\||\?\?|[+\-*\/%<>!&])/)) {
+        if (matchToken(/^(?:<=|>=|!==|!=|===|==|&&&|\|\|\||&&|\|\||\?\?|[+\-*\/%<>!&])/)) {
             addToken(OperatorToken);
             continue;
         }

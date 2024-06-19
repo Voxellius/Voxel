@@ -102,3 +102,11 @@ syscall log("\n");
 syscall log("Object A is identical to object B: ");
 syscall log(a === b);
 syscall log("\n");
+
+syscall log("Object A is not equal to object B: ");
+syscall log(a != b);
+syscall log("\n");
+
+syscall log("Object A is not identical to object B: ");
+syscall log(a !== b);
+syscall log("\n");

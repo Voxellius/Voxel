@@ -16,3 +16,5 @@ Get value of nested object using property accessor on mangled object: mangledNes
 Set new value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey3 = value3
 Object A is equal to object B: true
 Object A is identical to object B: false
+Object A is not equal to object B: false
+Object A is not identical to object B: true

@@ -39,6 +39,7 @@ export const ALL_BINARY_OPERATOR_CODE = {
         codeGen.systemCall(">=")
     ),
     ">": codeGen.bytes(codeGen.vxcTokens.GREATER_THAN),
+    "!==": codeGen.bytes(codeGen.vxcTokens.IDENTICAL, codeGen.vxcTokens.NOT),
     "!=": codeGen.bytes(codeGen.vxcTokens.EQUAL, codeGen.vxcTokens.NOT),
     "===": codeGen.bytes(codeGen.vxcTokens.IDENTICAL),
     "==": codeGen.bytes(codeGen.vxcTokens.EQUAL),
@@ -1917,6 +1918,7 @@ export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode
         new ast.TokenQuery(tokeniser.OperatorToken, "<"),
         new ast.TokenQuery(tokeniser.OperatorToken, ">="),
         new ast.TokenQuery(tokeniser.OperatorToken, ">"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "!=="),
         new ast.TokenQuery(tokeniser.OperatorToken, "!="),
         new ast.TokenQuery(tokeniser.OperatorToken, "==="),
         new ast.TokenQuery(tokeniser.OperatorToken, "==")
