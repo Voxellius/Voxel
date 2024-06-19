@@ -20,3 +20,18 @@ Property accessor count prefix increment: 3
 New count value: 3
 Property accessor operator assignment increment: 5
 New count value: 5
+Nullish coalescing assignment operator on null value
+Side effect called
+Check value: 123
+Nullish coalescing assignment operator on non-null value
+Check value: 0
+Nullish coalescing assignment operator on null value via index accessor
+Side effect called
+Check value: 123
+Nullish coalescing assignment operator on non-null value via index accessor
+Check value: 0
+Nullish coalescing assignment operator on null value via property accessor
+Side effect called
+Check value: 123
+Nullish coalescing assignment operator on non-null value via property accessor
+Check value: 0

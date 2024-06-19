@@ -43,7 +43,16 @@ export const ALL_BINARY_OPERATOR_CODE = {
     "===": codeGen.bytes(codeGen.vxcTokens.IDENTICAL),
     "==": codeGen.bytes(codeGen.vxcTokens.EQUAL),
     "&&&": codeGen.bytes(codeGen.vxcTokens.AND),
-    "|||": codeGen.bytes(codeGen.vxcTokens.OR)
+    "&&": codeGen.bytes(codeGen.vxcTokens.AND),
+    "|||": codeGen.bytes(codeGen.vxcTokens.OR),
+    "||": codeGen.bytes(codeGen.vxcTokens.OR),
+    "??": codeGen.bytes(codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP)
+};
+
+export const ALL_BINARY_OPEATOR_SKIP_CODE = {
+    "&&": codeGen.bytes(codeGen.vxcTokens.NOT),
+    "||": codeGen.bytes(),
+    "??": codeGen.bytes(codeGen.vxcTokens.NULL, codeGen.vxcTokens.EQUAL, codeGen.vxcTokens.NOT)
 };
 
 export class ThisNode extends ast.AstNode {
@@ -1169,24 +1178,59 @@ export class IndexAccessorNode extends ast.AstNode {
         );
     }
 
-    generateOperatorSetterCode(targetCode, valueCode, operatorCode, options) {
-        return codeGen.join(
+    generateOperatorSetterCode(targetCode, valueCode, operatorCode, skipConditionCode, skipSymbol, options) {
+        if (skipConditionCode == null) {
+            return codeGen.join(
+                targetCode,
+                this.children[0].generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.DUPE),
+                codeGen.number(2),
+                codeGen.bytes(codeGen.vxcTokens.OVER, codeGen.vxcTokens.SWAP),
+                codeGen.number(2),
+                codeGen.systemCall("Tg"),
+                valueCode,
+                operatorCode,
+                codeGen.number(2),
+                codeGen.bytes(codeGen.vxcTokens.OVER),
+                codeGen.number(2),
+                codeGen.bytes(codeGen.vxcTokens.OVER),
+                codeGen.number(3),
+                codeGen.systemCall("Ts"),
+                codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP, codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP)
+            );
+        }
+
+        var skipConditionCheckCode = codeGen.join(
             targetCode,
             this.children[0].generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.DUPE),
-            codeGen.number(2),
-            codeGen.bytes(codeGen.vxcTokens.OVER, codeGen.vxcTokens.SWAP),
             codeGen.number(2),
             codeGen.systemCall("Tg"),
+            codeGen.bytes(codeGen.vxcTokens.DUPE),
+            skipConditionCode,
+            skipSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
+        );
+
+        var operatorAssignmentCode = codeGen.join(
             valueCode,
             operatorCode,
-            codeGen.number(2),
-            codeGen.bytes(codeGen.vxcTokens.OVER),
-            codeGen.number(2),
-            codeGen.bytes(codeGen.vxcTokens.OVER),
+            targetCode,
+            this.children[0].generateCode(options),
             codeGen.number(3),
             codeGen.systemCall("Ts"),
-            codeGen.bytes(codeGen.vxcTokens.POP, codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP, codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP)
+            codeGen.bytes(codeGen.vxcTokens.POP)
+        );
+
+        var skipAssignmentDefinitionCode = codeGen.join(
+            skipSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(skipConditionCheckCode.length + operatorAssignmentCode.length)
+        );
+
+        return codeGen.join(
+            skipAssignmentDefinitionCode,
+            skipConditionCheckCode,
+            operatorAssignmentCode
         );
     }
 }
@@ -1240,21 +1284,59 @@ export class PropertyAccessorNode extends ast.AstNode {
         );
     }
 
-    generateOperatorSetterCode(targetCode, valueCode, operatorCode, options) {
-        return codeGen.join(
+    generateOperatorSetterCode(targetCode, valueCode, operatorCode, skipConditionCode, skipSymbol, options) {
+        if (skipConditionCode == null) {
+            return codeGen.join(
+                targetCode,
+                this.propertySymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.DUPE),
+                codeGen.number(2),
+                codeGen.bytes(codeGen.vxcTokens.OVER, codeGen.vxcTokens.SWAP),
+                codeGen.number(2),
+                this.getPropertySymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL),
+                valueCode,
+                operatorCode,
+                codeGen.number(3),
+                this.setPropertySymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
+            );
+        }
+
+        var skipConditionCheckCode = codeGen.join(
             targetCode,
             this.propertySymbol.generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.DUPE),
-            codeGen.number(2),
-            codeGen.bytes(codeGen.vxcTokens.OVER, codeGen.vxcTokens.SWAP),
             codeGen.number(2),
             this.getPropertySymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL),
+            codeGen.bytes(codeGen.vxcTokens.DUPE),
+            skipConditionCode,
+            skipSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
+        );
+
+        var operatorAssignmentCode = codeGen.join(
             valueCode,
             operatorCode,
+            targetCode,
+            this.propertySymbol.generateCode(options),
+            codeGen.number(2),
+            codeGen.bytes(codeGen.vxcTokens.OVER),
             codeGen.number(3),
             this.setPropertySymbol.generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP, codeGen.vxcTokens.POP)
+        );
+
+        var skipAssignmentDefinitionCode = codeGen.join(
+            skipSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(skipConditionCheckCode.length + operatorAssignmentCode.length)
+        );
+
+        return codeGen.join(
+            skipAssignmentDefinitionCode,
+            skipConditionCheckCode,
+            operatorAssignmentCode
         );
     }
 }
@@ -1302,8 +1384,8 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "assignment expression";
 
     static OPERATOR_ASSIGNMENT_CODE = ALL_BINARY_OPERATOR_CODE;
+    static OPERATOR_ASSIGNMENT_SKIP_CODE = ALL_BINARY_OPEATOR_SKIP_CODE;
 
-    // TODO: Add short-circuiting operators
     static OPERATOR_ASSIGNMENT_MAP = {
         "*=": "*",
         "/=": "/",
@@ -1311,10 +1393,14 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         "+=": "+",
         "-=": "-",
         "&&&=": "&&&",
-        "|||=": "|||"
+        "|||=": "|||",
+        "&&=": "&&",
+        "||=": "||",
+        "??=": "??"
     };
 
     operatorAssignment = null;
+    skipSymbol = null;
 
     constructor(targetInstance, isLocal) {
         super();
@@ -1333,6 +1419,10 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         }
 
         instance.operatorAssignment = this.OPERATOR_ASSIGNMENT_MAP[operator.value] || null;
+
+        if (instance.operatorAssignment) {
+            instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("assign_skip"));
+        }
 
         instance.addChildByMatching(tokens, [ExpressionNode], namespace);
 
@@ -1381,14 +1471,18 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     generateCode(options) {
         var valueCode = this.children.length > 0 ? this.children[0].generateCode(options) : codeGen.bytes(codeGen.vxcTokens.NULL);
         var target = this.targetInstance.children.pop();
+        var operatorCode = this.constructor.OPERATOR_ASSIGNMENT_CODE[this.operatorAssignment] || null;
+        var skipConditionCode = this.constructor.OPERATOR_ASSIGNMENT_SKIP_CODE[this.operatorAssignment] || null;
 
         if (this.targetInstance.children.length > 0) {
             if (target instanceof IndexAccessorNode || target instanceof PropertyAccessorNode) {
-                if (this.operatorAssignment != null) {
+                if (operatorCode != null) {
                     return target.generateOperatorSetterCode(
                         this.targetInstance.generateCode(options),
                         valueCode,
-                        this.constructor.OPERATOR_ASSIGNMENT_CODE[this.operatorAssignment],
+                        operatorCode,
+                        skipConditionCode,
+                        this.skipSymbol,
                         options
                     );
                 }
@@ -1421,14 +1515,43 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             }
         }
 
-        if (this.operatorAssignment != null) {
-            return codeGen.join(
+        if (operatorCode != null) {
+            if (skipConditionCode == null) {
+                return codeGen.join(
+                    target.value.generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.GET),
+                    valueCode,
+                    operatorCode,
+                    codeGen.bytes(codeGen.vxcTokens.SWAP),
+                    codeGen.bytes(this.isLocal ? codeGen.vxcTokens.VAR : codeGen.vxcTokens.SET)
+                );
+            }
+
+            var skipConditionCheckCode = codeGen.join(
                 target.value.generateCode(options),
-                codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.GET),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.DUPE),
+                skipConditionCode,
+                this.skipSymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
+            );
+
+            var operatorAssignmentCode = codeGen.join(
                 valueCode,
-                this.constructor.OPERATOR_ASSIGNMENT_CODE[this.operatorAssignment],
-                codeGen.bytes(codeGen.vxcTokens.SWAP),
+                operatorCode,
+                target.value.generateCode(options),
                 codeGen.bytes(this.isLocal ? codeGen.vxcTokens.VAR : codeGen.vxcTokens.SET)
+            );
+
+            var skipAssignmentDefinitionCode = codeGen.join(
+                this.skipSymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+                codeGen.int32(skipConditionCheckCode.length + operatorAssignmentCode.length)
+            );
+
+            return codeGen.join(
+                skipAssignmentDefinitionCode,
+                skipConditionCheckCode,
+                operatorAssignmentCode
             );
         }
 

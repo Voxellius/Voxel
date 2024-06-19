@@ -4,6 +4,12 @@ syscall log("Complex expression result: ");
 syscall log(complexExpression);
 syscall log("\n");
 
+function sideEffect() {
+    syscall log("Side effect called\n");
+
+    return 123;
+}
+
 var count = 2;
 
 syscall log("Initial count value: ");
@@ -58,7 +64,7 @@ syscall log("New count value: ");
 syscall log(count);
 syscall log("\n");
 
-var list = [1, 2, 3];
+var list = [1, 2, 3, null, 0];
 
 syscall log("Index accessor count prefix increment: ");
 syscall log(++list[1]);
@@ -76,7 +82,7 @@ syscall log("New count value: ");
 syscall log(list[1]);
 syscall log("\n");
 
-var object = {count: 2};
+var object = {count: 2, nullValue: null, nonNullValue: 0};
 
 syscall log("Property accessor count prefix increment: ");
 syscall log(++object.count);
@@ -92,4 +98,56 @@ syscall log("\n");
 
 syscall log("New count value: ");
 syscall log(object.count);
+syscall log("\n");
+
+var nullValue = null;
+
+syscall log("Nullish coalescing assignment operator on null value\n");
+
+nullValue ??= sideEffect();
+
+syscall log("Check value: ");
+syscall log(nullValue);
+syscall log("\n");
+
+var nonNullValue = 0;
+
+syscall log("Nullish coalescing assignment operator on non-null value\n");
+
+nonNullValue ??= sideEffect();
+
+syscall log("Check value: ");
+syscall log(nonNullValue);
+syscall log("\n");
+
+syscall log("Nullish coalescing assignment operator on null value via index accessor\n");
+
+list[3] ??= sideEffect();
+
+syscall log("Check value: ");
+syscall log(list[3]);
+syscall log("\n");
+
+syscall log("Nullish coalescing assignment operator on non-null value via index accessor\n");
+
+list[4] ??= sideEffect();
+
+syscall log("Check value: ");
+syscall log(list[4]);
+syscall log("\n");
+
+syscall log("Nullish coalescing assignment operator on null value via property accessor\n");
+
+object.nullValue ??= sideEffect();
+
+syscall log("Check value: ");
+syscall log(object.nullValue);
+syscall log("\n");
+
+syscall log("Nullish coalescing assignment operator on non-null value via property accessor\n");
+
+object.nonNullValue ??= sideEffect();
+
+syscall log("Check value: ");
+syscall log(object.nonNullValue);
 syscall log("\n");
