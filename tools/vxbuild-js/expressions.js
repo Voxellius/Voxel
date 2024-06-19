@@ -1461,7 +1461,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     }
 
     estimateTruthiness() {
-        if (this.children.length > 0) {
+        if (this.operatorAssignment == null && this.children.length > 0) {
             return this.children[0].estimateTruthiness();
         }
 

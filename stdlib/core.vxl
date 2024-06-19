@@ -87,8 +87,8 @@ function getProperty(thing, property) {
     if (syscall T(thing) == "B") {
         if (#usedprop(fill) &&& property == #prop(fill)) {
             return function(value, start, end) {
-                start = start ?? 0;
-                end = end ?? syscall Bz(thing);
+                start ??= 0;
+                end ??= syscall Bz(thing);
 
                 while (start >= 0) {
                     start = syscall Bf(thing, value, start, end);
@@ -98,9 +98,9 @@ function getProperty(thing, property) {
 
         if (#usedprop(copy) &&& property == #prop(copy)) {
             return function(destination, offset, start, end) {
-                start = start ?? 0;
-                end = end ?? syscall Bz(thing);
-                offset = offset ?? 0;
+                start ??= 0;
+                end ??= syscall Bz(thing);
+                offset ??= 0;
 
                 while (start >= 0) {
                     start = syscall Bc(thing, destination, offset, start, end);
