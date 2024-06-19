@@ -33,6 +33,7 @@ export class StatementDelimeterToken extends Token {static HUMAN_READABLE_NAME =
 export class PropertyAccessorToken extends Token {static HUMAN_READABLE_NAME = "property accessor (.)";}
 export class PropertyDefinerToken extends Token {static HUMAN_READABLE_NAME = "property definer (:)";}
 export class OperatorToken extends Token {static HUMAN_READABLE_NAME = "operator";}
+export class AssignmentOperatorToken extends OperatorToken {static HUMAN_READABLE_NAME = "assignment operator";}
 export class IncrementationOperatorToken extends OperatorToken {}
 export class IdentifierToken extends Token {static HUMAN_READABLE_NAME = "identifier";}
 
@@ -216,8 +217,18 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:<=|>=|!=|===|==|&&&|\|\|\||&&|\|\||\?\?|[+\-*\/=%<>!&])/)) {
+        if (matchToken(/^(?:\*=|\/=|%=|\+=|-=|&&&=|\|\|\|=)/)) {
+            addToken(AssignmentOperatorToken);
+            continue;
+        }
+
+        if (matchToken(/^(?:<=|>=|!=|===|==|&&&|\|\|\||&&|\|\||\?\?|[+\-*\/%<>!&])/)) {
             addToken(OperatorToken);
+            continue;
+        }
+
+        if (matchToken(/^=/)) {
+            addToken(AssignmentOperatorToken);
             continue;
         }
 

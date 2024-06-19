@@ -8,6 +8,45 @@ import * as parser from "./parser.js";
 import * as statements from "./statements.js";
 import * as staticMacros from "./staticmacros.js";
 
+export const ALL_BINARY_OPERATOR_CODE = {
+    "*": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("*")
+    ),
+    "/": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("/")
+    ),
+    "%": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("%")
+    ),
+    "+": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("+")
+    ),
+    "-": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("-")
+    ),
+    "<=": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("<=")
+    ),
+    "<": codeGen.bytes(codeGen.vxcTokens.LESS_THAN),
+    ">=": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall(">=")
+    ),
+    ">": codeGen.bytes(codeGen.vxcTokens.GREATER_THAN),
+    "!=": codeGen.bytes(codeGen.vxcTokens.EQUAL, codeGen.vxcTokens.NOT),
+    "===": codeGen.bytes(codeGen.vxcTokens.IDENTICAL),
+    "==": codeGen.bytes(codeGen.vxcTokens.EQUAL),
+    "&&&": codeGen.bytes(codeGen.vxcTokens.AND),
+    "|||": codeGen.bytes(codeGen.vxcTokens.OR),
+
+};
+
 export class ThisNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "`this`";
 
@@ -838,7 +877,7 @@ export class ClassNode extends ast.AstNode {
             instance.propertySymbols.push(namespaces.Symbol.generateForProperty(propertyToken.value, retain));
             instance.propertyDescriptorTypes.push(descriptorType);
 
-            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.AssignmentOperatorToken, "=")])) {
                 instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
             } else {
                 instance.expectChildByMatching(tokens, [MethodNode], namespace);
@@ -1224,6 +1263,21 @@ export class ExpressionNode extends ast.AstNode {
 export class ExpressionAssignmentNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "assignment expression";
 
+    static OPERATOR_ASSIGNMENT_CODE = ALL_BINARY_OPERATOR_CODE;
+
+    // TODO: Add short-circuiting operators
+    static OPERATOR_ASSIGNMENT_MAP = {
+        "*=": "*",
+        "/=": "/",
+        "%=": "%",
+        "+=": "+",
+        "-=": "-",
+        "&&&=": "&&&",
+        "|||=": "|||"
+    };
+
+    operatorAssignment = null;
+
     constructor(targetInstance, isLocal) {
         super();
 
@@ -1234,9 +1288,13 @@ export class ExpressionAssignmentNode extends ast.AstNode {
     static create(tokens, namespace, targetInstance, isLocal = false) {
         var instance = new this(targetInstance, isLocal);
 
-        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
+        var operator = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.AssignmentOperatorToken)]);
+
+        if (!operator) {
             return instance;
         }
+
+        instance.operatorAssignment = this.OPERATOR_ASSIGNMENT_MAP[operator.value] || null;
 
         instance.addChildByMatching(tokens, [ExpressionNode], namespace);
 
@@ -1316,6 +1374,17 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             }
         }
 
+        if (this.operatorAssignment != null) {
+            return codeGen.join(
+                target.value.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.GET),
+                valueCode,
+                this.constructor.OPERATOR_ASSIGNMENT_CODE[this.operatorAssignment],
+                codeGen.bytes(codeGen.vxcTokens.SWAP),
+                codeGen.bytes(this.isLocal ? codeGen.vxcTokens.VAR : codeGen.vxcTokens.SET)
+            );
+        }
+
         return codeGen.join(
             valueCode,
             target.value.generateCode(options),
@@ -1393,7 +1462,8 @@ export class ExpressionLeafNode extends ExpressionNode {
             instance.children = instance.children[0].children;
         }
 
-        if (this.want(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "=")])) {
+
+        if (this.want(tokens, [new ast.TokenQuery(tokeniser.AssignmentOperatorToken)])) {
             return ExpressionAssignmentNode.create(tokens, namespace, instance, assigningToLocalVariable);
         }
 
@@ -1599,7 +1669,7 @@ export class UnarySuffixIncrementationOperatorExpressionNode extends UnarySuffix
 
 export class BinaryOperatorExpressionNode extends ExpressionNode {
     static OPERATOR_TOKEN_QUERIES = [];
-    static OPERATOR_CODE = {};
+    static OPERATOR_CODE = ALL_BINARY_OPERATOR_CODE;
     static CHILD_EXPRESSION_NODE_CLASS = UnarySuffixOperatorExpressionNode;
 
     operatorTokens = [];
@@ -1651,21 +1721,6 @@ export class MultiplicationDivisionOperatorExpressionNode extends BinaryOperator
         new ast.TokenQuery(tokeniser.OperatorToken, "%")
     ];
 
-    static OPERATOR_CODE = {
-        "*": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("*")
-        ),
-        "/": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("/")
-        ),
-        "%": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("%")
-        )
-    };
-
     static CHILD_EXPRESSION_NODE_CLASS = UnarySuffixIncrementationOperatorExpressionNode;
 
     estimateTruthiness() {
@@ -1678,17 +1733,6 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
         new ast.TokenQuery(tokeniser.OperatorToken, "+"),
         new ast.TokenQuery(tokeniser.OperatorToken, "-")
     ];
-
-    static OPERATOR_CODE = {
-        "+": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("+")
-        ),
-        "-": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("-")
-        )
-    };
 
     static CHILD_EXPRESSION_NODE_CLASS = MultiplicationDivisionOperatorExpressionNode;
 
@@ -1708,22 +1752,6 @@ export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode
         new ast.TokenQuery(tokeniser.OperatorToken, "==")
     ];
 
-    static OPERATOR_CODE = {
-        "<=": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall("<=")
-        ),
-        "<": codeGen.bytes(codeGen.vxcTokens.LESS_THAN),
-        ">=": codeGen.join(
-            codeGen.number(2),
-            codeGen.systemCall(">=")
-        ),
-        ">": codeGen.bytes(codeGen.vxcTokens.GREATER_THAN),
-        "!=": codeGen.bytes(codeGen.vxcTokens.EQUAL, codeGen.vxcTokens.NOT),
-        "===": codeGen.bytes(codeGen.vxcTokens.IDENTICAL),
-        "==": codeGen.bytes(codeGen.vxcTokens.EQUAL)
-    };
-
     static CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
 
     estimateTruthiness() {
@@ -1735,10 +1763,6 @@ export class LogicalEagerAndOperatorExpressionNode extends BinaryOperatorExpress
     static OPERATOR_TOKEN_QUERIES = [
         new ast.TokenQuery(tokeniser.OperatorToken, "&&&")
     ];
-
-    static OPERATOR_CODE = {
-        "&&&": codeGen.bytes(codeGen.vxcTokens.AND)
-    };
 
     static CHILD_EXPRESSION_NODE_CLASS = EqualityOperatorExpressionNode;
 
@@ -1765,10 +1789,6 @@ export class LogicalEagerOrOperatorExpressionNode extends BinaryOperatorExpressi
     static OPERATOR_TOKEN_QUERIES = [
         new ast.TokenQuery(tokeniser.OperatorToken, "|||")
     ];
-
-    static OPERATOR_CODE = {
-        "|||": codeGen.bytes(codeGen.vxcTokens.OR)
-    };
 
     static CHILD_EXPRESSION_NODE_CLASS = LogicalEagerAndOperatorExpressionNode;
 

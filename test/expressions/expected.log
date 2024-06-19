@@ -8,5 +8,9 @@ Count prefix decrement: 3
 New count value: 3
 Count suffix decrement: 3
 New count value: 2
+Count operator assignment increment: 4
+New count value: 4
+Count operator assignment decrement: 2
+New count value: 2
 Index accessor count prefix increment: 3
 Property accessor count prefix increment: 3

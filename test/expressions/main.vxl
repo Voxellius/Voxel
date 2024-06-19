@@ -42,6 +42,22 @@ syscall log("New count value: ");
 syscall log(count);
 syscall log("\n");
 
+syscall log("Count operator assignment increment: ");
+syscall log(count += 2);
+syscall log("\n");
+
+syscall log("New count value: ");
+syscall log(count);
+syscall log("\n");
+
+syscall log("Count operator assignment decrement: ");
+syscall log(count -= 2);
+syscall log("\n");
+
+syscall log("New count value: ");
+syscall log(count);
+syscall log("\n");
+
 var list = [1, 2, 3];
 
 syscall log("Index accessor count prefix increment: ");
