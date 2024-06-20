@@ -1,10 +1,10 @@
 import errors;
 
-var ThreadState = {
-    NOT_STARTED: 0,
-    RUNNING: 1,
-    FINISHED: 2,
-    CLOSED: 3
+enum ThreadState {
+    NOT_STARTED,
+    RUNNING,
+    FINISHED,
+    CLOSED
 };
 
 var _existingThreads = [];
