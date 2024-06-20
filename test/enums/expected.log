@@ -1,0 +1,12 @@
+ImportedEnum.IMPORTED_VALUE_A = 4
+ImportedEnum.IMPORTED_VALUE_B = 5
+ImportedEnum.IMPORTED_VALUE_C = 6
+ImportedEnum.IMPORTED_VALUE_D = -10
+TestEnum.VALUE_A = 1
+TestEnum.VALUE_B = 2
+TestEnum.VALUE_C = 3
+TestEnum.VALUE_D = -1
+imported.ImportedEnum.IMPORTED_VALUE_A = 4
+imported.ImportedEnum.IMPORTED_VALUE_B = 5
+imported.ImportedEnum.IMPORTED_VALUE_C = 6
+imported.ImportedEnum.IMPORTED_VALUE_D = -10

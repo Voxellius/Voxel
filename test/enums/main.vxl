@@ -1,0 +1,40 @@
+import "imported.vxl" as imported;
+
+enum TestEnum {
+    VALUE_A,
+    VALUE_B = 2,
+    VALUE_C,
+    VALUE_D = -1
+};
+
+syscall log("TestEnum.VALUE_A = ");
+syscall log(TestEnum.VALUE_A);
+syscall log("\n");
+
+syscall log("TestEnum.VALUE_B = ");
+syscall log(TestEnum.VALUE_B);
+syscall log("\n");
+
+syscall log("TestEnum.VALUE_C = ");
+syscall log(TestEnum.VALUE_C);
+syscall log("\n");
+
+syscall log("TestEnum.VALUE_D = ");
+syscall log(TestEnum.VALUE_D);
+syscall log("\n");
+
+syscall log("imported.ImportedEnum.IMPORTED_VALUE_A = ");
+syscall log(imported.ImportedEnum.IMPORTED_VALUE_A);
+syscall log("\n");
+
+syscall log("imported.ImportedEnum.IMPORTED_VALUE_B = ");
+syscall log(imported.ImportedEnum.IMPORTED_VALUE_B);
+syscall log("\n");
+
+syscall log("imported.ImportedEnum.IMPORTED_VALUE_C = ");
+syscall log(imported.ImportedEnum.IMPORTED_VALUE_C);
+syscall log("\n");
+
+syscall log("imported.ImportedEnum.IMPORTED_VALUE_D = ");
+syscall log(imported.ImportedEnum.IMPORTED_VALUE_D);
+syscall log("\n");

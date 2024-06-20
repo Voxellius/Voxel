@@ -226,7 +226,18 @@ export class ThingNode extends ast.AstNode {
 
                 var foreignSymbolToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
 
-                instance.value = new namespaces.ForeignSymbolReference(namespace, token.value, foreignSymbolToken.value);
+                instance.value = new namespaces.ForeignSymbolReference(
+                    namespace,
+                    token.value,
+                    foreignSymbolToken.value,
+                    !!this.want(tokens, [new ast.TokenQuery(tokeniser.PropertyAccessorToken)])
+                );
+            } else if (token.value in namespace.enums) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.PropertyAccessorToken)]);
+
+                var entryToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+                instance.value = namespace.getEnumValue(token.value, entryToken.value);
             } else {
                 instance.value = new namespaces.Symbol(namespace, token.value);
             }
@@ -365,8 +376,14 @@ export class ThingNode extends ast.AstNode {
             this.value instanceof namespaces.Symbol ||
             this.value instanceof namespaces.ForeignSymbolReference
         ) {
+            var generatedCode = this.value.generateCode(options);
+
+            if (this.value instanceof namespaces.ForeignSymbolReference && this.value.enum) {
+                return generatedCode;
+            }
+
             return codeGen.join(
-                this.value.generateCode(options),
+                generatedCode,
                 codeGen.bytes(codeGen.vxcTokens.GET)
             );
         }
@@ -1266,6 +1283,19 @@ export class PropertyAccessorNode extends ast.AstNode {
     }
 
     generateCode(options) {
+        var siblings = this.parent.children;
+        var previousSibling = siblings[siblings.indexOf(this) - 1];
+
+        if (
+            previousSibling instanceof ThingNode &&
+            previousSibling.value instanceof namespaces.ForeignSymbolReference &&
+            previousSibling.value.enum != null
+        ) {
+            var enumValue = previousSibling.value.enum[this.propertySymbol.name] ?? null;
+
+            return enumValue != null ? codeGen.number(enumValue) : codeGen.bytes(codeGen.vxcTokens.NULL);
+        }
+
         return codeGen.join(
             this.propertySymbol.generateCode(options),
             codeGen.number(2),
@@ -1275,6 +1305,11 @@ export class PropertyAccessorNode extends ast.AstNode {
     }
 
     generateSetterCode(targetCode, valueCode, options) {
+        if (targetCode.length == 0) {
+            // TODO: Specify token
+            throw new sources.SourceError("Cannot set an enum entry");
+        }
+
         return codeGen.join(
             targetCode,
             this.propertySymbol.generateCode(options),
@@ -1505,7 +1540,7 @@ export class ExpressionAssignmentNode extends ast.AstNode {
 
         if (!(target.value instanceof namespaces.Symbol)) {
             // TODO: Specify token
-            throw new sources.SourceError("Cannot set a value literal (expected a variable name)");
+            throw new sources.SourceError("Cannot set a value literal or enum entry (expected a variable name)");
         }
 
         if (options.removeDeadCode) {

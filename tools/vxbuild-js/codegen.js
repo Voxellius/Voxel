@@ -53,7 +53,7 @@ export function join(...arrays) {
 
 export function int8(value) {
     if (value < 0) {
-        value = 0x100 - value;
+        value = 0x100 + value;
     }
 
     return bytes(
@@ -63,7 +63,7 @@ export function int8(value) {
 
 export function int16(value) {
     if (value < 0) {
-        value = 0x10000 - value;
+        value = 0x10000 + value;
     }
 
     return bytes(
@@ -74,7 +74,7 @@ export function int16(value) {
 
 export function int32(value) {
     if (value < 0) {
-        value = 0x100000000 - value;
+        value = 0x100000000 + value;
     }
 
     return bytes(

@@ -19,7 +19,17 @@ export class StatementNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [ImportStatementNode, IfStatementNode, WhileLoopNode, ForLoopNode, TryStatementNode, ReturnStatementNode, ThrowStatementNode, expressions.ExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [
+            ImportStatementNode,
+            IfStatementNode,
+            WhileLoopNode,
+            ForLoopNode,
+            TryStatementNode,
+            ReturnStatementNode,
+            ThrowStatementNode,
+            EnumStatementNode,
+            expressions.ExpressionNode
+        ], namespace);
 
         return instance;
     }
@@ -558,5 +568,65 @@ export class TryStatementNode extends ast.AstNode {
             skipHandlerCode,
             handlerCode
         );
+    }
+}
+
+export class EnumStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`enum` statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "enum")
+    ];
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        this.eat(tokens);
+
+        var enumIdentifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+        var enumObject = {};
+        var enumsToAutoFill = [];
+
+        namespace.enums[enumIdentifier.value] = enumObject;
+
+        this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "{")]);
+
+        var addedFirstEntry = false;
+
+        while (true) {
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "}")])) {
+                break;
+            }
+
+            if (addedFirstEntry) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
+            }
+
+            var entryIdentifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.AssignmentOperatorToken, "=")])) {
+                var negate = !!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "-")]);
+                var entryValueToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.NumberToken)]);
+                var entryValue = entryValueToken.value * (negate ? -1 : 1);
+    
+                enumObject[entryIdentifier.value] = entryValue;
+
+                namespaces.markEnumValueAsDefined(entryValue);
+            } else {
+                enumsToAutoFill.push(entryIdentifier);
+            }
+
+            addedFirstEntry = true;
+        }
+
+        for (var entryIdentifier of enumsToAutoFill) {
+            enumObject[entryIdentifier.value] = namespaces.getNextAutoEnumValue();
+        }
+
+        return instance;
+    }
+
+    generateCode(options) {
+        return codeGen.bytes();
     }
 }

@@ -1,0 +1,22 @@
+enum ImportedEnum {
+    IMPORTED_VALUE_A,
+    IMPORTED_VALUE_B = 5,
+    IMPORTED_VALUE_C,
+    IMPORTED_VALUE_D = -10
+};
+
+syscall log("ImportedEnum.IMPORTED_VALUE_A = ");
+syscall log(ImportedEnum.IMPORTED_VALUE_A);
+syscall log("\n");
+
+syscall log("ImportedEnum.IMPORTED_VALUE_B = ");
+syscall log(ImportedEnum.IMPORTED_VALUE_B);
+syscall log("\n");
+
+syscall log("ImportedEnum.IMPORTED_VALUE_C = ");
+syscall log(ImportedEnum.IMPORTED_VALUE_C);
+syscall log("\n");
+
+syscall log("ImportedEnum.IMPORTED_VALUE_D = ");
+syscall log(ImportedEnum.IMPORTED_VALUE_D);
+syscall log("\n");

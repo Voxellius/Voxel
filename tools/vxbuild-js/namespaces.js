@@ -6,9 +6,13 @@ import * as tokeniser from "./tokeniser.js";
 import * as parser from "./parser.js";
 import * as codeGen from "./codegen.js";
 
+const AUTO_ENUM_VALUE_START = 1;
+
 var generatedSymbolIndex = 0;
 var existingNamespaces = {};
 var usedNamespaceIds = [];
+var highestUsedAutoEnumValue = AUTO_ENUM_VALUE_START - 1;
+var definedEnumValues = [];
 
 export var coreNamespace = null;
 export var propertySymbols = {};
@@ -16,7 +20,7 @@ export var propertySymbolRetainedNames = {};
 export var propertySymbolUses = [];
 
 export class Namespace {
-    constructor(sourceContainer = null, preferredId = "anon") {
+    constructor(sourceContainer = null, preferredId = null) {
         this.sourceContainer = sourceContainer;
 
         if (preferredId == null) {
@@ -36,6 +40,7 @@ export class Namespace {
         this.symbols = {};
         this.importsToResolve = {};
         this.imports = {};
+        this.enums = {};
         this.foreignSymbolsToResolve = [];
         this.scope = null;
 
@@ -48,6 +53,10 @@ export class Namespace {
 
     hasImport(namespaceIdentifier) {
         return this.importsToResolve[namespaceIdentifier] || this.imports[namespaceIdentifier];
+    }
+
+    getEnumValue(enumIdentifier, entryIdentifier) {
+        return this.enums[enumIdentifier]?.[entryIdentifier] ?? null;
     }
 
     async resolveImports() {
@@ -299,12 +308,14 @@ export class SystemCall extends Symbol {
 }
 
 export class ForeignSymbolReference {
-    constructor(receiverNamespace, subjectNamespaceIdentifier, symbolName) {
+    constructor(receiverNamespace, subjectNamespaceIdentifier, symbolName, couldBeEnum = false) {
         this.receiverNamespace = receiverNamespace;
         this.subjectNamespaceIdentifier = subjectNamespaceIdentifier;
         this.symbolName = symbolName;
+        this.couldBeEnum = couldBeEnum;
 
         this.symbol = null;
+        this.enum = null;
 
         this.receiverNamespace.foreignSymbolsToResolve.push(this);
     }
@@ -318,6 +329,12 @@ export class ForeignSymbolReference {
     }
 
     generateCode(options) {
+        if (this.couldBeEnum && this.symbol.name in this.symbol.namespace.enums) {
+            this.enum = this.symbol.namespace.enums[this.symbol.name];
+
+            return codeGen.bytes();
+        }
+
         return this.symbol.generateCode(options);
     }
 }
@@ -469,6 +486,24 @@ export class Scope {
 
 export function generateSymbolName(prefix) {
     return `#${prefix}_${generatedSymbolIndex++}`;
+}
+
+export function getNextAutoEnumValue() {
+    highestUsedAutoEnumValue++;
+
+    while (definedEnumValues.includes(highestUsedAutoEnumValue)) {
+        highestUsedAutoEnumValue++;
+    }
+
+    return highestUsedAutoEnumValue;
+}
+
+export function markEnumValueAsDefined(value) {
+    if (definedEnumValues.includes(value)) {
+        return;
+    }
+
+    definedEnumValues.push(value);
 }
 
 export function mangleSymbols(namespaces) {
