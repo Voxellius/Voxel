@@ -34,8 +34,8 @@ const PASSES_TO_CHECK = [
     variableDefinitionCheck("usedA_PASS"),
     stringCheck("PASS usedC"),
     stringCheck("PASS if #used(usedA_PASS)"),
-    stringCheck("1:SideEffectClass_PASS"),
-    stringCheck("1:UsedClass_PASS"),
+    stringCheck("main:SideEffectClass_PASS"),
+    stringCheck("main:UsedClass_PASS"),
     propertyDefinitionCheck("usedProp_PASS"),
     propertyDefinitionCheck("usedMethod_PASS")
 ];

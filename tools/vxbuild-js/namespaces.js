@@ -7,8 +7,8 @@ import * as parser from "./parser.js";
 import * as codeGen from "./codegen.js";
 
 var generatedSymbolIndex = 0;
-var namespaceIndex = 0;
 var existingNamespaces = {};
+var usedNamespaceIds = [];
 
 export var coreNamespace = null;
 export var propertySymbols = {};
@@ -16,10 +16,23 @@ export var propertySymbolRetainedNames = {};
 export var propertySymbolUses = [];
 
 export class Namespace {
-    constructor(sourceContainer = null) {
+    constructor(sourceContainer = null, preferredId = null) {
         this.sourceContainer = sourceContainer;
 
-        this.id = String(namespaceIndex++);
+        if (preferredId == null) {
+            preferredId = this.sourceContainer.shortName;
+        }
+
+        this.id = preferredId;
+
+        var duplicateCount = 2;
+
+        while (usedNamespaceIds.includes(this.id)) {
+            this.id = `${preferredId}_${duplicateCount++}`;
+        }
+
+        usedNamespaceIds.push(this.id);
+
         this.symbols = {};
         this.importsToResolve = {};
         this.imports = {};
@@ -49,7 +62,7 @@ export class Namespace {
 
             var source = await Deno.readTextFile(location);
             var sourceContainer = new sources.SourceContainer(source, location);
-            var namespace = new Namespace(sourceContainer);
+            var namespace = new Namespace(sourceContainer, identifier);
 
             this.imports[identifier] = namespace;
         }
@@ -259,15 +272,7 @@ export class Symbol {
     }
 
     static generateId(namespace, name) {
-        if (namespace == null) {
-            return `.${name}`;
-        }
-
-        if (namespace == coreNamespace) {
-            return `#core:${name}`;
-        }
-
-        return `${namespace.id}:${name}`;
+        return namespace == null ? `.${name}` : `${namespace.id}:${name}`;
     }
 
     get id() {
@@ -501,5 +506,5 @@ export async function init() {
     var source = await Deno.readTextFile(path.resolve(location));
     var sourceContainer = new sources.SourceContainer(source, path.resolve(location));
 
-    coreNamespace = new Namespace(sourceContainer);
+    coreNamespace = new Namespace(sourceContainer, "#core");
 }

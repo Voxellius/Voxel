@@ -1,3 +1,5 @@
+import * as path from "https://deno.land/std@0.220.1/path/mod.ts";
+
 export class SourceContainer {
     constructor(source, location) {
         this.source = source;
@@ -6,6 +8,10 @@ export class SourceContainer {
 
     get name() {
         return this.location;
+    }
+
+    get shortName() {
+        return path.basename(this.location).split(".")[0].replace(/\W/g, "");
     }
 
     positionToRowAndCol(position) {
