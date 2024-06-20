@@ -16,7 +16,7 @@ export var propertySymbolRetainedNames = {};
 export var propertySymbolUses = [];
 
 export class Namespace {
-    constructor(sourceContainer = null, preferredId = null) {
+    constructor(sourceContainer = null, preferredId = "anon") {
         this.sourceContainer = sourceContainer;
 
         if (preferredId == null) {
