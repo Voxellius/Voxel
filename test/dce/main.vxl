@@ -1,3 +1,8 @@
+enum Enum {
+    USED_PASS,
+    UNUSED_FAIL
+}
+
 function unknownReturner() {
     return 1 + 1;
 }
@@ -97,6 +102,8 @@ var usedA_PASS = usedB_PASS;
 
 var sideEffect_FAIL = sideEffect();
 var classSideEffect_FAIL = new ClassSideEffect();
+
+Enum.USED_PASS;
 
 usedA_PASS;
 

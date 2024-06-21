@@ -45,6 +45,7 @@ include src/buffers.h
 include src/strings.h
 include src/objects.h
 include src/lists.h
+include src/enums.h
 include src/operations.h
 include src/parser.h
 include src/executors.h

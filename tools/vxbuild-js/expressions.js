@@ -174,6 +174,9 @@ export class ThingNode extends ast.AstNode {
     containerType = null;
     memoisedContainedTypeValue = null;
     bufferLength = null;
+    enumIdentifier = null;
+    enumEntryIdentifier = null;
+    enumNamespace = null;
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -238,6 +241,9 @@ export class ThingNode extends ast.AstNode {
                 var entryToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
 
                 instance.value = namespace.getEnumValue(token.value, entryToken.value);
+                instance.enumIdentifier = token.value;
+                instance.enumEntryIdentifier = entryToken.value;
+                instance.enumNamespace = namespace;
             } else {
                 instance.value = new namespaces.Symbol(namespace, token.value);
             }
@@ -401,6 +407,10 @@ export class ThingNode extends ast.AstNode {
         }
 
         if (typeof(this.value) == "number") {
+            if (this.enumIdentifier != null) {
+                this.enumNamespace.markEnumAsUsed(this.enumIdentifier, this.enumEntryIdentifier);
+            }
+
             return codeGen.number(this.value);
         }
 
@@ -1292,6 +1302,8 @@ export class PropertyAccessorNode extends ast.AstNode {
             previousSibling.value.enum != null
         ) {
             var enumValue = previousSibling.value.enum[this.propertySymbol.name] ?? null;
+
+            previousSibling.value.symbol.namespace.markEnumAsUsed(previousSibling.value.enumIdentifier, this.propertySymbol.name);
 
             return enumValue != null ? codeGen.number(enumValue) : codeGen.bytes(codeGen.vxcTokens.NULL);
         }

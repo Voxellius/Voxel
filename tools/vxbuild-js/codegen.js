@@ -36,7 +36,8 @@ export const vxcTokens = {
     GREATER_THAN: byte(">"),
     NOT: byte("N"),
     AND: byte("A"),
-    OR: byte("O")
+    OR: byte("O"),
+    ENUM_LOOKUP_REGISTER: byte("e")
 };
 
 export function byte(char) {

@@ -241,12 +241,24 @@ void voxel_builtins_core_getSize(voxel_Executor* executor) {
     voxel_pushNull(executor);
 }
 
+void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* value = voxel_pop(executor);
+
+    if (value->type != VOXEL_TYPE_NUMBER) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_getEnumEntryFromLookup(executor->context, value));
+}
+
 void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
     voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
     voxel_defineBuiltin(context, ".Au", &voxel_builtins_core_pushArgs);
+    voxel_defineBuiltin(context, ".El", &voxel_builtins_core_getEnumEntry);
 
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);

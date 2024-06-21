@@ -222,6 +222,7 @@ typedef struct voxel_Context {
     voxel_Count executorCount;
     struct voxel_Executor* firstExecutor;
     struct voxel_Executor* lastExecutor;
+    struct voxel_Thing* enumLookup;
 } voxel_Context;
 
 typedef enum {
@@ -348,7 +349,8 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_GREATER_THAN = '>',
     VOXEL_TOKEN_TYPE_NOT = 'N',
     VOXEL_TOKEN_TYPE_AND = 'A',
-    VOXEL_TOKEN_TYPE_OR = 'O'
+    VOXEL_TOKEN_TYPE_OR = 'O',
+    VOXEL_TOKEN_TYPE_ENUM_LOOKUP_REGISTER = 'e'
 } voxel_TokenType;
 
 typedef struct voxel_Token {
@@ -522,6 +524,9 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value);
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
+
+VOXEL_ERRORABLE voxel_registerEnumEntry(voxel_Context* context, voxel_Thing* value, voxel_Thing* identifier);
+voxel_Thing* voxel_getEnumEntryFromLookup(voxel_Context* context, voxel_Thing* value);
 
 VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
@@ -1830,12 +1835,24 @@ void voxel_builtins_core_getSize(voxel_Executor* executor) {
     voxel_pushNull(executor);
 }
 
+void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* value = voxel_pop(executor);
+
+    if (value->type != VOXEL_TYPE_NUMBER) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_getEnumEntryFromLookup(executor->context, value));
+}
+
 void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
     voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
     voxel_defineBuiltin(context, ".Au", &voxel_builtins_core_pushArgs);
+    voxel_defineBuiltin(context, ".El", &voxel_builtins_core_getEnumEntry);
 
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);
@@ -2130,6 +2147,7 @@ voxel_Context* voxel_newContext() {
     context->firstExecutor = VOXEL_NULL;
     context->lastExecutor = VOXEL_NULL;
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
+    context->enumLookup = voxel_newObject(context);
 
     voxel_newExecutor(context);
 
@@ -4062,6 +4080,18 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
     return VOXEL_OK_RET(string);
 }
 
+// src/enums.h
+
+VOXEL_ERRORABLE voxel_registerEnumEntry(voxel_Context* context, voxel_Thing* value, voxel_Thing* identifier) {
+    return voxel_setObjectItem(context, context->enumLookup, value, identifier);
+}
+
+voxel_Thing* voxel_getEnumEntryFromLookup(voxel_Context* context, voxel_Thing* value) {
+    voxel_ObjectItem* enumLookupObjectItem = voxel_getObjectItem(context->enumLookup, value);
+
+    return enumLookupObjectItem ? enumLookupObjectItem->value : value;
+}
+
 // src/operations.h
 
 VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing) {
@@ -4368,6 +4398,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_NOT:
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
+        case VOXEL_TOKEN_TYPE_ENUM_LOOKUP_REGISTER:
             #ifdef VOXEL_DEBUG
                 voxel_Byte charString[2] = {(voxel_Byte)tokenType, '\0'};
 
@@ -4879,6 +4910,26 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
         }
 
+        case VOXEL_TOKEN_TYPE_ENUM_LOOKUP_REGISTER:
+        {
+            VOXEL_ERRORABLE enumEntryIdentifierResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(enumEntryIdentifierResult);
+            VOXEL_ERRORABLE enumEntryValueResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(enumEntryValueResult);
+
+            voxel_Thing* enumEntryIdentifier = (voxel_Thing*)enumEntryIdentifierResult.value;
+            voxel_Thing* enumEntryValue = (voxel_Thing*)enumEntryValueResult.value;
+
+            VOXEL_ASSERT(enumEntryIdentifier, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(enumEntryIdentifier->type == VOXEL_TYPE_STRING, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(enumEntryValue, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(enumEntryValue->type == VOXEL_TYPE_NUMBER, VOXEL_ERROR_INVALID_ARG);
+
+            VOXEL_MUST(voxel_registerEnumEntry(executor->context, enumEntryValue, enumEntryIdentifier));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, enumEntryIdentifier));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, enumEntryValue));
+
+            break;
+        }
+
         default:
             // Token contains thing to be pushed onto value stack
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, (voxel_Thing*)token->data));
@@ -4951,8 +5002,19 @@ VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor) {
                 voxel_ListItem* lastItem = valueStackList->lastItem;
 
                 if (lastItem) {
-                    VOXEL_LOG("Unhandled exception: ");
-                    VOXEL_MUST(voxel_logThing(executor->context, lastItem->value));
+                    voxel_Thing* enumEntryLookupResult = voxel_getEnumEntryFromLookup(executor->context, lastItem->value);
+
+                    if (enumEntryLookupResult->type == VOXEL_TYPE_STRING) {
+                        VOXEL_LOG("Unhandled exception: encountered error code ");
+                        VOXEL_MUST(voxel_logThing(executor->context, enumEntryLookupResult));
+                        VOXEL_LOG(" (");
+                        VOXEL_MUST(voxel_logThing(executor->context, lastItem->value));
+                        VOXEL_LOG(")");
+                    } else {
+                        VOXEL_LOG("Unhandled exception: ");
+                        VOXEL_MUST(voxel_logThing(executor->context, lastItem->value));
+                    }
+
                     VOXEL_LOG("\n");
                 }
             #endif

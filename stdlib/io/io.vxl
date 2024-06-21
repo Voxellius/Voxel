@@ -1,7 +1,7 @@
 enum StreamError {
-    STREAM_IS_NOT_READABLE,
-    STREAM_IS_NOT_WRITABLE
-};
+    STREAM_NOT_READABLE,
+    STREAM_NOT_WRITABLE
+}
 
 class Stream {
     canRead = false;
@@ -9,13 +9,13 @@ class Stream {
 
     read() {
         if (!this.canRead) {
-            throw StreamError.STREAM_IS_NOT_READABLE;
+            throw StreamError.STREAM_NOT_READABLE;
         }
     }
 
     write(data) {
         if (!this.canWrite) {
-            throw StreamError.STREAM_IS_NOT_WRITABLE;
+            throw StreamError.STREAM_NOT_WRITABLE;
         }
     }
 }

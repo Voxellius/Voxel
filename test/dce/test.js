@@ -29,10 +29,11 @@ const PASSES_TO_CHECK = [
     stringCheck("PASS if alwaysTruthy && alwaysUnknown"),
     stringCheck("PASS if alwaysFalsy || alwaysTruthy"),
     stringCheck("PASS if alwaysFalsy || alwaysUnknown"),
-    variableDefinitionCheck("usedC_PASS"),
+    stringCheck("main:SideEffectClass_PASS"),
     variableDefinitionCheck("usedB_PASS"),
     variableDefinitionCheck("usedA_PASS"),
     stringCheck("PASS usedC"),
+    stringCheck("main:Enum.USED_PASS"),
     stringCheck("PASS if #used(usedA_PASS)"),
     stringCheck("main:SideEffectClass_PASS"),
     stringCheck("main:UsedClass_PASS"),
@@ -83,7 +84,7 @@ export async function test() {
         }
     }
 
-    if (arrayContainsString(data, `"FAIL\0`) || arrayContainsString(data, "FAIL\0v")) {
+    if (arrayContainsString(data, `"FAIL\0`) || arrayContainsString(data, "FAIL\0v") || arrayContainsString(data, "FAIL\0e")) {
         console.error(
             `TEST FAIL: ${TEST_NAME}\n` +
             `Encountered a failure trap in VxC output`

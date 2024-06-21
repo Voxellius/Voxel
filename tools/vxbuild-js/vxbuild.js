@@ -34,6 +34,7 @@ try {
     ), await namespace.build({
         mangle: !flags["no-mangle"],
         removeDeadCode: !flags["no-dce"],
+        includeEnumLookup: !flags["no-enum-lookup"],
         analyseAst: !!flags["analyse-ast"],
         analyseSymbols: !!flags["analyse-symbols"]
     }), codeGen.bytes(0));

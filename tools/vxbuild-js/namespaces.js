@@ -41,6 +41,7 @@ export class Namespace {
         this.importsToResolve = {};
         this.imports = {};
         this.enums = {};
+        this.usedEnums = [];
         this.foreignSymbolsToResolve = [];
         this.scope = null;
 
@@ -57,6 +58,10 @@ export class Namespace {
 
     getEnumValue(enumIdentifier, entryIdentifier) {
         return this.enums[enumIdentifier]?.[entryIdentifier] ?? null;
+    }
+
+    markEnumAsUsed(enumIdentifier, entryIdentifier) {
+        this.usedEnums.push(`${enumIdentifier}.${entryIdentifier}`);
     }
 
     async resolveImports() {
@@ -243,7 +248,41 @@ export class Namespace {
             code.push(ast.generateCode(options));
         }
 
-        return codeGen.join(...code);
+        var enumLookupRegistrationCode = options.includeEnumLookup ? codeGen.join(
+            ...processedNamespaces.map(function(namespace) {
+                var codeParts = [];
+
+                for (var enumIdentifier in namespace.enums) {
+                    var currentEnum = namespace.enums[enumIdentifier];
+
+                    for (var entryIdentifier in currentEnum) {
+                        var fullEnumName = `${namespace.id}:${enumIdentifier}.${entryIdentifier}`;
+
+                        if (options.removeDeadCode && !namespace.usedEnums.includes(`${enumIdentifier}.${entryIdentifier}`)) {
+                            if (options.analyseSymbols) {
+                                console.log(`Unused enum entry: ${fullEnumName}`);
+                            }
+
+                            continue;
+                        }
+
+                        codeParts.push(codeGen.join(
+                            codeGen.number(currentEnum[entryIdentifier]),
+                            codeGen.string(fullEnumName),
+                            codeGen.bytes(codeGen.vxcTokens.ENUM_LOOKUP_REGISTER)
+                        ));
+
+                        if (options.analyseSymbols) {
+                            console.log(`Enum entry registered: ${fullEnumName}`);
+                        }
+                    }
+                }
+
+                return codeGen.join(...codeParts);
+            })
+        ) : codeGen.bytes();
+
+        return codeGen.join(enumLookupRegistrationCode, ...code);
     }
 }
 
@@ -316,6 +355,7 @@ export class ForeignSymbolReference {
 
         this.symbol = null;
         this.enum = null;
+        this.enumIdentifier = null;
 
         this.receiverNamespace.foreignSymbolsToResolve.push(this);
     }
@@ -331,6 +371,7 @@ export class ForeignSymbolReference {
     generateCode(options) {
         if (this.couldBeEnum && this.symbol.name in this.symbol.namespace.enums) {
             this.enum = this.symbol.namespace.enums[this.symbol.name];
+            this.enumIdentifier = this.symbol.name;
 
             return codeGen.bytes();
         }

@@ -459,6 +459,26 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
         }
 
+        case VOXEL_TOKEN_TYPE_ENUM_LOOKUP_REGISTER:
+        {
+            VOXEL_ERRORABLE enumEntryIdentifierResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(enumEntryIdentifierResult);
+            VOXEL_ERRORABLE enumEntryValueResult = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(enumEntryValueResult);
+
+            voxel_Thing* enumEntryIdentifier = (voxel_Thing*)enumEntryIdentifierResult.value;
+            voxel_Thing* enumEntryValue = (voxel_Thing*)enumEntryValueResult.value;
+
+            VOXEL_ASSERT(enumEntryIdentifier, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(enumEntryIdentifier->type == VOXEL_TYPE_STRING, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(enumEntryValue, VOXEL_ERROR_INVALID_ARG);
+            VOXEL_ASSERT(enumEntryValue->type == VOXEL_TYPE_NUMBER, VOXEL_ERROR_INVALID_ARG);
+
+            VOXEL_MUST(voxel_registerEnumEntry(executor->context, enumEntryValue, enumEntryIdentifier));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, enumEntryIdentifier));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, enumEntryValue));
+
+            break;
+        }
+
         default:
             // Token contains thing to be pushed onto value stack
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, (voxel_Thing*)token->data));
@@ -531,8 +551,19 @@ VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor) {
                 voxel_ListItem* lastItem = valueStackList->lastItem;
 
                 if (lastItem) {
-                    VOXEL_LOG("Unhandled exception: ");
-                    VOXEL_MUST(voxel_logThing(executor->context, lastItem->value));
+                    voxel_Thing* enumEntryLookupResult = voxel_getEnumEntryFromLookup(executor->context, lastItem->value);
+
+                    if (enumEntryLookupResult->type == VOXEL_TYPE_STRING) {
+                        VOXEL_LOG("Unhandled exception: encountered error code ");
+                        VOXEL_MUST(voxel_logThing(executor->context, enumEntryLookupResult));
+                        VOXEL_LOG(" (");
+                        VOXEL_MUST(voxel_logThing(executor->context, lastItem->value));
+                        VOXEL_LOG(")");
+                    } else {
+                        VOXEL_LOG("Unhandled exception: ");
+                        VOXEL_MUST(voxel_logThing(executor->context, lastItem->value));
+                    }
+
                     VOXEL_LOG("\n");
                 }
             #endif

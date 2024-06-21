@@ -3,12 +3,12 @@ enum ThreadState {
     RUNNING,
     FINISHED,
     CLOSED
-};
+}
 
 enum ThreadError {
     THREAD_HAS_CLOSED,
     CANNOT_ENTER_STATE
-};
+}
 
 var _existingThreads = [];
 

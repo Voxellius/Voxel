@@ -27,6 +27,7 @@ typedef struct voxel_Context {
     voxel_Count executorCount;
     struct voxel_Executor* firstExecutor;
     struct voxel_Executor* lastExecutor;
+    struct voxel_Thing* enumLookup;
 } voxel_Context;
 
 typedef enum {
@@ -153,7 +154,8 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_GREATER_THAN = '>',
     VOXEL_TOKEN_TYPE_NOT = 'N',
     VOXEL_TOKEN_TYPE_AND = 'A',
-    VOXEL_TOKEN_TYPE_OR = 'O'
+    VOXEL_TOKEN_TYPE_OR = 'O',
+    VOXEL_TOKEN_TYPE_ENUM_LOOKUP_REGISTER = 'e'
 } voxel_TokenType;
 
 typedef struct voxel_Token {
@@ -327,6 +329,9 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value);
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
+
+VOXEL_ERRORABLE voxel_registerEnumEntry(voxel_Context* context, voxel_Thing* value, voxel_Thing* identifier);
+voxel_Thing* voxel_getEnumEntryFromLookup(voxel_Context* context, voxel_Thing* value);
 
 VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_andOperation(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);

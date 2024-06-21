@@ -218,6 +218,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_NOT:
         case VOXEL_TOKEN_TYPE_AND:
         case VOXEL_TOKEN_TYPE_OR:
+        case VOXEL_TOKEN_TYPE_ENUM_LOOKUP_REGISTER:
             #ifdef VOXEL_DEBUG
                 voxel_Byte charString[2] = {(voxel_Byte)tokenType, '\0'};
 
