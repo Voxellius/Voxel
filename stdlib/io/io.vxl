@@ -1,6 +1,7 @@
-import errors;
-
-class StreamError extends errors.Error {}
+enum StreamError {
+    STREAM_IS_NOT_READABLE,
+    STREAM_IS_NOT_WRITABLE
+};
 
 class Stream {
     canRead = false;
@@ -8,13 +9,13 @@ class Stream {
 
     read() {
         if (!this.canRead) {
-            throw new StreamError("Stream is not readable");
+            throw StreamError.STREAM_IS_NOT_READABLE;
         }
     }
 
     write(data) {
         if (!this.canWrite) {
-            throw new StreamError("Stream is not writable");
+            throw StreamError.STREAM_IS_NOT_WRITABLE;
         }
     }
 }
