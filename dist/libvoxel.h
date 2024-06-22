@@ -1843,7 +1843,13 @@ void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_push(executor, voxel_getEnumEntryFromLookup(executor->context, value));
+    voxel_Thing* entry = voxel_getEnumEntryFromLookup(executor->context, value);
+
+    entry->referenceCount++;
+
+    voxel_push(executor, entry);
+
+    voxel_unreferenceThing(executor->context, value);
 }
 
 void voxel_builtins_core(voxel_Context* context) {
@@ -4922,6 +4928,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(enumEntryIdentifier->type == VOXEL_TYPE_STRING, VOXEL_ERROR_INVALID_ARG);
             VOXEL_ASSERT(enumEntryValue, VOXEL_ERROR_INVALID_ARG);
             VOXEL_ASSERT(enumEntryValue->type == VOXEL_TYPE_NUMBER, VOXEL_ERROR_INVALID_ARG);
+
+            voxel_lockThing(enumEntryIdentifier);
 
             VOXEL_MUST(voxel_registerEnumEntry(executor->context, enumEntryValue, enumEntryIdentifier));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, enumEntryIdentifier));

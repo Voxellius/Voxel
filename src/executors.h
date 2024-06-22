@@ -472,6 +472,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_ASSERT(enumEntryValue, VOXEL_ERROR_INVALID_ARG);
             VOXEL_ASSERT(enumEntryValue->type == VOXEL_TYPE_NUMBER, VOXEL_ERROR_INVALID_ARG);
 
+            voxel_lockThing(enumEntryIdentifier);
+
             VOXEL_MUST(voxel_registerEnumEntry(executor->context, enumEntryValue, enumEntryIdentifier));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, enumEntryIdentifier));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, enumEntryValue));

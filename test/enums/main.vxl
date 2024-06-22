@@ -38,3 +38,19 @@ syscall log("\n");
 syscall log("imported.ImportedEnum.IMPORTED_VALUE_D = ");
 syscall log(imported.ImportedEnum.IMPORTED_VALUE_D);
 syscall log("\n");
+
+var testValueA = TestEnum.VALUE_A;
+var importedValueA = imported.ImportedEnum.IMPORTED_VALUE_A;
+var unknown = -99;
+
+syscall log("testValueA.getEnumEntry() = ");
+syscall log(testValueA.getEnumEntry());
+syscall log("\n");
+
+syscall log("importedValueA.getEnumEntry() = ");
+syscall log(importedValueA.getEnumEntry());
+syscall log("\n");
+
+syscall log("unknown.getEnumEntry() = ");
+syscall log(unknown.getEnumEntry());
+syscall log("\n");

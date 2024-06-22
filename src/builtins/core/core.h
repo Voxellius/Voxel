@@ -249,7 +249,13 @@ void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    voxel_push(executor, voxel_getEnumEntryFromLookup(executor->context, value));
+    voxel_Thing* entry = voxel_getEnumEntryFromLookup(executor->context, value);
+
+    entry->referenceCount++;
+
+    voxel_push(executor, entry);
+
+    voxel_unreferenceThing(executor->context, value);
 }
 
 void voxel_builtins_core(voxel_Context* context) {

@@ -84,6 +84,14 @@ function callSuperConstructors(object, constructorArgs) {
 }
 
 function getProperty(thing, property) {
+    if (syscall T(thing) == "%") {
+        if (#usedprop(getEnumEntry)) {
+            return function() {
+                return syscall El(thing);
+            };
+        }
+    }
+
     if (syscall T(thing) == "B") {
         if (#usedprop(fill) &&& property == #prop(fill)) {
             return function(value, start, end) {
