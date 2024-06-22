@@ -4,6 +4,12 @@ syscall log("Complex expression result: ");
 syscall log(complexExpression);
 syscall log("\n");
 
+var floatValue = -3.782e-6;
+
+syscall log("Float value result: ");
+syscall log(floatValue);
+syscall log("\n");
+
 function sideEffect() {
     syscall log("Side effect called\n");
 

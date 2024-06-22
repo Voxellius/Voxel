@@ -91,6 +91,15 @@ export function boolean(value) {
 }
 
 export function number(value) {
+    if (value % 1 != 0) {
+        var floatArray = new Float32Array(1).fill(value);
+
+        return join(
+            bytes(vxcTokens.NUMBER_FLOAT),
+            new Uint8Array(floatArray.buffer)
+        );
+    }
+
     var magnitude = Math.abs(value);
 
     if (magnitude <= 0x7F) {
