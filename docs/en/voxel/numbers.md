@@ -1,5 +1,5 @@
 # Numbers
-The number data type is for storing a numerical value, such as an integer or floating-point number. 
+The **number** data type is for storing a numerical value, such as an integer or floating-point number. 
 
 Voxel's syntax supports many formats that can be used for number literals:
 

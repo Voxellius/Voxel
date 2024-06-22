@@ -17,6 +17,10 @@ syscall log("Buffer: ");
 syscall log(buffer);
 syscall log("\n");
 
+syscall log("Size of buffer: ");
+syscall log(buffer.size);
+syscall log("\n");
+
 syscall log("Get byte at index 1 from buffer: ");
 syscall log(buffer[1]);
 syscall log("\n");

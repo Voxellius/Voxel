@@ -1887,7 +1887,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Bz", &voxel_builtins_core_getBufferSize);
 
     voxel_defineBuiltin(context, ".S2N", &voxel_builtins_core_stringToNumber);
-    voxel_defineBuiltin(context, ".Ss", &voxel_builtins_core_getStringSize);
+    voxel_defineBuiltin(context, ".Sz", &voxel_builtins_core_getStringSize);
     voxel_defineBuiltin(context, ".Sa", &voxel_builtins_core_appendToString);
     voxel_defineBuiltin(context, ".Sr", &voxel_builtins_core_reverseString);
     voxel_defineBuiltin(context, ".Scs", &voxel_builtins_core_cutStringStart);

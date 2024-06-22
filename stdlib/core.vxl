@@ -93,6 +93,10 @@ function getProperty(thing, property) {
     }
 
     if (syscall T(thing) == "B") {
+        if (#usedprop(size) &&& property == #prop(size)) {
+            return syscall Bz(thing);
+        }
+
         if (#usedprop(fill) &&& property == #prop(fill)) {
             return function(value, start, end) {
                 start ??= 0;
@@ -106,9 +110,9 @@ function getProperty(thing, property) {
 
         if (#usedprop(copy) &&& property == #prop(copy)) {
             return function(destination, offset, start, end) {
+                offset ??= 0;
                 start ??= 0;
                 end ??= syscall Bz(thing);
-                offset ??= 0;
 
                 while (start >= 0) {
                     start = syscall Bc(thing, destination, offset, start, end);
@@ -137,7 +141,7 @@ function getProperty(thing, property) {
         }
 
         if (#usedprop(size) &&& property == #prop(size)) {
-            return syscall Ss(thing);
+            return syscall Sz(thing);
         }
 
         if (#usedprop(reverse) &&& property == #prop(reverse)) {
@@ -180,7 +184,7 @@ function getProperty(thing, property) {
 
         if (#usedprop(substring) &&& property == #prop(substring)) {
             return function(start, end) {
-                var stringSize = syscall Ss(thing);
+                var stringSize = syscall Sz(thing);
                 var cutStart = syscall Scs(&thing, stringSize - start);
 
                 if (end == null) {
