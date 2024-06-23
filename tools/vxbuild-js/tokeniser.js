@@ -103,6 +103,12 @@ export function tokenise(sourceContainer) {
                 continue;
             }
 
+            if (matchToken(/^\\\\/)) {
+                currentString += "\\";
+
+                continue;
+            }
+
             if (matchToken(/^\\r/)) {
                 currentString += "\r";
 
@@ -115,14 +121,20 @@ export function tokenise(sourceContainer) {
                 continue;
             }
 
+            if (matchToken(/^\\"/)) {
+                currentString += "\"";
+
+                continue;
+            }
+
             if (matchToken(/^\\'/)) {
                 currentString += "'";
 
                 continue;
             }
 
-            if (matchToken(/^\\"/)) {
-                currentString += "\"";
+            if (matchToken(/^\\`/)) {
+                currentString += "`";
 
                 continue;
             }

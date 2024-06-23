@@ -164,9 +164,7 @@ function getProperty(thing, property) {
 
         if (#usedprop(padStart) &&& property == #prop(padStart)) {
             return function(minSize, fill) {
-                if (fill == null) {
-                    fill = " ";
-                }
+                fill ??= " ";
 
                 return syscall Sps(&thing, minSize, fill);
             };
@@ -174,9 +172,7 @@ function getProperty(thing, property) {
 
         if (#usedprop(padEnd) &&& property == #prop(padEnd)) {
             return function(minSize, fill) {
-                if (fill == null) {
-                    fill = " ";
-                }
+                fill ??= " ";
 
                 return syscall Spe(&thing, minSize, fill);
             };

@@ -31,3 +31,5 @@ If the start index is not specified, then it will default to `0`. If the offset 
 
 #### `section(start: Number, end?: Number)`
 Return a new buffer that is a section of the buffer from the start index (`start`) up to the end index (`end`). The end index will not be included.
+
+If the end index is not specified, then it will default to the size of the buffer.
