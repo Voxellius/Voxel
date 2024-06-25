@@ -37,6 +37,9 @@ More examples of Voxel programs can be found in the [`examples`](examples) direc
     * **Relative imports** by specifying a path relative to the Voxel file
     * **Circular imports** where _A_ can import _B_ and _B_ can import _A_
 * **Exceptions** to throw and handle errors with `throw` and `try`/`catch`
+* **Enumerations (enums)** to represent a set of discrete named values and to act as error codes
+    * **Automatic value assignment** for enumeration entries that have not been explicitly assigned a value
+    * **Enumeration entry lookup** to find the original identifier string by enumeration entry value
 * **Static macros** for libraries to determine whether symbols and properties are used or not to enable efficient code generation
 * **Dead code elimination** to produce space-efficient VxC bytecode
     * **Truthiness estimation** so that unreachable code in `if` statements and `while` loops (due to condition always being `true` or `false`) is removed
