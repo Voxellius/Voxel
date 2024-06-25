@@ -1,6 +1,4 @@
 # Voxel
-> Please refrain from sharing Voxel on social media platforms such as Hacker News and Reddit for the time being. Voxellius wishes to maintain control over the timing and extent that Voxel and its other projects are officially announced.
-
 **Voxel** is a loosely-typed programming language that is designed to be powerful, versatile, easy-to-use and portable. It has a C-like syntax and has many features that can be found in other modern programming languages.
 
 Portability is a key goal of Voxel — especially so that programs written in it can run on low-powered hardware, such as microcontrollers. Voxel achieves this by compiling source code into a bytecode format, called **VxC** (Voxel Code). Voxel can generate space-efficient bytecode by using a number of optimisations, including name mangling and dead code elimination (DCE) via static code analysis.
