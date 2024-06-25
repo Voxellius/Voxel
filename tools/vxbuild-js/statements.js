@@ -28,6 +28,8 @@ export class StatementNode extends ast.AstNode {
             ReturnStatementNode,
             ThrowStatementNode,
             EnumStatementNode,
+            BreakStatementNode,
+            ContinueStatementNode,
             expressions.ExpressionNode
         ], namespace);
 
@@ -403,6 +405,7 @@ export class ForLoopNode extends ast.AstNode {
 
         instance.skipLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("for_skip"));
         instance.repeatLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("for_loop"));
+        instance.stepAndLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("for_stepLoop"));
 
         return instance;
     }
@@ -450,15 +453,26 @@ export class ForLoopNode extends ast.AstNode {
             codeGen.bytes(codeGen.vxcTokens.POS_REF_HERE)
         );
 
+        var stepAndLoopDefinitionCode = codeGen.bytes();
+
+        if (this.findDescendantsOfTypes([ContinueStatementNode], [expressions.FunctionNode, expressions.MethodNode])) {
+            stepAndLoopDefinitionCode = codeGen.join(
+                this.stepAndLoopSymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+                codeGen.int32(repeatLoopDefinitionCode.length + notConditionCode.length + skipLoopCode.length + loopCode.length)
+            );
+        }
+
         var skipLoopDefinitionCode = codeGen.join(
             this.skipLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
-            codeGen.int32(repeatLoopDefinitionCode.length + notConditionCode.length + skipLoopCode.length + loopCode.length + stepCode.length + repeatLoopCode.length)
+            codeGen.int32(stepAndLoopDefinitionCode.length + repeatLoopDefinitionCode.length + notConditionCode.length + skipLoopCode.length + loopCode.length + stepCode.length + repeatLoopCode.length)
         );
 
         return codeGen.join(
             startCode,
             skipLoopDefinitionCode,
+            stepAndLoopDefinitionCode,
             repeatLoopDefinitionCode,
             notConditionCode,
             skipLoopCode,
@@ -628,5 +642,82 @@ export class EnumStatementNode extends ast.AstNode {
 
     generateCode(options) {
         return codeGen.bytes();
+    }
+}
+
+export class BreakStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`break` statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "break")
+    ];
+
+    keywordToken = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.keywordToken = this.eat(tokens);
+
+        return instance;
+    }
+
+    generateCode(options) {
+        var parentLoop = this.findAncestorOfTypes(
+            [WhileLoopNode, ForLoopNode],
+            false,
+            [expressions.FunctionNode, expressions.MethodNode]
+        );
+
+        if (!parentLoop) {
+            throw new sources.SourceError("Cannot use `break` outside of `while` or `for` loop", this.keywordToken?.sourceContainer, this.keywordToken?.location);
+        }
+
+        return codeGen.join(
+            parentLoop.skipLoopSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        );
+    }
+}
+
+export class ContinueStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`continue` statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "continue")
+    ];
+
+    keywordToken = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.keywordToken = this.eat(tokens);
+
+        return instance;
+    }
+
+    generateCode(options) {
+        var parentLoop = this.findAncestorOfTypes(
+            [WhileLoopNode, ForLoopNode],
+            false,
+            [expressions.FunctionNode, expressions.MethodNode]
+        );
+
+        if (!parentLoop) {
+            throw new sources.SourceError("Cannot use `continue` outside of `while` or `for` loop", this.keywordToken?.sourceContainer, this.keywordToken?.location);
+        }
+
+        if (parentLoop instanceof ForLoopNode) {
+            return codeGen.join(
+                parentLoop.stepAndLoopSymbol.generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+            );
+        }
+
+        return codeGen.join(
+            parentLoop.repeatLoopSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        );
     }
 }

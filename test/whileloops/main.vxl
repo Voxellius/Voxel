@@ -1,0 +1,52 @@
+var i = 0;
+
+syscall log("Basic loop:\n");
+
+while (i < 5) {
+    syscall log(i);
+    syscall log("\n");
+
+    i++;
+}
+
+syscall log("\n");
+
+var j = 0;
+
+syscall log("Loop that breaks:\n");
+
+while (true) {
+    syscall log(j);
+    syscall log("\n");
+
+    if (j == 4) {
+        syscall log("Break loop\n");
+
+        break;
+    }
+
+    j++;
+}
+
+syscall log("\n");
+
+var k = 0;
+
+syscall log("Loop that uses `continue` statement:\n");
+
+while (k < 5) {
+    syscall log(k);
+    syscall log("\n");
+
+    if (k % 2 == 0) {
+        syscall log("Continue\n");
+
+        k++;
+
+        continue;
+    }
+
+    syscall log("No continue\n");
+
+    k++;
+}

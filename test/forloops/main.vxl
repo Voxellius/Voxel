@@ -1,9 +1,13 @@
+syscall log("Basic loop:\n");
+
 for (var i = 0; i < 5; i++) {
     syscall log(i);
     syscall log("\n");
 }
 
 syscall log("\n");
+
+syscall log("Nested loop:\n");
 
 for (var y = 0; y < 4; y++) {
     for (var x = 0; x < 4; x++) {
@@ -20,9 +24,42 @@ syscall log("\n");
 var a = 0;
 var b = 10;
 
+syscall log("Loop with missing start statement:\n");
+
 for (; a < b; a++) {
     syscall log(a);
     syscall log("\n");
 
     b = b - 1;
+}
+
+syscall log("\n");
+
+syscall log("Loop that breaks:\n");
+
+for (var i = 0; i < 10; i++) {
+    syscall log(i);
+    syscall log("\n");
+
+    if (i == 4) {
+        syscall log("Break loop\n");
+
+        break;
+    }
+}
+
+syscall log("\n");
+syscall log("Loop that uses `continue` statement:\n");
+
+for (var i = 0; i < 5; i++) {
+    syscall log(i);
+    syscall log("\n");
+
+    if (i % 2 == 0) {
+        syscall log("Continue\n");
+
+        continue;
+    }
+
+    syscall log("No continue\n");
 }

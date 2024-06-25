@@ -1,9 +1,11 @@
+Basic loop:
 0
 1
 2
 3
 4
 
+Nested loop:
 x: 0, y: 0
 x: 1, y: 0
 x: 2, y: 0
@@ -21,8 +23,29 @@ x: 1, y: 3
 x: 2, y: 3
 x: 3, y: 3
 
+Loop with missing start statement:
 0
 1
 2
 3
 4
+
+Loop that breaks:
+0
+1
+2
+3
+4
+Break loop
+
+Loop that uses `continue` statement:
+0
+Continue
+1
+No continue
+2
+Continue
+3
+No continue
+4
+Continue

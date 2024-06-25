@@ -1,0 +1,26 @@
+Basic loop:
+0
+1
+2
+3
+4
+
+Loop that breaks:
+0
+1
+2
+3
+4
+Break loop
+
+Loop that uses `continue` statement:
+0
+Continue
+1
+No continue
+2
+Continue
+3
+No continue
+4
+Continue
