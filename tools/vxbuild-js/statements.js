@@ -401,8 +401,8 @@ export class ForLoopNode extends ast.AstNode {
 
         instance.expectChildByMatching(tokens, [StatementBlockNode], namespace);
 
-        instance.skipLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("while_skip"));
-        instance.repeatLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("while_loop"));
+        instance.skipLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("for_skip"));
+        instance.repeatLoopSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("for_loop"));
 
         return instance;
     }
