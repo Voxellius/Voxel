@@ -18,12 +18,12 @@ The following Voxel code produced the above bytecode:
 syscall log("Hello, world!\n");
 ```
 
-More examples of Voxel programs can be found in the [`examples`](examples) directory.
+More examples of Voxel programs can be found in the [`examples`](examples) and [`test`](test) directories.
 
 ## Key features of the Voxel programming language
 * **Functions** — named and anonymous
     * **Closures** that allow references to non-global variables outside a function's scope
-* **Expressions** that follow a defined operator precedence
+* [**Expressions**](docs/en/voxel/expressions.md) that follow a defined operator precedence
     * **Short-circuit evaluation** of logical operators using `&&` and `||` (evaluation of subsequent operands is aborted if result's value is guaranteed to be `true` or `false`)
     * **Eager evaluation** of logical operators using `&&&` and `|||` (all operands are evaluated — this produces simpler bytecode but may perform unnecessary computations at runtime)
 * **Lists** and their common operations (such as access through index accessors and `push` and `pop` methods)
@@ -37,7 +37,7 @@ More examples of Voxel programs can be found in the [`examples`](examples) direc
     * **Relative imports** by specifying a path relative to the Voxel file
     * **Circular imports** where _A_ can import _B_ and _B_ can import _A_
 * **Exceptions** to throw and handle errors with `throw` and `try`/`catch`
-* **Enumerations (enums)** to represent a set of discrete named values and to act as error codes
+* [**Enumerations (enums)**](docs/en/voxel/enums.md) to represent a set of discrete named values and to act as error codes
     * **Automatic value assignment** for enumeration entries that have not been explicitly assigned a value
     * **Enumeration entry lookup** to find the original identifier string by enumeration entry value
 * **Static macros** for libraries to determine whether symbols and properties are used or not to enable efficient code generation
@@ -45,7 +45,7 @@ More examples of Voxel programs can be found in the [`examples`](examples) direc
     * **Truthiness estimation** so that unreachable code in `if` statements and `while` loops (due to condition always being `true` or `false`) is removed
     * **Tree shaking** to remove functions that are never called and variables that are never read
     * **Potential side effect detection** when deciding how unused variables should be removed so that their assigned value is still evaluated if its expression contains a function call or getter method
-* **Multithreading** through the `threads` library, which allows multiple functions to be executed concurrently
+* **Multithreading** through the [`threads` library](docs/en/stdlib/threads.md), which allows multiple functions to be executed concurrently
 
 ## Key features of the VxC bytecode format
 * **Stack-based virtual machine** that enables powerful manipulation of data and easy passing of data as arguments to commands
