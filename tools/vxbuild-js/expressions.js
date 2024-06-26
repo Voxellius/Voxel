@@ -1414,7 +1414,7 @@ export class ExpressionNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.expectChildByMatching(tokens, [NullishCoalescingOperatorExpressionNode], namespace);
+        instance.expectChildByMatching(tokens, [TernaryOperatorExpressionNode], namespace);
 
         return instance;
     }
@@ -1679,7 +1679,6 @@ export class ExpressionLeafNode extends ExpressionNode {
 
             instance.children = instance.children[0].children;
         }
-
 
         if (this.want(tokens, [new ast.TokenQuery(tokeniser.AssignmentOperatorToken)])) {
             return ExpressionAssignmentNode.create(tokens, namespace, instance, assigningToLocalVariable);
@@ -2226,6 +2225,121 @@ export class NullishCoalescingOperatorExpressionNode extends BinaryOperatorExpre
         );
 
         return currentCode;
+    }
+}
+
+export class TernaryOperatorExpressionNode extends ExpressionNode {
+    static CHILD_EXPRESSION_NODE_CLASS = NullishCoalescingOperatorExpressionNode;
+
+    skipTrueSymbol = null;
+    skipFalseSymbol = null;
+    conditionTruthiness = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+
+        var operatorToken = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "?")]);
+        
+        if (!operatorToken) {
+            return instance.children[0];
+        }
+
+        instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.PropertyDefinerToken)])) {
+            var token = tokens[0];
+
+            var tokenHumanReadableName = token ? token.constructor.HUMAN_READABLE_NAME : "nothing";
+
+            throw new sources.SourceError(`Expected ternary result delimeter (:) but got ${tokenHumanReadableName} instead`, token?.sourceContainer, token?.location);
+        }
+
+        instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+        instance.skipTrueSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("ternary_true"));
+        instance.skipFalseSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("ternary_false"));
+
+        return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        this.scope = scope;
+
+        this.children[0].checkSymbolUsage(scope);
+
+        if (this.conditionTruthiness == null) {
+            this.conditionTruthiness = this.children[0].estimateTruthiness();
+        }
+
+        if (this.conditionTruthiness == true) {
+            this.children[1].checkSymbolUsage(scope);
+
+            return;
+        }
+
+        if (this.conditionTruthiness == false) {
+            this.children[2].checkSymbolUsage(scope);
+
+            return;
+        }
+    }
+
+    estimateTruthiness() {
+        if (this.conditionTruthiness == true) {
+            return this.children[1].estimateTruthiness();
+        }
+
+        if (this.conditionTruthiness == false) {
+            return this.children[2].estimateTruthiness();
+        }
+
+        return null;
+    }
+
+    generateCode(options) {
+        if (options.removeDeadCode) {
+            if (this.conditionTruthiness != null) {
+                return this.conditionTruthiness ? this.children[1].generateCode(options) : this.children[2].generateCode(options);
+            }
+        }
+
+        var conditionCode = this.children[0].generateCode(options);
+        var isTrueCode = this.children[1].generateCode(options);
+        var isFalseCode = this.children[2].generateCode(options);
+
+        var skipFalseCode = codeGen.join(
+            this.skipFalseSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
+        );
+
+        var skipTrueCode = codeGen.join(
+            this.skipTrueSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+        );
+
+        var skipFalseDefinitionCode = codeGen.join(
+            this.skipFalseSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(conditionCode.length + skipFalseCode.length + isFalseCode.length + skipTrueCode.length)
+        );
+
+        var skipTrueDefinitionCode = codeGen.join(
+            this.skipTrueSymbol.generateCode(options),
+            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(skipFalseDefinitionCode.length + conditionCode.length + skipFalseCode.length + isFalseCode.length + skipTrueCode.length + isTrueCode.length)
+        );
+
+        return codeGen.join(
+            skipTrueDefinitionCode,
+            skipFalseDefinitionCode,
+            conditionCode,
+            skipFalseCode,
+            isFalseCode,
+            skipTrueCode,
+            isTrueCode
+        );
     }
 }
 

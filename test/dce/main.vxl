@@ -78,6 +78,18 @@ for (; alwaysFalsy;) {
     "FAIL";
 }
 
+if (alwaysTruthy ? true : "FAIL") {
+    "PASS ternary alwaysTruthy";
+}
+
+if (alwaysFalsy ? "FAIL" : true) {
+    "PASS ternary alwaysFalsy";
+}
+
+if (alwaysUnknown ? "PASS ternary alwaysUnknown ifTrue" : true) {
+    "PASS ternary alwaysUnknown";
+}
+
 falsyToStartWith = true;
 
 check();

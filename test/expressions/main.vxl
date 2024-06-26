@@ -4,6 +4,16 @@ syscall log("Complex expression result: ");
 syscall log(complexExpression);
 syscall log("\n");
 
+var ternaryResult = complexExpression == 7 ? "result is 7" : "result is not 7";
+
+syscall log("Stored ternary expression result: ");
+syscall log(ternaryResult);
+syscall log("\n");
+
+syscall log("Immediate ternary expression result: ");
+syscall log(complexExpression == 6 ? "result is 6" : "result is not 6");
+syscall log("\n");
+
 var floatValue = -3.782e-6;
 
 syscall log("Float value result: ");
