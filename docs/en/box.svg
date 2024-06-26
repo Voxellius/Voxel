@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 112.743 113" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath clipPathUnits="userSpaceOnUse" id="clipPath1601">
+      <rect style="fill:#219bff;fill-opacity:1;stroke:none;stroke-width:0.3;stop-color:#000000" id="rect1603" width="108.82456" height="108.82456" x="752.59906" y="181.33586"/>
+    </clipPath>
+  </defs>
+  <g id="g1674" transform="matrix(1.0383679866790771, 0, 0, 1.0383679866790771, -781.7346801757812, -188.29339599609375)">
+    <rect style="fill:#219bff;fill-opacity:1;stroke:none;stroke-width:0.3;stop-color:#000000" id="rect1705-6" width="108.82456" height="108.82456" x="752.59906" y="181.33585"/>
+    <g id="g1577" clip-path="url(#clipPath1601)">
+      <path style="fill:#005499;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" d="m 752.59902,214.46247 50.36112,17.67785 -5.0583,58.0201 h -45.54052 z" id="path2071-7"/>
+      <path style="fill:#70bcff;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" d="m 802.96014,232.14032 44.0708,-23.38287 -11.7988,66.23846 -15.3944,15.29681 -21.9359,-0.1323 z" id="path2073-5"/>
+      <path style="fill:#0082ec;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" d="m 752.2286,201.34496 0.37042,13.11751 50.36112,17.67785 44.0708,-23.38287 -62.6151,-16.15718 z" id="path2075-3"/>
+    </g>
+  </g>
+</svg>
