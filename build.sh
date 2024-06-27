@@ -72,7 +72,7 @@ fi
 if [ "$1" == "--runtime" ]; then
     mkdir -p runtime/build
 
-    doJob "Compiling runtime" "gcc -Idist/ runtime/voxel.c"
+    doJob "Compiling runtime" "gcc -Idist/ runtime/voxel.c -o runtime/build/voxel"
 
     if [ "$2" == "--zip" ]; then
         doJob "Creating zip of build" "zip -r runtime/build.zip runtime/build"
