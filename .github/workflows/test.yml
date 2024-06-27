@@ -8,7 +8,7 @@ jobs:
 
         steps:
             - name: Checkout branch
-            - uses: actions/checkout@v4
+              uses: actions/checkout@v4
             - name: Install Deno
               uses: denoland/setup-deno@v1
               with:
