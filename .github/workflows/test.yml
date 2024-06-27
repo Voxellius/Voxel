@@ -1,0 +1,17 @@
+name: Perform unit tests
+
+on: [push]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout branch
+              uses: actions/checkout@v4
+            - name: Install Deno
+              uses: denoland/setup-deno@v1
+              with:
+                deno-version: v1.44.4
+            - name: Run tests
+              run: ./test.sh
