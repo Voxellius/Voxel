@@ -25,7 +25,6 @@ int main(int argc, char* argv[]) {
     char* data = (char*)VOXEL_MALLOC(size + 1);
 
     fseek(fp, 0, SEEK_SET);
-    fread(data, sizeof(char), size, fp);
     
     if (fread(data, sizeof(char), size, fp) != size) {
         fprintf(stderr, "Error reading file content\n");
