@@ -1,5 +1,6 @@
 import buffers;
 
+
 var byte1 = Byte(0x41);
 var byte2 = Byte("B");
 
@@ -31,7 +32,9 @@ syscall log("Set byte at index 1 in buffer: ");
 syscall log(buffer[1]);
 syscall log("\n");
 
+
 var bigBuffer = buffers.create(65536 * 4, Byte("."));
+
 
 syscall log("Section of big buffer: ");
 syscall log(bigBuffer.section((65536 * 2) + 4, (65536 * 2) + 12));
