@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     fseek(fp, 0, SEEK_SET);
     
     if (fread(data, sizeof(char), size, fp) != size) {
-        fprintf(stderr, "Error reading file content\n");
+        fprintf(stderr, "Error reading file contents\n");
         fclose(fp);
         VOXEL_FREE(data);
         return 1;
