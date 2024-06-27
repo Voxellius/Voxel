@@ -122,11 +122,11 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
         var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.loop.vxc")], stdout: "null"});
         var process = command.spawn();
 
-        await delay(1_000);
+        await delay(4_000);
 
         var before = await measureMemoryUsage(process.pid);
         
-        await delay(4_000);
+        await delay(8_000);
 
         var after = await measureMemoryUsage(process.pid);
         
@@ -157,9 +157,18 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
 }
 
 var results = await Promise.all(promises);
+var anyFailedResult = false;
 
 console.log("All tests completed. Summary of results:");
 
 for (var result of results) {
     console.log(`- ${result.test}: ${result.result}`);
+
+    if (result.result == "fail") {
+        anyFailedResult = true;
+    }
+}
+
+if (anyFailedResult) {
+    Deno.exit(1);
 }
