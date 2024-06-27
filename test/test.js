@@ -157,9 +157,18 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
 }
 
 var results = await Promise.all(promises);
+var anyFailedResult = false;
 
 console.log("All tests completed. Summary of results:");
 
 for (var result of results) {
     console.log(`- ${result.test}: ${result.result}`);
+
+    if (result.result == "fail") {
+        anyFailedResult = true;
+    }
+}
+
+if (anyFailedResult) {
+    Deno.exit(1);
 }
