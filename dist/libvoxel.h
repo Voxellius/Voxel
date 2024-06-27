@@ -883,9 +883,8 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
         writeCount++;
     }
 
+    voxel_unreferenceThing(executor->context, byteThing);
     voxel_unreferenceThing(executor->context, bufferThing);
-
-    byteThing->referenceCount++;
 
     voxel_push(executor, voxel_newNumberInt(executor->context, start));
 }
