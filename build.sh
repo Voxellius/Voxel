@@ -57,14 +57,24 @@ tee -a dist/libvoxel.h > /dev/null << EOF
 #endif
 EOF
 
+function doJob() {
+    echo "$1..."
+    eval "$2"
+    echo "Done $1."
+}
+
 if [ "$1" == "--examples" ]; then
     mkdir -p examples/build
 
-    gcc -Idist/ examples/hello.c -o examples/build/hello
+    doJob "Compiling examples" "gcc -Idist/ examples/hello.c -o examples/build/hello"
 fi
 
 if [ "$1" == "--runtime" ]; then
     mkdir -p runtime/build
 
-    gcc -Idist/ runtime/voxel.c -o runtime/build/voxel
+    doJob "Compiling runtime" "gcc -Idist/ runtime/voxel.c"
+
+    if [ "$2" == "--zip" ]; then
+        doJob "Creating zip of build" "zip -r runtime/build.zip runtime/build"
+    fi
 fi
