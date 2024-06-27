@@ -312,6 +312,7 @@ VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thin
 voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* context, voxel_ObjectItem* objectItem);
 voxel_Count voxel_getObjectLength(voxel_Thing* thing);
 voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_checkWhetherObjectInherits(voxel_Thing* thing, voxel_Thing* target, voxel_Count traverseDepth);
 
 voxel_Thing* voxel_newList(voxel_Context* context);
 VOXEL_ERRORABLE voxel_destroyList(voxel_Context* context, voxel_Thing* thing);

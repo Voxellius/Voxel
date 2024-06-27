@@ -57,3 +57,58 @@ syscall log("\n");
 syscall log("secondaryParent key4: ");
 syscall log(secondaryParent.key4);
 syscall log("\n");
+
+syscall log("child is primaryParent: ");
+syscall log(child is primaryParent);
+syscall log("\n");
+
+syscall log("child inherits primaryParent: ");
+syscall log(child inherits primaryParent);
+syscall log("\n");
+
+syscall log("primaryParent is secondaryParent: ");
+syscall log(primaryParent is secondaryParent);
+syscall log("\n");
+
+syscall log("primaryParent inherits secondaryParent: ");
+syscall log(primaryParent inherits secondaryParent);
+syscall log("\n");
+
+var derivedParent = {
+    key3: "derivedParent key3",
+    key6: "derivedParent key6"
+};
+
+derivedParent.prototypes.push(primaryParent);
+
+var derivedChild = {
+    key1: "derivedChild key1",
+    key6: "derivedChild key6",
+    key7: "derivedChild key7"
+};
+
+derivedChild.prototypes.push(derivedParent);
+
+syscall log("derivedChild key3: ");
+syscall log(derivedChild.key3);
+syscall log("\n");
+
+syscall log("derivedChild key7: ");
+syscall log(derivedChild.key7);
+syscall log("\n");
+
+syscall log("derivedChild is primaryParent: ");
+syscall log(derivedChild is primaryParent);
+syscall log("\n");
+
+syscall log("derivedChild inherits primaryParent: ");
+syscall log(derivedChild inherits primaryParent);
+syscall log("\n");
+
+syscall log("derivedChild is derivedParent: ");
+syscall log(derivedChild is derivedParent);
+syscall log("\n");
+
+syscall log("derivedChild inherits derivedParent: ");
+syscall log(derivedChild inherits derivedParent);
+syscall log("\n");

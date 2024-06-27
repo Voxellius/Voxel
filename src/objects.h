@@ -100,6 +100,10 @@ void voxel_lockObject(voxel_Thing* thing) {
 
         currentItem = currentItem->nextItem;
     }
+
+    if (object->prototypes) {
+        voxel_lockThing(object->prototypes);
+    }
 }
 
 voxel_Thing* voxel_copyObject(voxel_Context* context, voxel_Thing* thing) {
@@ -330,13 +334,40 @@ voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thin
         return object->prototypes;
     }
 
-    voxel_Thing* prototypesList = voxel_newList(context);
+    voxel_Thing* prototypes = voxel_newList(context);
 
     if (thing->isLocked) {
-        voxel_lockThing(prototypesList);
+        voxel_lockThing(prototypes);
     }
 
-    object->prototypes = prototypesList;
+    object->prototypes = prototypes;
 
-    return prototypesList;
+    return prototypes;
+}
+
+voxel_Bool voxel_checkWhetherObjectInherits(voxel_Thing* thing, voxel_Thing* target, voxel_Count traverseDepth) {
+    voxel_Object* object = (voxel_Object*)thing->value;
+
+    if (!object->prototypes) {
+        return VOXEL_FALSE;
+    }
+
+    voxel_List* prototypesList = (voxel_List*)object->prototypes->value;
+    voxel_ListItem* currentItem = prototypesList->firstItem;
+
+    while (currentItem) {
+        voxel_Thing* currentPrototype = currentItem->value;
+
+        if (currentPrototype == target) {
+            return VOXEL_TRUE;
+        }
+
+        if (traverseDepth > 0) {
+            return voxel_checkWhetherObjectInherits(currentPrototype, target, traverseDepth - 1);
+        }
+
+        currentItem = currentItem->nextItem;
+    }
+
+    return VOXEL_FALSE;
 }

@@ -6,3 +6,7 @@
 4
 5
 24
+outer(1) is ClosureFunction: true
+outer(1) is Function: true
+deepOuter(1) is ClosureFunction: true
+deepOuter(1) is Function: true

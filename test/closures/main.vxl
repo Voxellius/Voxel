@@ -51,3 +51,19 @@ function deepOuter(a) {
 
 syscall log(deepOuter(2)(3)(4));
 syscall log("\n");
+
+syscall log("outer(1) is ClosureFunction: ");
+syscall log(outer(1) is ClosureFunction);
+syscall log("\n");
+
+syscall log("outer(1) is Function: ");
+syscall log(outer(1) is Function);
+syscall log("\n");
+
+syscall log("deepOuter(1) is ClosureFunction: ");
+syscall log(deepOuter(1) is ClosureFunction);
+syscall log("\n");
+
+syscall log("deepOuter(1) is Function: ");
+syscall log(deepOuter(1) is Function);
+syscall log("\n");

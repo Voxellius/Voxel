@@ -31,6 +31,7 @@ Here is a list of operators that can be used in Voxel, from highest precedence t
 | `*`, `/`, `%` | Multiplication, division, modulo | `*=`, `/=`, `%=` | 2 |
 | `+`, `-` | Addition, subtraction | `+=`, `-=` | 2 |
 | `==`, `!=`, `===`, `!==`, `<`, `<=`, `>`, `>=` | Equal to, not equal to, identical to, not identical to, strictly less than, less than or equal to, strightly greater than, strictly greater than or equal to |  | 2, 3 |
+| `is`, `inherits` | Is instance of, Inherits |  | 2, 3 |
 | `&&&` | Logical eager AND | `&&&=` |  |
 | `\|\|\|` | Logical eager OR | `\|\|\|=` |  |
 | `&&` | Logical short-circuiting AND | `&&=` | 4 |

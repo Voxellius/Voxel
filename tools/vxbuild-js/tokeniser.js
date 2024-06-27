@@ -25,7 +25,7 @@ export class Token {
 
 export class KeywordToken extends Token {static HUMAN_READABLE_NAME = "keyword";}
 export class AtomToken extends Token {static HUMAN_READABLE_NAME = "atom";}
-export class TypeLiteralToken extends Token {static HUMAN_READABLE_NAME = "type literal";}
+export class TypeNameToken extends Token {static HUMAN_READABLE_NAME = "type name";}
 export class StaticMacroToken extends Token {static HUMAN_READABLE_NAME = "static function name";}
 export class BracketToken extends Token {static HUMAN_READABLE_NAME = "bracket";}
 export class DelimeterToken extends Token {static HUMAN_READABLE_NAME = "delimeter (,)";}
@@ -184,8 +184,8 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:Byte|Buffer)\b/)) {
-            addToken(TypeLiteralToken);
+        if (matchToken(/^(?:Boolean|Byte|Function|ClosureFunction|Number|Buffer|String|Object|List)\b/)) {
+            addToken(TypeNameToken);
             continue;
         }
 
@@ -234,7 +234,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:<=|>=|!==|!=|===|==|&&&|\|\|\||&&|\|\||\?\?|[+\-*\/%<>!&?])/)) {
+        if (matchToken(/^(?:<=|>=|!==|!=|===|==|&&&|\|\|\||&&|\|\||\?\?|is\b|inherits\b|[+\-*\/%<>!&?])/)) {
             addToken(OperatorToken);
             continue;
         }

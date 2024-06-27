@@ -241,6 +241,59 @@ void voxel_builtins_core_getSize(voxel_Executor* executor) {
     voxel_pushNull(executor);
 }
 
+void voxel_builtins_core_isType(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* typeByte = voxel_pop(executor);
+    voxel_Thing* thing = voxel_pop(executor);
+
+    if (!thing || !typeByte || typeByte->type != VOXEL_TYPE_BYTE || argCount < 2) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Byte type = (voxel_Byte)(voxel_IntPtr)typeByte->value;
+    voxel_Bool isType = VOXEL_FALSE;
+
+    switch (type) {
+        case 'n': isType = thing->type == VOXEL_TYPE_NULL; break;
+        case 't': isType = thing->type == VOXEL_TYPE_BOOLEAN; break;
+        case 'b': isType = thing->type == VOXEL_TYPE_BYTE; break;
+        case '@': isType = thing->type == VOXEL_TYPE_FUNCTION || thing->type == VOXEL_TYPE_CLOSURE; break;
+        case 'C': isType = thing->type == VOXEL_TYPE_CLOSURE; break;
+        case '%': isType = thing->type == VOXEL_TYPE_NUMBER; break;
+        case 'B': isType = thing->type == VOXEL_TYPE_BUFFER; break;
+        case '"': isType = thing->type == VOXEL_TYPE_STRING; break;
+        case 'O': isType = thing->type == VOXEL_TYPE_OBJECT; break;
+        case 'L': isType = thing->type == VOXEL_TYPE_LIST; break;
+    }
+
+    voxel_unreferenceThing(executor->context, thing);
+    voxel_unreferenceThing(executor->context, typeByte);
+
+    voxel_push(executor, voxel_newBoolean(executor->context, isType));
+}
+
+void voxel_builtins_core_isInstance(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Bool shouldCheckRecursively = voxel_popBoolean(executor);
+    voxel_Thing* target = voxel_pop(executor);
+    voxel_Thing* thing = voxel_pop(executor);
+
+    if (!thing || !target || argCount < 3) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_Bool isInstance = (
+        thing->type == VOXEL_TYPE_OBJECT &&
+        target->type == VOXEL_TYPE_OBJECT &&
+        voxel_checkWhetherObjectInherits(thing, target, shouldCheckRecursively ? VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH : 0)
+    );
+
+    voxel_unreferenceThing(executor->context, thing);
+    voxel_unreferenceThing(executor->context, target);
+
+    voxel_push(executor, voxel_newBoolean(executor->context, isInstance));
+}
+
 void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* value = voxel_pop(executor);
@@ -284,6 +337,8 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Tr", &voxel_builtins_core_removeItem);
     voxel_defineBuiltin(context, ".Tl", &voxel_builtins_core_getLength);
     voxel_defineBuiltin(context, ".Tz", &voxel_builtins_core_getSize);
+    voxel_defineBuiltin(context, ".Tt", &voxel_builtins_core_isType);
+    voxel_defineBuiltin(context, ".Ti", &voxel_builtins_core_isInstance);
 
     voxel_defineBuiltin(context, ".B", &voxel_builtins_core_newBuffer);
     voxel_defineBuiltin(context, ".Bg", &voxel_builtins_core_getBufferByte);

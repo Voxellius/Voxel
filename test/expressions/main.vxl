@@ -4,6 +4,14 @@ syscall log("Complex expression result: ");
 syscall log(complexExpression);
 syscall log("\n");
 
+syscall log("Complex expression is number: ");
+syscall log(complexExpression is Number);
+syscall log("\n");
+
+syscall log("Complex expression is string: ");
+syscall log(complexExpression is String);
+syscall log("\n");
+
 var ternaryResult = complexExpression == 7 ? "result is 7" : "result is not 7";
 
 syscall log("Stored ternary expression result: ");

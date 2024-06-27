@@ -47,7 +47,17 @@ export const ALL_BINARY_OPERATOR_CODE = {
     "&&": codeGen.bytes(codeGen.vxcTokens.AND),
     "|||": codeGen.bytes(codeGen.vxcTokens.OR),
     "||": codeGen.bytes(codeGen.vxcTokens.OR),
-    "??": codeGen.bytes(codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP)
+    "??": codeGen.bytes(codeGen.vxcTokens.SWAP, codeGen.vxcTokens.POP),
+    "is": codeGen.join(
+        codeGen.boolean(false),
+        codeGen.number(3),
+        codeGen.systemCall("Ti")
+    ),
+    "inherits": codeGen.join(
+        codeGen.boolean(true),
+        codeGen.number(3),
+        codeGen.systemCall("Ti")
+    )
 };
 
 export const ALL_BINARY_OPEATOR_SKIP_CODE = {
@@ -163,7 +173,7 @@ export class ThingNode extends ast.AstNode {
 
     static MATCH_QUERIES = [
         new ast.TokenQuery(tokeniser.AtomToken),
-        new ast.TokenQuery(tokeniser.TypeLiteralToken),
+        new ast.TokenQuery(tokeniser.TypeNameToken),
         new ast.TokenQuery(tokeniser.IdentifierToken),
         new ast.TokenQuery(tokeniser.StringToken),
         new ast.TokenQuery(tokeniser.NumberToken)
@@ -189,7 +199,7 @@ export class ThingNode extends ast.AstNode {
                 "false": false,
                 "null": null
             }[token.value] ?? null;
-        } else if (token instanceof tokeniser.TypeLiteralToken) {
+        } else if (token instanceof tokeniser.TypeNameToken) {
             this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);
 
             if (token.value == "Byte") {
@@ -221,7 +231,7 @@ export class ThingNode extends ast.AstNode {
 
                 instance.containerType = "buffer";
             } else {
-                throw new Error("Not implemented");
+                throw new sources.SourceError("Type literal for this type does not use this syntax", token?.sourceContainer, token?.location);
             }
         } else if (token instanceof tokeniser.IdentifierToken) {
             if (namespace.hasImport(token.value)) {
@@ -1977,12 +1987,76 @@ export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode
     }
 }
 
+export class InstanceOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "is"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "inherits")
+    ];
+
+    static OPERATOR_CODE = ALL_BINARY_OPERATOR_CODE;
+    static CHILD_EXPRESSION_NODE_CLASS = EqualityOperatorExpressionNode;
+
+    static TYPE_NAMES_TO_BYTES = {
+        "Boolean": "t",
+        "Byte": "b",
+        "Function": "@",
+        "ClosureFunction": "C",
+        "Number": "%",
+        "Buffer": "B",
+        "String": "\"",
+        "Object": "O",
+        "List": "L"
+    };
+
+    operatorToken = null;
+    typeByteUsed = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+
+        instance.operatorToken = this.maybeEat(tokens, this.OPERATOR_TOKEN_QUERIES);
+
+        if (!instance.operatorToken) {
+            return instance.children[0];
+        }
+
+        var typeNameToken = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.TypeNameToken)]);
+
+        if (instance.operatorToken.value == "is" && typeNameToken) {
+            instance.typeByteUsed = this.TYPE_NAMES_TO_BYTES[typeNameToken.value];
+        } else {
+            instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+        }
+
+        return instance;
+    }
+
+    generateCode(options) {
+        if (this.typeByteUsed != null) {
+            return codeGen.join(
+                this.children[0].generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.BYTE, codeGen.byte(this.typeByteUsed)),
+                codeGen.number(2),
+                codeGen.systemCall("Tt")
+            );
+        }
+
+        return codeGen.join(
+            this.children[0].generateCode(options),
+            this.children[1].generateCode(options),
+            ALL_BINARY_OPERATOR_CODE[this.operatorToken.value]
+        );
+    }
+}
+
 export class LogicalEagerAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
     static OPERATOR_TOKEN_QUERIES = [
         new ast.TokenQuery(tokeniser.OperatorToken, "&&&")
     ];
 
-    static CHILD_EXPRESSION_NODE_CLASS = EqualityOperatorExpressionNode;
+    static CHILD_EXPRESSION_NODE_CLASS = InstanceOperatorExpressionNode;
 
     estimateTruthiness() {
         var anyUnknown = false;
@@ -2239,10 +2313,8 @@ export class TernaryOperatorExpressionNode extends ExpressionNode {
         var instance = new this();
 
         instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
-
-        var operatorToken = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "?")]);
         
-        if (!operatorToken) {
+        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "?")])) {
             return instance.children[0];
         }
 

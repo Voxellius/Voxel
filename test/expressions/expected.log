@@ -1,4 +1,6 @@
 Complex expression result: 7
+Complex expression is number: true
+Complex expression is string: false
 Stored ternary expression result: result is 7
 Immediate ternary expression result: result is not 6
 Float value result: -3.782E-6
