@@ -95,12 +95,12 @@ falsyToStartWith = true;
 check();
 
 function sideEffect() {
-    syscall log("Side effect called\n");
+    syscall io_out("Side effect called\n");
 }
 
 var ClassSideEffect = {
     constructor: function() {
-        syscall log("Class side effect called\n");
+        syscall io_out("Class side effect called\n");
     }
 };
 

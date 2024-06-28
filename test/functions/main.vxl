@@ -1,11 +1,11 @@
 var globalValue = "global";
 
 function voidReturn() {
-    syscall log("Void return called\n");
+    syscall io_out("Void return called\n");
 }
 
 function valueReturn() {
-    syscall log("Value return called\n");
+    syscall io_out("Value return called\n");
 
     return 1 + 1;
 }
@@ -13,53 +13,53 @@ function valueReturn() {
 function localValueReturn() {
     var localValue = "local";
 
-    syscall log("Local value return called: ");
-    syscall log(localValue);
-    syscall log("\n");
+    syscall io_out("Local value return called: ");
+    syscall io_out(localValue);
+    syscall io_out("\n");
 
     return localValue;
 }
 
 function globalValueReturn() {
-    syscall log("Global value return called: ");
-    syscall log(globalValue);
-    syscall log("\n");
+    syscall io_out("Global value return called: ");
+    syscall io_out(globalValue);
+    syscall io_out("\n");
 
     return globalValue;
 }
 
 function globalValueMutate() {
-    syscall log("Global value before: ");
-    syscall log(globalValue);
-    syscall log("\n");
+    syscall io_out("Global value before: ");
+    syscall io_out(globalValue);
+    syscall io_out("\n");
 
     globalValue = "mutated";
 
-    syscall log("Global value after: ");
-    syscall log(globalValue);
-    syscall log("\n");
+    syscall io_out("Global value after: ");
+    syscall io_out(globalValue);
+    syscall io_out("\n");
 }
 
 function globalValueStoreLocalAndMutate() {
     var localValue = globalValue;
 
-    syscall log("Local value before: ");
-    syscall log(localValue);
-    syscall log("\n");
+    syscall io_out("Local value before: ");
+    syscall io_out(localValue);
+    syscall io_out("\n");
 
     localValue = "mutated";
 
-    syscall log("Local value before: ");
-    syscall log(localValue);
-    syscall log("\n");
+    syscall io_out("Local value before: ");
+    syscall io_out(localValue);
+    syscall io_out("\n");
 }
 
 function printArguments(a, b) {
-    syscall log(a);
-    syscall log("\n");
+    syscall io_out(a);
+    syscall io_out("\n");
 
-    syscall log(b);
-    syscall log("\n");
+    syscall io_out(b);
+    syscall io_out("\n");
 }
 
 function addArguments(a, b) {
@@ -67,25 +67,25 @@ function addArguments(a, b) {
 }
 
 function setArgument(arg) {
-    syscall log("Argument before: ");
-    syscall log(arg);
-    syscall log("\n");
+    syscall io_out("Argument before: ");
+    syscall io_out(arg);
+    syscall io_out("\n");
 
     arg = "mutated";
 
-    syscall log("Argument after: ");
-    syscall log(arg);
-    syscall log("\n");
+    syscall io_out("Argument after: ");
+    syscall io_out(arg);
+    syscall io_out("\n");
 }
 
 function shadowedGlobalValue(globalValue) {
-    syscall log("Value of shadowed global value: ");
-    syscall log(globalValue);
-    syscall log("\n");
+    syscall io_out("Value of shadowed global value: ");
+    syscall io_out(globalValue);
+    syscall io_out("\n");
 }
 
 function callOtherFunctions() {
-    syscall log("Calling other functions:\n");
+    syscall io_out("Calling other functions:\n");
 
     voidReturn();
 
@@ -104,66 +104,66 @@ voidReturn();
 
 var valueReturnResult = valueReturn();
 
-syscall log(valueReturnResult);
-syscall log("\n");
+syscall io_out(valueReturnResult);
+syscall io_out("\n");
 
 var localValueReturnResult = localValueReturn();
 
-syscall log(localValueReturnResult);
-syscall log("\n");
+syscall io_out(localValueReturnResult);
+syscall io_out("\n");
 
 var globalValueReturnResult = globalValueReturn();
 
-syscall log(globalValueReturnResult);
-syscall log("\n");
+syscall io_out(globalValueReturnResult);
+syscall io_out("\n");
 
 globalValueMutate();
 
-syscall log("Global value in global scope: ");
-syscall log(globalValue);
-syscall log("\n");
+syscall io_out("Global value in global scope: ");
+syscall io_out(globalValue);
+syscall io_out("\n");
 
 globalValueStoreLocalAndMutate();
 
-syscall log("Global value in global scope: ");
-syscall log(globalValue);
-syscall log("\n");
+syscall io_out("Global value in global scope: ");
+syscall io_out(globalValue);
+syscall io_out("\n");
 
 printArguments("argument 1", "argument 2");
 
-syscall log("Add arguments: ");
-syscall log(addArguments(2, 3));
-syscall log("\n");
+syscall io_out("Add arguments: ");
+syscall io_out(addArguments(2, 3));
+syscall io_out("\n");
 
 var arg = "original";
 
 setArgument(arg);
 
-syscall log("Argument in global scope: ");
-syscall log(arg);
-syscall log("\n");
+syscall io_out("Argument in global scope: ");
+syscall io_out(arg);
+syscall io_out("\n");
 
 shadowedGlobalValue("shadowed");
 
 var calledValueReturnResult = callOtherFunctions();
 
-syscall log(calledValueReturnResult);
-syscall log("\n");
+syscall io_out(calledValueReturnResult);
+syscall io_out("\n");
 
 var fibonacciResult = fibonacci(10);
 
-syscall log(fibonacciResult);
-syscall log("\n");
+syscall io_out(fibonacciResult);
+syscall io_out("\n");
 
 var namedFunction = function named() {
-    syscall log("Named function called\n");
+    syscall io_out("Named function called\n");
 }
 
 named();
 namedFunction();
 
 var anonymousFunction = function() {
-    syscall log("Anonymous function called\n");
+    syscall io_out("Anonymous function called\n");
 }
 
 anonymousFunction();

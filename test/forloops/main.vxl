@@ -1,65 +1,65 @@
-syscall log("Basic loop:\n");
+syscall io_out("Basic loop:\n");
 
 for (var i = 0; i < 5; i++) {
-    syscall log(i);
-    syscall log("\n");
+    syscall io_out(i);
+    syscall io_out("\n");
 }
 
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Nested loop:\n");
+syscall io_out("Nested loop:\n");
 
 for (var y = 0; y < 4; y++) {
     for (var x = 0; x < 4; x++) {
-        syscall log("x: ");
-        syscall log(x);
-        syscall log(", y: ");
-        syscall log(y);
-        syscall log("\n");
+        syscall io_out("x: ");
+        syscall io_out(x);
+        syscall io_out(", y: ");
+        syscall io_out(y);
+        syscall io_out("\n");
     }
 }
 
-syscall log("\n");
+syscall io_out("\n");
 
 var a = 0;
 var b = 10;
 
-syscall log("Loop with missing start statement:\n");
+syscall io_out("Loop with missing start statement:\n");
 
 for (; a < b; a++) {
-    syscall log(a);
-    syscall log("\n");
+    syscall io_out(a);
+    syscall io_out("\n");
 
     b = b - 1;
 }
 
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Loop that breaks:\n");
+syscall io_out("Loop that breaks:\n");
 
 for (var i = 0; i < 10; i++) {
-    syscall log(i);
-    syscall log("\n");
+    syscall io_out(i);
+    syscall io_out("\n");
 
     if (i == 4) {
-        syscall log("Break loop\n");
+        syscall io_out("Break loop\n");
 
         break;
     }
 }
 
-syscall log("\n");
-syscall log("Loop that uses `continue` statement:\n");
+syscall io_out("\n");
+syscall io_out("Loop that uses `continue` statement:\n");
 
 for (var i = 0; i < 5; i++) {
-    syscall log(i);
-    syscall log("\n");
+    syscall io_out(i);
+    syscall io_out("\n");
 
     if (i % 2 == 0) {
-        syscall log("Continue\n");
+        syscall io_out("Continue\n");
 
         continue;
     }
 
-    syscall log("No continue\n");
+    syscall io_out("No continue\n");
 }

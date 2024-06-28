@@ -1594,19 +1594,6 @@ void voxel_builtins_core_joinList(voxel_Executor* executor) {
 
 #ifdef VOXEL_BUILTINS_CORE
 
-void voxel_builtins_core_log(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
-    voxel_Thing* thing = voxel_pop(executor);
-
-    if (thing) {
-        voxel_logThing(executor->context, thing);
-
-        voxel_unreferenceThing(executor->context, thing);
-    }
-
-    voxel_pushNull(executor);
-}
-
 void voxel_builtins_core_params(voxel_Executor* executor) {
     voxel_Int required = voxel_popNumberInt(executor);
     voxel_Int actual = voxel_popNumberInt(executor);
@@ -1906,7 +1893,6 @@ void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
 }
 
 void voxel_builtins_core(voxel_Context* context) {
-    voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
     voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
@@ -1976,6 +1962,33 @@ void voxel_builtins_core(voxel_Context* context) {
 #else
 
 void voxel_builtins_core(voxel_Context* context) {}
+
+#endif
+
+// src/builtins/io/io.h
+
+#ifdef VOXEL_BUILTINS_IO
+
+void voxel_builtins_io_out(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* thing = voxel_pop(executor);
+
+    if (thing) {
+        voxel_logThing(executor->context, thing);
+
+        voxel_unreferenceThing(executor->context, thing);
+    }
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_io(voxel_Context* context) {
+    voxel_defineBuiltin(context, ".io_out", &voxel_builtins_io_out);
+}
+
+#else
+
+void voxel_builtins_io(voxel_Context* context) {}
 
 #endif
 
@@ -2123,12 +2136,12 @@ void voxel_builtins_threads_preserveSymbols(voxel_Executor* executor) {
 }
 
 void voxel_builtins_threads(voxel_Context* context) {
-    voxel_defineBuiltin(context, ".Thn", &voxel_builtins_threads_newThread);
-    voxel_defineBuiltin(context, ".Thd", &voxel_builtins_threads_destroyThread);
-    voxel_defineBuiltin(context, ".Thoi", &voxel_builtins_threads_getOwnThreadId);
-    voxel_defineBuiltin(context, ".Thir", &voxel_builtins_threads_threadIsRunning);
-    voxel_defineBuiltin(context, ".Thsr", &voxel_builtins_threads_setThreadIsRunning);
-    voxel_defineBuiltin(context, ".Thps", &voxel_builtins_threads_preserveSymbols);
+    voxel_defineBuiltin(context, ".threads_new", &voxel_builtins_threads_newThread);
+    voxel_defineBuiltin(context, ".threads_destroy", &voxel_builtins_threads_destroyThread);
+    voxel_defineBuiltin(context, ".threads_getOwnId", &voxel_builtins_threads_getOwnThreadId);
+    voxel_defineBuiltin(context, ".threads_isRunning", &voxel_builtins_threads_threadIsRunning);
+    voxel_defineBuiltin(context, ".threads_setIsRunning", &voxel_builtins_threads_setThreadIsRunning);
+    voxel_defineBuiltin(context, ".threads_preserve", &voxel_builtins_threads_preserveSymbols);
 }
 
 #else
@@ -2213,6 +2226,7 @@ voxel_Context* voxel_newContext() {
     voxel_newExecutor(context);
 
     voxel_builtins_core(context);
+    voxel_builtins_io(context);
     voxel_builtins_threads(context);
 
     return context;

@@ -4,13 +4,13 @@ var value = "value in module A";
 var count = 1 + (b.count ?? 0);
 
 function test() {
-    syscall log("Module A test function called\n");
+    syscall io_out("Module A test function called\n");
 }
 
 function callBTest() {
     b.test();
 }
 
-syscall log("Module A imported\n");
+syscall io_out("Module A imported\n");
 
 callBTest();

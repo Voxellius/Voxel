@@ -1,100 +1,100 @@
 var list = ["a", "b", "c"];
 
-syscall log("Define list: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Define list: ");
+syscall io_out(list);
+syscall io_out("\n");
 
 list.push("d");
 
-syscall log("Push d: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Push d: ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Get list length: ");
-syscall log(list.length);
-syscall log("\n");
+syscall io_out("Get list length: ");
+syscall io_out(list.length);
+syscall io_out("\n");
 
-syscall log("Get item at index 0 from list: ");
-syscall log(list[0]);
-syscall log("\n");
+syscall io_out("Get item at index 0 from list: ");
+syscall io_out(list[0]);
+syscall io_out("\n");
 
-syscall log("Get item at index 2 from list: ");
-syscall log(list[2]);
-syscall log("\n");
+syscall io_out("Get item at index 2 from list: ");
+syscall io_out(list[2]);
+syscall io_out("\n");
 
-syscall log("Get item at index 4 from list: ");
-syscall log(list[4]);
-syscall log("\n");
+syscall io_out("Get item at index 4 from list: ");
+syscall io_out(list[4]);
+syscall io_out("\n");
 
-syscall log("Get item at index -1 from list: ");
-syscall log(list[-1]);
-syscall log("\n");
+syscall io_out("Get item at index -1 from list: ");
+syscall io_out(list[-1]);
+syscall io_out("\n");
 
-syscall log("Get item at index -2 from list: ");
-syscall log(list-[-2]);
-syscall log("\n");
+syscall io_out("Get item at index -2 from list: ");
+syscall io_out(list-[-2]);
+syscall io_out("\n");
 
-syscall log("Get item at index -4 from list: ");
-syscall log(list[-4]);
-syscall log("\n");
+syscall io_out("Get item at index -4 from list: ");
+syscall io_out(list[-4]);
+syscall io_out("\n");
 
 list[2] = 123;
 
-syscall log("Set item at index 2 in list: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Set item at index 2 in list: ");
+syscall io_out(list);
+syscall io_out("\n");
 
 list[-1] = true;
 
-syscall log("Set item at index -1 in list: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Set item at index -1 in list: ");
+syscall io_out(list);
+syscall io_out("\n");
 
 list[4] = "new";
 
-syscall log("Set item at index 4 in list: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Set item at index 4 in list: ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Popping item from list: ");
-syscall log(list.pop());
-syscall log(" => ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Popping item from list: ");
+syscall io_out(list.pop());
+syscall io_out(" => ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Popping item from list: ");
-syscall log(list.pop());
-syscall log(" => ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Popping item from list: ");
+syscall io_out(list.pop());
+syscall io_out(" => ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Popping item from list: ");
-syscall log(list.pop());
-syscall log(" => ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Popping item from list: ");
+syscall io_out(list.pop());
+syscall io_out(" => ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Popping item from list: ");
-syscall log(list.pop());
-syscall log(" => ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Popping item from list: ");
+syscall io_out(list.pop());
+syscall io_out(" => ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Popping item from list: ");
-syscall log(list.pop());
-syscall log(" => ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Popping item from list: ");
+syscall io_out(list.pop());
+syscall io_out(" => ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Popping item from list: ");
-syscall log(list.pop());
-syscall log(" => ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Popping item from list: ");
+syscall io_out(list.pop());
+syscall io_out(" => ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Get list length: ");
-syscall log(list.length);
-syscall log("\n");
+syscall io_out("Get list length: ");
+syscall io_out(list.length);
+syscall io_out("\n");
 
 list.unshift(2);
 list.unshift(3);
@@ -102,47 +102,47 @@ list.unshift(4);
 list.unshift(5);
 list.unshift(6);
 
-syscall log("Unshift a few list items: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Unshift a few list items: ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Shifting from list: ");
-syscall log(list.shift());
-syscall log("\n");
+syscall io_out("Shifting from list: ");
+syscall io_out(list.shift());
+syscall io_out("\n");
 
-syscall log("Shifting from list: ");
-syscall log(list.shift());
-syscall log("\n");
+syscall io_out("Shifting from list: ");
+syscall io_out(list.shift());
+syscall io_out("\n");
 
-syscall log("Shifting from list: ");
-syscall log(list.shift());
-syscall log("\n");
+syscall io_out("Shifting from list: ");
+syscall io_out(list.shift());
+syscall io_out("\n");
 
-syscall log("List after shifting: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("List after shifting: ");
+syscall io_out(list);
+syscall io_out("\n");
 
 list.insert(1, 4);
 
-syscall log("Inserted into list: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("Inserted into list: ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Removed from list by index: ");
-syscall log(list.removeAt(1));
-syscall log("\n");
+syscall io_out("Removed from list by index: ");
+syscall io_out(list.removeAt(1));
+syscall io_out("\n");
 
-syscall log("List after removal: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("List after removal: ");
+syscall io_out(list);
+syscall io_out("\n");
 
-syscall log("Removed from list by value; success: ");
-syscall log(list.remove(2));
-syscall log("\n");
+syscall io_out("Removed from list by value; success: ");
+syscall io_out(list.remove(2));
+syscall io_out("\n");
 
-syscall log("List after removal: ");
-syscall log(list);
-syscall log("\n");
+syscall io_out("List after removal: ");
+syscall io_out(list);
+syscall io_out("\n");
 
 var empty = [];
 
@@ -152,67 +152,67 @@ empty.shift();
 var values = [1, 2, 3, 4, 5];
 
 values.forEach(function(value, i) {
-    syscall log("values[");
-    syscall log(i);
-    syscall log("] = ");
-    syscall log(value);
-    syscall log("\n");
+    syscall io_out("values[");
+    syscall io_out(i);
+    syscall io_out("] = ");
+    syscall io_out(value);
+    syscall io_out("\n");
 });
 
-syscall log("Mapping: ");
-syscall log(values.map(function(value, i) {
+syscall io_out("Mapping: ");
+syscall io_out(values.map(function(value, i) {
     return (value * 3) + i;
 }));
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Filtering to get odd numbers: ");
-syscall log(values.filter(function(value) {
+syscall io_out("Filtering to get odd numbers: ");
+syscall io_out(values.filter(function(value) {
     return value % 2 == 1;
 }));
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Finding the first even number: ");
-syscall log(values.find(function(value) {
+syscall io_out("Finding the first even number: ");
+syscall io_out(values.find(function(value) {
     return value % 2 == 0;
 }));
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Finding the index of the first even number: ");
-syscall log(values.findIndex(function(value) {
+syscall io_out("Finding the index of the first even number: ");
+syscall io_out(values.findIndex(function(value) {
     return value % 2 == 0;
 }));
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Finding the number 6: ");
-syscall log(values.find(function(value) {
+syscall io_out("Finding the number 6: ");
+syscall io_out(values.find(function(value) {
     return value == 6;
 }));
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Finding the index of the number 6: ");
-syscall log(values.findIndex(function(value) {
+syscall io_out("Finding the index of the number 6: ");
+syscall io_out(values.findIndex(function(value) {
     return value == 6;
 }));
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Reducing to find sum: ");
-syscall log(values.reduce(function(accumulator, value) {
+syscall io_out("Reducing to find sum: ");
+syscall io_out(values.reduce(function(accumulator, value) {
     return accumulator + value;
 }, 0));
-syscall log("\n");
+syscall io_out("\n");
 
-syscall log("Index of 3: ");
-syscall log(values.indexOf(3));
-syscall log("\n");
+syscall io_out("Index of 3: ");
+syscall io_out(values.indexOf(3));
+syscall io_out("\n");
 
-syscall log("Index of 6: ");
-syscall log(values.indexOf(6));
-syscall log("\n");
+syscall io_out("Index of 6: ");
+syscall io_out(values.indexOf(6));
+syscall io_out("\n");
 
-syscall log("List contains 3: ");
-syscall log(values.contains(3));
-syscall log("\n");
+syscall io_out("List contains 3: ");
+syscall io_out(values.contains(3));
+syscall io_out("\n");
 
-syscall log("List contains 6: ");
-syscall log(values.contains(6));
-syscall log("\n");
+syscall io_out("List contains 6: ");
+syscall io_out(values.contains(6));
+syscall io_out("\n");

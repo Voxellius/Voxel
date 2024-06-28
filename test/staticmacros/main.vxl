@@ -9,18 +9,18 @@ object.unusedProp = 456;
 
 object.usedProp;
 
-syscall log("#used(used): ");
-syscall log(#used(used));
-syscall log("\n");
+syscall io_out("#used(used): ");
+syscall io_out(#used(used));
+syscall io_out("\n");
 
-syscall log("#used(unused): ");
-syscall log(#used(unused));
-syscall log("\n");
+syscall io_out("#used(unused): ");
+syscall io_out(#used(unused));
+syscall io_out("\n");
 
-syscall log("#usedprop(usedProp): ");
-syscall log(#usedprop(usedProp));
-syscall log("\n");
+syscall io_out("#usedprop(usedProp): ");
+syscall io_out(#usedprop(usedProp));
+syscall io_out("\n");
 
-syscall log("#usedprop(unusedProp): ");
-syscall log(#usedprop(unusedProp));
-syscall log("\n");
+syscall io_out("#usedprop(unusedProp): ");
+syscall io_out(#usedprop(unusedProp));
+syscall io_out("\n");

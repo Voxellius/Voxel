@@ -17,62 +17,62 @@ var child = {
 child.prototypes.push(primaryParent);
 child.prototypes.push(secondaryParent);
 
-syscall log("key1: ");
-syscall log(child.key1);
-syscall log("\n");
+syscall io_out("key1: ");
+syscall io_out(child.key1);
+syscall io_out("\n");
 
-syscall log("key2: ");
-syscall log(child.key2);
-syscall log("\n");
+syscall io_out("key2: ");
+syscall io_out(child.key2);
+syscall io_out("\n");
 
-syscall log("key3: ");
-syscall log(child.key3);
-syscall log("\n");
+syscall io_out("key3: ");
+syscall io_out(child.key3);
+syscall io_out("\n");
 
-syscall log("key4: ");
-syscall log(child.key4);
-syscall log("\n");
+syscall io_out("key4: ");
+syscall io_out(child.key4);
+syscall io_out("\n");
 
-syscall log("key5: ");
-syscall log(child.key5);
-syscall log("\n");
+syscall io_out("key5: ");
+syscall io_out(child.key5);
+syscall io_out("\n");
 
 child.key2 = "child value2";
 child.key4 = "child value4";
 
-syscall log("Set keys\n");
+syscall io_out("Set keys\n");
 
-syscall log("key2: ");
-syscall log(child.key2);
-syscall log("\n");
+syscall io_out("key2: ");
+syscall io_out(child.key2);
+syscall io_out("\n");
 
-syscall log("key4: ");
-syscall log(child.key4);
-syscall log("\n");
+syscall io_out("key4: ");
+syscall io_out(child.key4);
+syscall io_out("\n");
 
-syscall log("primaryParent key2: ");
-syscall log(primaryParent.key2);
-syscall log("\n");
+syscall io_out("primaryParent key2: ");
+syscall io_out(primaryParent.key2);
+syscall io_out("\n");
 
-syscall log("secondaryParent key4: ");
-syscall log(secondaryParent.key4);
-syscall log("\n");
+syscall io_out("secondaryParent key4: ");
+syscall io_out(secondaryParent.key4);
+syscall io_out("\n");
 
-syscall log("child is primaryParent: ");
-syscall log(child is primaryParent);
-syscall log("\n");
+syscall io_out("child is primaryParent: ");
+syscall io_out(child is primaryParent);
+syscall io_out("\n");
 
-syscall log("child inherits primaryParent: ");
-syscall log(child inherits primaryParent);
-syscall log("\n");
+syscall io_out("child inherits primaryParent: ");
+syscall io_out(child inherits primaryParent);
+syscall io_out("\n");
 
-syscall log("primaryParent is secondaryParent: ");
-syscall log(primaryParent is secondaryParent);
-syscall log("\n");
+syscall io_out("primaryParent is secondaryParent: ");
+syscall io_out(primaryParent is secondaryParent);
+syscall io_out("\n");
 
-syscall log("primaryParent inherits secondaryParent: ");
-syscall log(primaryParent inherits secondaryParent);
-syscall log("\n");
+syscall io_out("primaryParent inherits secondaryParent: ");
+syscall io_out(primaryParent inherits secondaryParent);
+syscall io_out("\n");
 
 var derivedParent = {
     key3: "derivedParent key3",
@@ -89,26 +89,26 @@ var derivedChild = {
 
 derivedChild.prototypes.push(derivedParent);
 
-syscall log("derivedChild key3: ");
-syscall log(derivedChild.key3);
-syscall log("\n");
+syscall io_out("derivedChild key3: ");
+syscall io_out(derivedChild.key3);
+syscall io_out("\n");
 
-syscall log("derivedChild key7: ");
-syscall log(derivedChild.key7);
-syscall log("\n");
+syscall io_out("derivedChild key7: ");
+syscall io_out(derivedChild.key7);
+syscall io_out("\n");
 
-syscall log("derivedChild is primaryParent: ");
-syscall log(derivedChild is primaryParent);
-syscall log("\n");
+syscall io_out("derivedChild is primaryParent: ");
+syscall io_out(derivedChild is primaryParent);
+syscall io_out("\n");
 
-syscall log("derivedChild inherits primaryParent: ");
-syscall log(derivedChild inherits primaryParent);
-syscall log("\n");
+syscall io_out("derivedChild inherits primaryParent: ");
+syscall io_out(derivedChild inherits primaryParent);
+syscall io_out("\n");
 
-syscall log("derivedChild is derivedParent: ");
-syscall log(derivedChild is derivedParent);
-syscall log("\n");
+syscall io_out("derivedChild is derivedParent: ");
+syscall io_out(derivedChild is derivedParent);
+syscall io_out("\n");
 
-syscall log("derivedChild inherits derivedParent: ");
-syscall log(derivedChild inherits derivedParent);
-syscall log("\n");
+syscall io_out("derivedChild inherits derivedParent: ");
+syscall io_out(derivedChild inherits derivedParent);
+syscall io_out("\n");

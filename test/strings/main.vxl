@@ -1,39 +1,39 @@
 var string = "abcdef";
 
-syscall log("String: ");
-syscall log(string);
-syscall log("\n");
+syscall io_out("String: ");
+syscall io_out(string);
+syscall io_out("\n");
 
-syscall log("Size: ");
-syscall log(string.size);
-syscall log("\n");
+syscall io_out("Size: ");
+syscall io_out(string.size);
+syscall io_out("\n");
 
-syscall log("Reversed: ");
-syscall log(string.reverse());
-syscall log("\n");
+syscall io_out("Reversed: ");
+syscall io_out(string.reverse());
+syscall io_out("\n");
 
-syscall log("Cut start: ");
-syscall log(string.cutStart(4));
-syscall log("\n");
+syscall io_out("Cut start: ");
+syscall io_out(string.cutStart(4));
+syscall io_out("\n");
 
-syscall log("Cut end: ");
-syscall log(string.cutEnd(4));
-syscall log("\n");
+syscall io_out("Cut end: ");
+syscall io_out(string.cutEnd(4));
+syscall io_out("\n");
 
-syscall log("Substring: ");
-syscall log(string.substring(2, 4));
-syscall log("\n");
+syscall io_out("Substring: ");
+syscall io_out(string.substring(2, 4));
+syscall io_out("\n");
 
-syscall log("Pad start: ");
-syscall log(string.padStart(10, "123"));
-syscall log("\n");
+syscall io_out("Pad start: ");
+syscall io_out(string.padStart(10, "123"));
+syscall io_out("\n");
 
-syscall log("Pad end: ");
-syscall log(string.padEnd(10, "123"));
-syscall log("\n");
+syscall io_out("Pad end: ");
+syscall io_out(string.padEnd(10, "123"));
+syscall io_out("\n");
 
 var numericString = "1234";
 
-syscall log("Numeric string to number + 1: ");
-syscall log(numericString.toNumber() + 1);
-syscall log("\n");
+syscall io_out("Numeric string to number + 1: ");
+syscall io_out(numericString.toNumber() + 1);
+syscall io_out("\n");

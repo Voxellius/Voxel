@@ -1,1 +1,1 @@
-syscall log("This was also imported!\n");
+syscall io_out("This was also imported!\n");

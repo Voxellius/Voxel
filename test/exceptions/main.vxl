@@ -1,7 +1,7 @@
 try {
-    syscall log("No error thrown\n");
+    syscall io_out("No error thrown\n");
 } catch (error) {
-    syscall log("Caught error that does not exist\n");
+    syscall io_out("Caught error that does not exist\n");
 }
 
 try {
@@ -11,9 +11,9 @@ try {
 try {
     throw 2;
 } catch (error) {
-    syscall log("Caught error: ");
-    syscall log(error);
-    syscall log("\n");
+    syscall io_out("Caught error: ");
+    syscall io_out(error);
+    syscall io_out("\n");
 }
 
 function rethrow() {
@@ -27,9 +27,9 @@ function rethrow() {
 try {
     rethrow();
 } catch (error) {
-    syscall log("Caught error: ");
-    syscall log(error);
-    syscall log("\n");
+    syscall io_out("Caught error: ");
+    syscall io_out(error);
+    syscall io_out("\n");
 }
 
 try {

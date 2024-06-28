@@ -38,7 +38,7 @@ class Thread {
         }
 
         if (this._hasStarted) {
-            syscall Thd(this._id);
+            syscall threads_destroy(this._id);
         }
 
         this._hasBeenClosed = true;
@@ -51,7 +51,7 @@ class Thread {
         this._checkThreadExists();
 
         if (this._isPaused) {
-            syscall Thsr(true, this._id);
+            syscall threads_setIsRunning(true, this._id);
 
             this._isPaused = false;
 
@@ -62,7 +62,7 @@ class Thread {
             throw ThreadError.CANNOT_ENTER_STATE;
         }
 
-        this._id = syscall Thn(this.callFunction, this.callArgs);
+        this._id = syscall threads_new(this.callFunction, this.callArgs);
         this._hasStarted = true;
     }
 
@@ -73,7 +73,7 @@ class Thread {
             throw ThreadError.CANNOT_ENTER_STATE;
         }
 
-        syscall Thsr(false, this._id);
+        syscall threads_setIsRunning(false, this._id);
 
         this._isPaused = true;
     }
@@ -87,7 +87,7 @@ class Thread {
             return false;
         }
 
-        return syscall Thir(this._id);
+        return syscall threads_isRunning(this._id);
     }
 
     isPaused() {
@@ -133,7 +133,7 @@ class MainThread extends Thread {
 }
 
 function getOwnThread() {
-    var id = syscall Thoi();
+    var id = syscall threads_getOwnId();
 
     return _existingThreads.find(function(thread) {
         return thread._id == id;

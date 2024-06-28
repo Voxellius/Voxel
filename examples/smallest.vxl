@@ -1,1 +1,1 @@
-syscall log("Hello, world!\n");
+syscall io_out("Hello, world!\n");

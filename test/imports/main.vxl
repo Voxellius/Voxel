@@ -1,14 +1,14 @@
 import "a.vxl" as a;
 
-syscall log("Main module begins\n");
+syscall io_out("Main module begins\n");
 
-syscall log("Module A value: ");
-syscall log(a.value);
-syscall log("\n");
+syscall io_out("Module A value: ");
+syscall io_out(a.value);
+syscall io_out("\n");
 
-syscall log("Module A count: ");
-syscall log(a.count);
-syscall log("\n");
+syscall io_out("Module A count: ");
+syscall io_out(a.count);
+syscall io_out("\n");
 
 a.test();
 

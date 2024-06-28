@@ -4,44 +4,44 @@ import buffers;
 var byte1 = Byte(0x41);
 var byte2 = Byte("B");
 
-syscall log("Byte 1: ");
-syscall log(byte1);
-syscall log("\n");
+syscall io_out("Byte 1: ");
+syscall io_out(byte1);
+syscall io_out("\n");
 
-syscall log("Byte 2: ");
-syscall log(byte2);
-syscall log("\n");
+syscall io_out("Byte 2: ");
+syscall io_out(byte2);
+syscall io_out("\n");
 
 var buffer = Buffer(0x41, 0x42, 0x43, " Hello, world! ", "This is a buffer.");
 
-syscall log("Buffer: ");
-syscall log(buffer);
-syscall log("\n");
+syscall io_out("Buffer: ");
+syscall io_out(buffer);
+syscall io_out("\n");
 
-syscall log("Size of buffer: ");
-syscall log(buffer.size);
-syscall log("\n");
+syscall io_out("Size of buffer: ");
+syscall io_out(buffer.size);
+syscall io_out("\n");
 
-syscall log("Get byte at index 1 from buffer: ");
-syscall log(buffer[1]);
-syscall log("\n");
+syscall io_out("Get byte at index 1 from buffer: ");
+syscall io_out(buffer[1]);
+syscall io_out("\n");
 
 buffer[1] = Byte(0x44);
 
-syscall log("Set byte at index 1 in buffer: ");
-syscall log(buffer[1]);
-syscall log("\n");
+syscall io_out("Set byte at index 1 in buffer: ");
+syscall io_out(buffer[1]);
+syscall io_out("\n");
 
 
 var bigBuffer = buffers.create(65536 * 4, Byte("."));
 
 
-syscall log("Section of big buffer: ");
-syscall log(bigBuffer.section((65536 * 2) + 4, (65536 * 2) + 12));
-syscall log("\n");
+syscall io_out("Section of big buffer: ");
+syscall io_out(bigBuffer.section((65536 * 2) + 4, (65536 * 2) + 12));
+syscall io_out("\n");
 
 buffer.copy(bigBuffer, (65536 * 2) + 4, 4);
 
-syscall log("Write small buffer into big buffer: ");
-syscall log(bigBuffer.section((65536 * 2) + 4, (65536 * 2) + 12));
-syscall log("\n");
+syscall io_out("Write small buffer into big buffer: ");
+syscall io_out(bigBuffer.section((65536 * 2) + 4, (65536 * 2) + 12));
+syscall io_out("\n");

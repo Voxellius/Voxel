@@ -26,14 +26,14 @@ class StandardOutputStream extends Stream {
     write(data) {
         super.write(data);
 
-        syscall log(data);
+        syscall io_out(data);
     }
 }
 
 function print(data) {
-    syscall log(data);
+    syscall io_out(data);
 }
 
 function println(data) {
-    syscall log(data + "\n");
+    syscall io_out(data + "\n");
 }

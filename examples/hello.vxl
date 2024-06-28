@@ -18,12 +18,12 @@ var thisIsAwesome = true;
 // Functions (these ones are mainly for usage later on)
 
 function print(value) {
-    syscall log(value);
+    syscall io_out(value);
 }
 
 function println(value) {
-    syscall log(value);
-    syscall log("\n");
+    syscall io_out(value);
+    syscall io_out("\n");
 }
 
 function newList() {

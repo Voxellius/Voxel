@@ -2,7 +2,7 @@ var thisStack = [];
 var nextThis = null;
 var superStack = [];
 
-syscall Thps([
+syscall threads_preserve([
     #symbol(thisStack),
     #symbol(nextThis),
     #symbol(superStack)

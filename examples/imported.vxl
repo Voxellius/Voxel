@@ -1,7 +1,7 @@
 import "another.vxl" as another;
 import "hello.vxl" as hello;
 
-syscall log("This was imported!\n");
+syscall io_out("This was imported!\n");
 
 var valueFromImport = "this value has been exported";
 

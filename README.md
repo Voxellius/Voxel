@@ -7,18 +7,10 @@ Voxel only generates the necessary bytecode to provide the supporting features n
 
 ```
 56 78 43 01 22 48 65 6c 6c 6f 2c 20 77 6f 72 6c     VxC."Hello, worl
-64 21 0a 00 33 01 2e 6c 6f 67 00 70 00              d!..3..log.p.
+64 21 0a 00 33 01 2e 69 6f 5f 6f 75 74 00 70 00     d!..3..io_out.p.
 ```
 
-Since this program does not make use of Voxel's auxiliary features, all code from [`core.vxl`](tools/vxbuild-js/core.vxl) in this example has been excluded through static code analysis and is therefore never compiled into the bytecode.
-
-The following Voxel code produced the above bytecode:
-
-```voxel
-syscall log("Hello, world!\n");
-```
-
-More examples of Voxel programs can be found in the [`examples`](examples) and [`test`](test) directories.
+Examples of Voxel programs can be found in the [`examples`](examples) and [`test`](test) directories.
 
 ## Key features of the Voxel programming language
 * **Functions** — named and anonymous

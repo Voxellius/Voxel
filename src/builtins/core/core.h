@@ -1,18 +1,5 @@
 #ifdef VOXEL_BUILTINS_CORE
 
-void voxel_builtins_core_log(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
-    voxel_Thing* thing = voxel_pop(executor);
-
-    if (thing) {
-        voxel_logThing(executor->context, thing);
-
-        voxel_unreferenceThing(executor->context, thing);
-    }
-
-    voxel_pushNull(executor);
-}
-
 void voxel_builtins_core_params(voxel_Executor* executor) {
     voxel_Int required = voxel_popNumberInt(executor);
     voxel_Int actual = voxel_popNumberInt(executor);
@@ -312,7 +299,6 @@ void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
 }
 
 void voxel_builtins_core(voxel_Context* context) {
-    voxel_defineBuiltin(context, ".log", &voxel_builtins_core_log);
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
     voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);

@@ -1,26 +1,26 @@
 var i = 0;
 
-syscall log("Basic loop:\n");
+syscall io_out("Basic loop:\n");
 
 while (i < 5) {
-    syscall log(i);
-    syscall log("\n");
+    syscall io_out(i);
+    syscall io_out("\n");
 
     i++;
 }
 
-syscall log("\n");
+syscall io_out("\n");
 
 var j = 0;
 
-syscall log("Loop that breaks:\n");
+syscall io_out("Loop that breaks:\n");
 
 while (true) {
-    syscall log(j);
-    syscall log("\n");
+    syscall io_out(j);
+    syscall io_out("\n");
 
     if (j == 4) {
-        syscall log("Break loop\n");
+        syscall io_out("Break loop\n");
 
         break;
     }
@@ -28,25 +28,25 @@ while (true) {
     j++;
 }
 
-syscall log("\n");
+syscall io_out("\n");
 
 var k = 0;
 
-syscall log("Loop that uses `continue` statement:\n");
+syscall io_out("Loop that uses `continue` statement:\n");
 
 while (k < 5) {
-    syscall log(k);
-    syscall log("\n");
+    syscall io_out(k);
+    syscall io_out("\n");
 
     if (k % 2 == 0) {
-        syscall log("Continue\n");
+        syscall io_out("Continue\n");
 
         k++;
 
         continue;
     }
 
-    syscall log("No continue\n");
+    syscall io_out("No continue\n");
 
     k++;
 }

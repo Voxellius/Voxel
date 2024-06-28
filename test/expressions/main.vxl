@@ -1,177 +1,177 @@
 var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 
-syscall log("Complex expression result: ");
-syscall log(complexExpression);
-syscall log("\n");
+syscall io_out("Complex expression result: ");
+syscall io_out(complexExpression);
+syscall io_out("\n");
 
-syscall log("Complex expression is number: ");
-syscall log(complexExpression is Number);
-syscall log("\n");
+syscall io_out("Complex expression is number: ");
+syscall io_out(complexExpression is Number);
+syscall io_out("\n");
 
-syscall log("Complex expression is string: ");
-syscall log(complexExpression is String);
-syscall log("\n");
+syscall io_out("Complex expression is string: ");
+syscall io_out(complexExpression is String);
+syscall io_out("\n");
 
 var ternaryResult = complexExpression == 7 ? "result is 7" : "result is not 7";
 
-syscall log("Stored ternary expression result: ");
-syscall log(ternaryResult);
-syscall log("\n");
+syscall io_out("Stored ternary expression result: ");
+syscall io_out(ternaryResult);
+syscall io_out("\n");
 
-syscall log("Immediate ternary expression result: ");
-syscall log(complexExpression == 6 ? "result is 6" : "result is not 6");
-syscall log("\n");
+syscall io_out("Immediate ternary expression result: ");
+syscall io_out(complexExpression == 6 ? "result is 6" : "result is not 6");
+syscall io_out("\n");
 
 var floatValue = -3.782e-6;
 
-syscall log("Float value result: ");
-syscall log(floatValue);
-syscall log("\n");
+syscall io_out("Float value result: ");
+syscall io_out(floatValue);
+syscall io_out("\n");
 
 function sideEffect() {
-    syscall log("Side effect called\n");
+    syscall io_out("Side effect called\n");
 
     return 123;
 }
 
 var count = 2;
 
-syscall log("Initial count value: ");
-syscall log(count);
-syscall log("\n");
+syscall io_out("Initial count value: ");
+syscall io_out(count);
+syscall io_out("\n");
 
-syscall log("Count prefix increment: ");
-syscall log(++count);
-syscall log("\n");
+syscall io_out("Count prefix increment: ");
+syscall io_out(++count);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(count);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(count);
+syscall io_out("\n");
 
-syscall log("Count suffix increment: ");
-syscall log(count++);
-syscall log("\n");
+syscall io_out("Count suffix increment: ");
+syscall io_out(count++);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(count);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(count);
+syscall io_out("\n");
 
-syscall log("Count prefix decrement: ");
-syscall log(--count);
-syscall log("\n");
+syscall io_out("Count prefix decrement: ");
+syscall io_out(--count);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(count);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(count);
+syscall io_out("\n");
 
-syscall log("Count suffix decrement: ");
-syscall log(count--);
-syscall log("\n");
+syscall io_out("Count suffix decrement: ");
+syscall io_out(count--);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(count);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(count);
+syscall io_out("\n");
 
-syscall log("Count operator assignment increment: ");
-syscall log(count += 2);
-syscall log("\n");
+syscall io_out("Count operator assignment increment: ");
+syscall io_out(count += 2);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(count);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(count);
+syscall io_out("\n");
 
-syscall log("Count operator assignment decrement: ");
-syscall log(count -= 2);
-syscall log("\n");
+syscall io_out("Count operator assignment decrement: ");
+syscall io_out(count -= 2);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(count);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(count);
+syscall io_out("\n");
 
 var list = [1, 2, 3, null, 0];
 
-syscall log("Index accessor count prefix increment: ");
-syscall log(++list[1]);
-syscall log("\n");
+syscall io_out("Index accessor count prefix increment: ");
+syscall io_out(++list[1]);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(list[1]);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(list[1]);
+syscall io_out("\n");
 
-syscall log("Index accessor operator assignment increment: ");
-syscall log(list[1] += 2);
-syscall log("\n");
+syscall io_out("Index accessor operator assignment increment: ");
+syscall io_out(list[1] += 2);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(list[1]);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(list[1]);
+syscall io_out("\n");
 
 var object = {count: 2, nullValue: null, nonNullValue: 0};
 
-syscall log("Property accessor count prefix increment: ");
-syscall log(++object.count);
-syscall log("\n");
+syscall io_out("Property accessor count prefix increment: ");
+syscall io_out(++object.count);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(object.count);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(object.count);
+syscall io_out("\n");
 
-syscall log("Property accessor operator assignment increment: ");
-syscall log(object.count += 2);
-syscall log("\n");
+syscall io_out("Property accessor operator assignment increment: ");
+syscall io_out(object.count += 2);
+syscall io_out("\n");
 
-syscall log("New count value: ");
-syscall log(object.count);
-syscall log("\n");
+syscall io_out("New count value: ");
+syscall io_out(object.count);
+syscall io_out("\n");
 
 var nullValue = null;
 
-syscall log("Nullish coalescing assignment operator on null value\n");
+syscall io_out("Nullish coalescing assignment operator on null value\n");
 
 nullValue ??= sideEffect();
 
-syscall log("Check value: ");
-syscall log(nullValue);
-syscall log("\n");
+syscall io_out("Check value: ");
+syscall io_out(nullValue);
+syscall io_out("\n");
 
 var nonNullValue = 0;
 
-syscall log("Nullish coalescing assignment operator on non-null value\n");
+syscall io_out("Nullish coalescing assignment operator on non-null value\n");
 
 nonNullValue ??= sideEffect();
 
-syscall log("Check value: ");
-syscall log(nonNullValue);
-syscall log("\n");
+syscall io_out("Check value: ");
+syscall io_out(nonNullValue);
+syscall io_out("\n");
 
-syscall log("Nullish coalescing assignment operator on null value via index accessor\n");
+syscall io_out("Nullish coalescing assignment operator on null value via index accessor\n");
 
 list[3] ??= sideEffect();
 
-syscall log("Check value: ");
-syscall log(list[3]);
-syscall log("\n");
+syscall io_out("Check value: ");
+syscall io_out(list[3]);
+syscall io_out("\n");
 
-syscall log("Nullish coalescing assignment operator on non-null value via index accessor\n");
+syscall io_out("Nullish coalescing assignment operator on non-null value via index accessor\n");
 
 list[4] ??= sideEffect();
 
-syscall log("Check value: ");
-syscall log(list[4]);
-syscall log("\n");
+syscall io_out("Check value: ");
+syscall io_out(list[4]);
+syscall io_out("\n");
 
-syscall log("Nullish coalescing assignment operator on null value via property accessor\n");
+syscall io_out("Nullish coalescing assignment operator on null value via property accessor\n");
 
 object.nullValue ??= sideEffect();
 
-syscall log("Check value: ");
-syscall log(object.nullValue);
-syscall log("\n");
+syscall io_out("Check value: ");
+syscall io_out(object.nullValue);
+syscall io_out("\n");
 
-syscall log("Nullish coalescing assignment operator on non-null value via property accessor\n");
+syscall io_out("Nullish coalescing assignment operator on non-null value via property accessor\n");
 
 object.nonNullValue ??= sideEffect();
 
-syscall log("Check value: ");
-syscall log(object.nonNullValue);
-syscall log("\n");
+syscall io_out("Check value: ");
+syscall io_out(object.nonNullValue);
+syscall io_out("\n");

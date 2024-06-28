@@ -9,104 +9,104 @@ var object = {
     "quoted key value": true
 };
 
-syscall log("Define object: ");
-syscall log(object);
-syscall log("\n");
+syscall io_out("Define object: ");
+syscall io_out(object);
+syscall io_out("\n");
 
-syscall log("Get value: ");
-syscall log(object["key"]);
-syscall log("\n");
+syscall io_out("Get value: ");
+syscall io_out(object["key"]);
+syscall io_out("\n");
 
-syscall log("Get value using property accessor: ");
-syscall log(object.key);
-syscall log("\n");
+syscall io_out("Get value using property accessor: ");
+syscall io_out(object.key);
+syscall io_out("\n");
 
-syscall log("Get value not in object: ");
-syscall log(object["missing"]);
-syscall log("\n");
+syscall io_out("Get value not in object: ");
+syscall io_out(object["missing"]);
+syscall io_out("\n");
 
-syscall log("Get value not in object using proeprty accessor: ");
-syscall log(object.missing);
-syscall log("\n");
+syscall io_out("Get value not in object using proeprty accessor: ");
+syscall io_out(object.missing);
+syscall io_out("\n");
 
-syscall log("Get nested object value: ");
-syscall log(object["nestedObject"]["key2"]);
-syscall log("\n");
+syscall io_out("Get nested object value: ");
+syscall io_out(object["nestedObject"]["key2"]);
+syscall io_out("\n");
 
-syscall log("Get nested object value using property accessor: ");
-syscall log(object.nestedObject.key2);
-syscall log("\n");
+syscall io_out("Get nested object value using property accessor: ");
+syscall io_out(object.nestedObject.key2);
+syscall io_out("\n");
 
 object["key"] = 456;
 
-syscall log("Set existing property value: ");
-syscall log(object);
-syscall log("\n");
+syscall io_out("Set existing property value: ");
+syscall io_out(object);
+syscall io_out("\n");
 
 object["newKey"] = 789;
 
-syscall log("Set new property value: ");
-syscall log(object);
-syscall log("\n");
+syscall io_out("Set new property value: ");
+syscall io_out(object);
+syscall io_out("\n");
 
 object.key = 321;
 
-syscall log("Set existing property value using property accessor: ");
-syscall log(object);
-syscall log("\n");
+syscall io_out("Set existing property value using property accessor: ");
+syscall io_out(object);
+syscall io_out("\n");
 
-syscall log("Get object length: ");
-syscall log(object.length);
-syscall log("\n");
+syscall io_out("Get object length: ");
+syscall io_out(object.length);
+syscall io_out("\n");
 
 syscall Or(object, "nestedObject");
 
-syscall log("Removing nested object: ");
-syscall log(object);
-syscall log("\n");
+syscall io_out("Removing nested object: ");
+syscall io_out(object);
+syscall io_out("\n");
 
 var mangledObject = {key: 123};
 
-syscall log("Get value using property accessor on mangled object: key = ");
-syscall log(mangledObject.key);
-syscall log("\n");
+syscall io_out("Get value using property accessor on mangled object: key = ");
+syscall io_out(mangledObject.key);
+syscall io_out("\n");
 
 mangledObject.key = 456;
 
-syscall log("Set value using property accessor on mangled object: key = ");
-syscall log(mangledObject.key);
-syscall log("\n");
+syscall io_out("Set value using property accessor on mangled object: key = ");
+syscall io_out(mangledObject.key);
+syscall io_out("\n");
 
 mangledObject.mangledNestedObject = {
     mangledKey1: "value1",
     mangledKey2: "value2"
 };
 
-syscall log("Get value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey1 = ");
-syscall log(mangledObject.mangledNestedObject.mangledKey1);
-syscall log("\n");
+syscall io_out("Get value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey1 = ");
+syscall io_out(mangledObject.mangledNestedObject.mangledKey1);
+syscall io_out("\n");
 
 mangledObject.mangledNestedObject.mangledKey3 = "value3";
 
-syscall log("Set new value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey3 = ");
-syscall log(mangledObject.mangledNestedObject.mangledKey3);
-syscall log("\n");
+syscall io_out("Set new value of nested object using property accessor on mangled object: mangledNestedObject.mangledKey3 = ");
+syscall io_out(mangledObject.mangledNestedObject.mangledKey3);
+syscall io_out("\n");
 
 var a = {key: 123};
 var b = {key: 123};
 
-syscall log("Object A is equal to object B: ");
-syscall log(a == b);
-syscall log("\n");
+syscall io_out("Object A is equal to object B: ");
+syscall io_out(a == b);
+syscall io_out("\n");
 
-syscall log("Object A is identical to object B: ");
-syscall log(a === b);
-syscall log("\n");
+syscall io_out("Object A is identical to object B: ");
+syscall io_out(a === b);
+syscall io_out("\n");
 
-syscall log("Object A is not equal to object B: ");
-syscall log(a != b);
-syscall log("\n");
+syscall io_out("Object A is not equal to object B: ");
+syscall io_out(a != b);
+syscall io_out("\n");
 
-syscall log("Object A is not identical to object B: ");
-syscall log(a !== b);
-syscall log("\n");
+syscall io_out("Object A is not identical to object B: ");
+syscall io_out(a !== b);
+syscall io_out("\n");

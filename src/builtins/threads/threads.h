@@ -140,12 +140,12 @@ void voxel_builtins_threads_preserveSymbols(voxel_Executor* executor) {
 }
 
 void voxel_builtins_threads(voxel_Context* context) {
-    voxel_defineBuiltin(context, ".Thn", &voxel_builtins_threads_newThread);
-    voxel_defineBuiltin(context, ".Thd", &voxel_builtins_threads_destroyThread);
-    voxel_defineBuiltin(context, ".Thoi", &voxel_builtins_threads_getOwnThreadId);
-    voxel_defineBuiltin(context, ".Thir", &voxel_builtins_threads_threadIsRunning);
-    voxel_defineBuiltin(context, ".Thsr", &voxel_builtins_threads_setThreadIsRunning);
-    voxel_defineBuiltin(context, ".Thps", &voxel_builtins_threads_preserveSymbols);
+    voxel_defineBuiltin(context, ".threads_new", &voxel_builtins_threads_newThread);
+    voxel_defineBuiltin(context, ".threads_destroy", &voxel_builtins_threads_destroyThread);
+    voxel_defineBuiltin(context, ".threads_getOwnId", &voxel_builtins_threads_getOwnThreadId);
+    voxel_defineBuiltin(context, ".threads_isRunning", &voxel_builtins_threads_threadIsRunning);
+    voxel_defineBuiltin(context, ".threads_setIsRunning", &voxel_builtins_threads_setThreadIsRunning);
+    voxel_defineBuiltin(context, ".threads_preserve", &voxel_builtins_threads_preserveSymbols);
 }
 
 #else

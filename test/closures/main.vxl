@@ -8,22 +8,22 @@ function outer(a) {
 
 var one = outer(1);
 
-syscall log(one(1));
-syscall log("\n");
+syscall io_out(one(1));
+syscall io_out("\n");
 
-syscall log(one(2));
-syscall log("\n");
+syscall io_out(one(2));
+syscall io_out("\n");
 
 var two = outer(2);
 
-syscall log(two(1));
-syscall log("\n");
+syscall io_out(two(1));
+syscall io_out("\n");
 
-syscall log(two(2));
-syscall log("\n");
+syscall io_out(two(2));
+syscall io_out("\n");
 
-syscall log(outer(3)(2));
-syscall log("\n");
+syscall io_out(outer(3)(2));
+syscall io_out("\n");
 
 var anonymousOuter = function(a) {
     return function(b) {
@@ -33,13 +33,13 @@ var anonymousOuter = function(a) {
 
 var three = anonymousOuter(3);
 
-syscall log(three(1));
-syscall log("\n");
+syscall io_out(three(1));
+syscall io_out("\n");
 
 var four = anonymousOuter(4);
 
-syscall log(four(1));
-syscall log("\n");
+syscall io_out(four(1));
+syscall io_out("\n");
 
 function deepOuter(a) {
     return function(b) {
@@ -49,21 +49,21 @@ function deepOuter(a) {
     };
 }
 
-syscall log(deepOuter(2)(3)(4));
-syscall log("\n");
+syscall io_out(deepOuter(2)(3)(4));
+syscall io_out("\n");
 
-syscall log("outer(1) is ClosureFunction: ");
-syscall log(outer(1) is ClosureFunction);
-syscall log("\n");
+syscall io_out("outer(1) is ClosureFunction: ");
+syscall io_out(outer(1) is ClosureFunction);
+syscall io_out("\n");
 
-syscall log("outer(1) is Function: ");
-syscall log(outer(1) is Function);
-syscall log("\n");
+syscall io_out("outer(1) is Function: ");
+syscall io_out(outer(1) is Function);
+syscall io_out("\n");
 
-syscall log("deepOuter(1) is ClosureFunction: ");
-syscall log(deepOuter(1) is ClosureFunction);
-syscall log("\n");
+syscall io_out("deepOuter(1) is ClosureFunction: ");
+syscall io_out(deepOuter(1) is ClosureFunction);
+syscall io_out("\n");
 
-syscall log("deepOuter(1) is Function: ");
-syscall log(deepOuter(1) is Function);
-syscall log("\n");
+syscall io_out("deepOuter(1) is Function: ");
+syscall io_out(deepOuter(1) is Function);
+syscall io_out("\n");
