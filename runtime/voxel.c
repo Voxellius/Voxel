@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     }
 
     context->code = data;
-    context->codeLength = size;
+    context->codeSize = size;
 
     VOXEL_MUST_CODE(voxel_initContext(context));
 

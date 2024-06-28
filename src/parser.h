@@ -1,5 +1,5 @@
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead) {
-    if ((*position) + bytesToRead > context->codeLength) {
+    if ((*position) + bytesToRead > context->codeSize) {
         VOXEL_THROW(VOXEL_ERROR_TOKENISATION_END);
     }
 

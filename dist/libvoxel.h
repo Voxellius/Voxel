@@ -213,7 +213,7 @@ typedef enum {
 typedef struct voxel_Context {
     voxel_Bool isInitialised;
     char* code;
-    voxel_Count codeLength;
+    voxel_Count codeSize;
     voxel_Builtin* builtins;
     voxel_Count builtinCount;
     struct voxel_Scope* globalScope;
@@ -2212,7 +2212,7 @@ voxel_Context* voxel_newContext() {
 
     context->isInitialised = VOXEL_FALSE;
     context->code = VOXEL_NULL;
-    context->codeLength = 0;
+    context->codeSize = 0;
     context->builtins = (voxel_Builtin*)VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
     context->firstTrackedThing = VOXEL_NULL;
@@ -2238,7 +2238,7 @@ VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
     }
 
     #ifdef VOXEL_MAGIC
-        if (context->codeLength < VOXEL_MAGIC_SIZE) {
+        if (context->codeSize < VOXEL_MAGIC_SIZE) {
             VOXEL_THROW(VOXEL_ERROR_INVALID_MAGIC);
         }
 
@@ -4285,7 +4285,7 @@ VOXEL_ERRORABLE voxel_greaterThanOperation(voxel_Context* context, voxel_Thing* 
 // src/parser.h
 
 VOXEL_ERRORABLE voxel_safeToRead(voxel_Context* context, voxel_Position* position, voxel_Count bytesToRead) {
-    if ((*position) + bytesToRead > context->codeLength) {
+    if ((*position) + bytesToRead > context->codeSize) {
         VOXEL_THROW(VOXEL_ERROR_TOKENISATION_END);
     }
 

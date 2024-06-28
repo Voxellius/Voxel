@@ -3,7 +3,7 @@ voxel_Context* voxel_newContext() {
 
     context->isInitialised = VOXEL_FALSE;
     context->code = VOXEL_NULL;
-    context->codeLength = 0;
+    context->codeSize = 0;
     context->builtins = (voxel_Builtin*)VOXEL_MALLOC(0); VOXEL_TAG_MALLOC_SIZE("voxel_Context->builtins", 0);
     context->builtinCount = 0;
     context->firstTrackedThing = VOXEL_NULL;
@@ -29,7 +29,7 @@ VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
     }
 
     #ifdef VOXEL_MAGIC
-        if (context->codeLength < VOXEL_MAGIC_SIZE) {
+        if (context->codeSize < VOXEL_MAGIC_SIZE) {
             VOXEL_THROW(VOXEL_ERROR_INVALID_MAGIC);
         }
 

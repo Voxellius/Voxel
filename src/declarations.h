@@ -18,7 +18,7 @@ typedef enum {
 typedef struct voxel_Context {
     voxel_Bool isInitialised;
     char* code;
-    voxel_Count codeLength;
+    voxel_Count codeSize;
     voxel_Builtin* builtins;
     voxel_Count builtinCount;
     struct voxel_Scope* globalScope;
