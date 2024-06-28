@@ -76,6 +76,6 @@ if [ "$1" == "--runtime" ]; then
     doJob "Compiling runtime" "gcc -Idist/ runtime/voxel.c -o runtime/build/voxel"
 
     if [ "$2" == "--zip" ]; then
-        doJob "Creating zip of build" "zip -r runtime/build.zip runtime/build"
+        doJob "Creating zip of build" "zip -r runtime/build.zip runtime/build stdlib docs tools"
     fi
 fi
