@@ -126,7 +126,7 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
 
         var before = await measureMemoryUsage(process.pid);
         
-        await delay(8_000);
+        await delay(6_000);
 
         var after = await measureMemoryUsage(process.pid);
         
