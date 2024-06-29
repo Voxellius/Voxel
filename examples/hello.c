@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     voxel_defineBuiltin(context, "add", &builtin_add);
 
     context->code = code;
-    context->codeLength = 1024;
+    context->codeSize = 1024;
 
     VOXEL_MUST_CODE(voxel_initContext(context));
 
