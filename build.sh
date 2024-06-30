@@ -76,6 +76,10 @@ if [ "$1" == "--runtime" ]; then
     doJob "Compiling runtime" "gcc -Idist/ runtime/voxel.c -o runtime/build/voxel"
 
     if [ "$2" == "--zip" ]; then
+        if [ "$3" == "-e" ] && [ -f runtime/build.zip ]; then
+            rm runtime/build.zip
+            echo "Removed old build.zip"
+        fi
         doJob "Creating zip of build" "zip -r runtime/build.zip runtime/build stdlib docs tools"
     fi
 fi
