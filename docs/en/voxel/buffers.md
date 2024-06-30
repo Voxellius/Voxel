@@ -17,7 +17,7 @@ To create buffers with a computed size at runtime, the `create(size: Number, val
 The buffer data type.
 
 #### `size: Number`
-The size of the buffer.
+The number of bytes in the buffer.
 
 #### `fill(value: Byte, start?: Number, end?: Number)`
 Fill the buffer with the same given byte value (`value`) from the start index (`start`) up to the end index (`end`). The end index will not be filled.

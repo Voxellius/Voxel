@@ -1,7 +1,7 @@
 # Strings
 The **string** data type is for storing textual data. String literals start and end with either `"`, `'` or `` ` ``.
 
-A number of escape sequences can be used to inert special characters into strings that are non-printable or would otherwise be syntactically invalid:
+A number of escape sequences can be used to insert special characters into strings that are non-printable or would otherwise be syntactically invalid:
 
 | Escape sequence | Meaning |
 |-|-|
