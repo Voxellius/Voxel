@@ -218,7 +218,9 @@ function getProperty(thing, property) {
 
         if (#usedprop(unshift) &&& property == #prop(unshift)) {
             return function(value) {
-                return syscall Li(value, thing, 0);
+                syscall Li(value, thing, 0);
+
+                return syscall Ll(thing);
             };
         }
 
