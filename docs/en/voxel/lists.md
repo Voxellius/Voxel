@@ -51,12 +51,12 @@ Remove the first occurrence of a value (`value`) in the list. Return `true` if i
 #### `forEach(callback: function(item: *, index: Number))`
 Iterate through the list and call a callback function (`callback`) for every item with arguments that reference the item (`item`) and the item's index (`index`).
 
-#### `map(callback: function(item: *, index: Number): *): List<*>`
+#### `map(callback: function(item: *, index: Number): *): [*]>`
 Iterate through the list and call a callback function (`callback`) for every item with arguments that reference the item (`item`) and the item's index (`index`).
 
 The callback function must return a new value. A new list will be returned when calling `map` containing all values returned from calling the callback function for every item.
 
-#### `filter(callback: function(item: *, index: Number): Boolean): List<*>`
+#### `filter(callback: function(item: *, index: Number): Boolean): [*]>`
 Iterate through the list and call a callback function (`callback`) for every item with arguments that reference the item (`item`) and the item's index (`index`).
 
 The callback function must return a boolean value. A new list will be returned when calling `filter` containing all values from the original list where the callback function returned `true`.

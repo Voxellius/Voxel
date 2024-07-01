@@ -400,17 +400,15 @@ function getProperty(thing, property) {
             return value;
         }
 
-        var value = syscall Og(thing, property);
-
-        if (#usedprop(length) &&& property == #prop(length) &&& value == null) {
+        if (#usedprop(length) &&& property == #prop(length)) {
             return syscall Ol(thing);
         }
 
-        if (#usedprop(keys) &&& property == #prop(keys) &&& value == null) {
+        if (#usedprop(keys) &&& property == #prop(keys)) {
             return syscall Ok(thing);
         }
 
-        if (#usedprop(values) &&& property == #prop(values) &&& value == null) {
+        if (#usedprop(values) &&& property == #prop(values)) {
             var values = [];
             var keys = syscall Ok(thing);
             var length = syscall Ll(keys);
@@ -425,7 +423,7 @@ function getProperty(thing, property) {
             return values;
         }
 
-        if (#usedprop(pairs) &&& property == #prop(pairs) &&& value == null) {
+        if (#usedprop(pairs) &&& property == #prop(pairs)) {
             var pairs = [];
             var keys = syscall Ok(thing);
             var length = syscall Ll(keys);
@@ -439,11 +437,11 @@ function getProperty(thing, property) {
             return pairs;
         }
 
-        if (#usedprop(prototypes) &&& property == #prop(prototypes) &&& value == null) {
+        if (#usedprop(prototypes) &&& property == #prop(prototypes)) {
             return syscall Op(thing);
         }
 
-        return value;
+        return syscall Og(thing, property);
     }
 
     return null;

@@ -23,10 +23,21 @@ var object = {
 ## Reference
 
 ### `Object`
-The object data type.
+The object data type. All default properties can be overridden by getters defined on the object.
 
 #### `length: Number`
-The number of key-value pair entries in the object.
+The number of key-value pair entries in the object. This does not factor entries in prototypes, so it has an $ O(1) $ time complexity.
 
-#### `prototypes: List<Object>`
+To find the length including entries from prototypes, use `Object.keys.length`.
+
+#### `keys: [*]`
+An immutable list of unique keys in this object and its prototypes.
+
+#### `values: [*]`
+A list of values in this object and its prototypes.
+
+#### `pairs: {key: *, value: *}`
+A list of objects containing keys (each `key`) and values (each `value`) in this object and its prototypes.
+
+#### `prototypes: [Object]`
 A mutable list of prototypes that the object inherits. When a key is accessed on the object and the object does not have an entry with the same key, each inherited object in the object's prototypes list will be looked up to find the key, starting from the last prototype in the list.
