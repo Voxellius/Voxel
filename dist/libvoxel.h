@@ -505,6 +505,8 @@ voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
 voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* context, voxel_ObjectItem* objectItem);
+VOXEL_ERRORABLE voxel_addPrototypedObjectKeys(voxel_Context* context, voxel_Thing* thing, voxel_Thing* list, voxel_Count traverseDepth);
+VOXEL_ERRORABLE voxel_getObjectKeys(voxel_Context* context, voxel_Thing* thing, voxel_Count traverseDepth);
 voxel_Count voxel_getObjectLength(voxel_Thing* thing);
 voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_checkWhetherObjectInherits(voxel_Thing* thing, voxel_Thing* target, voxel_Count traverseDepth);
@@ -1308,6 +1310,27 @@ void voxel_builtins_core_getObjectLength(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, object);
 }
 
+void voxel_builtins_core_getObjectKeys(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* object = voxel_pop(executor);
+
+    if (!object || object->type != VOXEL_TYPE_OBJECT) {
+        return;
+    }
+
+    VOXEL_ERRORABLE keysResult = voxel_getObjectKeys(executor->context, object, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH);
+
+    if (VOXEL_IS_ERROR(keysResult)) {
+        return;
+    }
+
+    voxel_Thing* keys = keysResult.value;
+
+    voxel_push(executor, keys);
+
+    voxel_unreferenceThing(executor->context, object);
+}
+
 void voxel_builtins_core_getObjectPrototypes(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* object = voxel_pop(executor);
@@ -1945,6 +1968,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ogs", &voxel_builtins_core_getObjectItemSetter);
     voxel_defineBuiltin(context, ".Oss", &voxel_builtins_core_setObjectItemSetter);
     voxel_defineBuiltin(context, ".Ol", &voxel_builtins_core_getObjectLength);
+    voxel_defineBuiltin(context, ".Ok", &voxel_builtins_core_getObjectKeys);
     voxel_defineBuiltin(context, ".Op", &voxel_builtins_core_getObjectPrototypes);
 
     voxel_defineBuiltin(context, ".L", &voxel_builtins_core_newList);
@@ -2416,13 +2440,8 @@ void voxel_lockThing(voxel_Thing* thing) {
     thing->isLocked = VOXEL_TRUE;
 
     switch (thing->type) {
-        case VOXEL_TYPE_OBJECT:
-            voxel_lockObject(thing);
-            break;
-
-        case VOXEL_TYPE_LIST:
-            voxel_lockList(thing);
-            break;
+        case VOXEL_TYPE_OBJECT: voxel_lockObject(thing); break;
+        case VOXEL_TYPE_LIST: voxel_lockList(thing); break;
     }
 }
 
@@ -3645,7 +3664,7 @@ voxel_ObjectItem* voxel_getPrototypedObjectItem(voxel_Thing* thing, voxel_Thing*
 
             voxel_Thing* prototypesThing = object->prototypes;
 
-            if (prototypesThing == VOXEL_NULL) {
+            if (!prototypesThing) {
                 return VOXEL_NULL;
             }
 
@@ -3795,10 +3814,66 @@ voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* cont
     return descriptor;
 }
 
+VOXEL_ERRORABLE voxel_addPrototypedObjectKeys(voxel_Context* context, voxel_Thing* thing, voxel_Thing* list, voxel_Count traverseDepth) {
+    voxel_Object* object = (voxel_Object*)thing->value;
+    voxel_ObjectItem* currentItem = object->firstItem;
+
+    while (currentItem) {
+        voxel_List* listValue = (voxel_List*)list->value;
+        voxel_ListItem* currentListItem = listValue->firstItem;
+        voxel_Bool shouldPush = VOXEL_TRUE;
+
+        while (currentListItem) {
+            if (voxel_compareThings(currentListItem->value, currentItem->key)) {
+                shouldPush = VOXEL_FALSE;
+
+                break;
+            }
+
+            currentListItem = currentListItem->nextItem;
+        }
+
+        if (shouldPush) {
+            VOXEL_MUST(voxel_pushOntoList(context, list, currentItem->key));
+        }
+
+        currentItem = currentItem->nextItem;
+    }
+
+    if (traverseDepth == 0) {
+        return VOXEL_OK;
+    }
+
+    voxel_Thing* prototypesThing = object->prototypes;
+
+    if (!prototypesThing) {
+        return VOXEL_OK;
+    }
+
+    voxel_List* prototypesList = (voxel_List*)prototypesThing->value;
+    voxel_ListItem* currentPrototypeListItem = prototypesList->lastItem;
+
+    while (currentPrototypeListItem) {
+        VOXEL_MUST(voxel_addPrototypedObjectKeys(context, currentPrototypeListItem->value, list, traverseDepth - 1));
+
+        currentPrototypeListItem = currentPrototypeListItem->previousItem;
+    }
+
+    return VOXEL_OK;
+}
+
+VOXEL_ERRORABLE voxel_getObjectKeys(voxel_Context* context, voxel_Thing* thing, voxel_Count traverseDepth) {
+    voxel_Thing* list = voxel_newList(context);
+
+    voxel_addPrototypedObjectKeys(context, thing, list, traverseDepth);
+
+    list->isLocked = VOXEL_TRUE; // Shallow only
+
+    return VOXEL_OK_RET(list);
+}
+
 voxel_Count voxel_getObjectLength(voxel_Thing* thing) {
     voxel_Object* object = (voxel_Object*)thing->value;
-
-    // TODO: Maybe include lengths of prototypes as part of total returned length
 
     return object->length;
 }

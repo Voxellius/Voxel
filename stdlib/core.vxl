@@ -406,6 +406,42 @@ function getProperty(thing, property) {
             return syscall Ol(thing);
         }
 
+        if (#usedprop(keys) &&& property == #prop(keys) &&& value == null) {
+            return syscall Ok(thing);
+        }
+
+        if (#usedprop(values) &&& property == #prop(values) &&& value == null) {
+            var values = [];
+            var keys = syscall Ok(thing);
+            var length = syscall Ll(keys);
+
+            for (var i = 0; i < length; i++) {
+                syscall Lu(thing[keys[i]], values);
+            }
+
+            syscall io_out(values);
+            syscall io_out("\n");
+
+            return values;
+        }
+
+        if (#usedprop(pairs) &&& property == #prop(pairs) &&& value == null) {
+            var pairs = [];
+            var keys = syscall Ok(thing);
+            var length = syscall Ll(keys);
+
+            for (var i = 0; i < length; i++) {
+                var key = keys[i];
+
+                syscall Lu({key: key, value: thing[key]}, pairs);
+            }
+
+            syscall io_out(pairs);
+            syscall io_out("\n");
+
+            return pairs;
+        }
+
         if (#usedprop(prototypes) &&& property == #prop(prototypes) &&& value == null) {
             return syscall Op(thing);
         }

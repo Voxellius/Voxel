@@ -59,6 +59,20 @@ syscall io_out("Get object length: ");
 syscall io_out(object.length);
 syscall io_out("\n");
 
+syscall io_out("Get object keys: ");
+syscall io_out(object.keys);
+syscall io_out("\n");
+
+syscall io_out("Get object values: ");
+syscall io_out(object.values);
+syscall io_out("\n");
+
+{retain key: null, retain value: null};
+
+syscall io_out("Get object pairs: ");
+syscall io_out(object.pairs);
+syscall io_out("\n");
+
 syscall Or(object, "nestedObject");
 
 syscall io_out("Removing nested object: ");

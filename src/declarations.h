@@ -310,6 +310,8 @@ voxel_ObjectItem* voxel_getObjectItem(voxel_Thing* thing, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_removeObjectItem(voxel_Context* context, voxel_Thing* thing, voxel_Thing* key);
 voxel_ObjectItemDescriptor* voxel_ensureObjectItemDescriptor(voxel_Context* context, voxel_ObjectItem* objectItem);
+VOXEL_ERRORABLE voxel_addPrototypedObjectKeys(voxel_Context* context, voxel_Thing* thing, voxel_Thing* list, voxel_Count traverseDepth);
+VOXEL_ERRORABLE voxel_getObjectKeys(voxel_Context* context, voxel_Thing* thing, voxel_Count traverseDepth);
 voxel_Count voxel_getObjectLength(voxel_Thing* thing);
 voxel_Thing* voxel_getObjectPrototypes(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_checkWhetherObjectInherits(voxel_Thing* thing, voxel_Thing* target, voxel_Count traverseDepth);

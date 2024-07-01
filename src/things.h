@@ -111,13 +111,8 @@ void voxel_lockThing(voxel_Thing* thing) {
     thing->isLocked = VOXEL_TRUE;
 
     switch (thing->type) {
-        case VOXEL_TYPE_OBJECT:
-            voxel_lockObject(thing);
-            break;
-
-        case VOXEL_TYPE_LIST:
-            voxel_lockList(thing);
-            break;
+        case VOXEL_TYPE_OBJECT: voxel_lockObject(thing); break;
+        case VOXEL_TYPE_LIST: voxel_lockList(thing); break;
     }
 }
 
