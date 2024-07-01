@@ -37,6 +37,10 @@ syscall io_out("key5: ");
 syscall io_out(child.key5);
 syscall io_out("\n");
 
+syscall io_out("values: ");
+syscall io_out(child.values);
+syscall io_out("\n");
+
 child.key2 = "child value2";
 child.key4 = "child value4";
 

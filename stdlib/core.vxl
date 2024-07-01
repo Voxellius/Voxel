@@ -436,9 +436,6 @@ function getProperty(thing, property) {
                 syscall Lu({key: key, value: thing[key]}, pairs);
             }
 
-            syscall io_out(pairs);
-            syscall io_out("\n");
-
             return pairs;
         }
 

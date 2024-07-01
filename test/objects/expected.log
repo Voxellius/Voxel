@@ -13,7 +13,6 @@ Get object keys: key,nestedObject,list,quoted key value,newKey
 Get object values: 321,{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}},a,b,c,true,789
 321,{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}},a,b,c,true,789
 Get object pairs: {"key":"key","value":321},{"key":"nestedObject","value":{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}}},{"key":"list","value":["a","b","c"]},{"key":"quoted key value","value":true},{"key":"newKey","value":789}
-{"key":"key","value":321},{"key":"nestedObject","value":{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}}},{"key":"list","value":["a","b","c"]},{"key":"quoted key value","value":true},{"key":"newKey","value":789}
 Removing nested object: {"key":321,"list":["a","b","c"],"quoted key value":true,"newKey":789}
 Get value using property accessor on mangled object: key = 123
 Set value using property accessor on mangled object: key = 456
