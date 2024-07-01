@@ -4,7 +4,6 @@ key3: primaryParent value3
 key4: secondaryParent value4
 key5: child value5
 values: child value1,child value5,secondaryParent value2,secondaryParent value4,primaryParent value3
-child value1,child value5,secondaryParent value2,secondaryParent value4,primaryParent value3
 Set keys
 key2: child value2
 key4: child value4

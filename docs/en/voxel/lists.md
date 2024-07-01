@@ -61,12 +61,12 @@ Iterate through the list and call a callback function (`callback`) for every ite
 
 The callback function must return a boolean value. A new list will be returned when calling `filter` containing all values from the original list where the callback function returned `true`.
 
-#### `find(callback: function(item: *): Boolean): *`
-Iterate through the list until the callback function (`callback`) called for every item returns `true`. Return the list item that caused the callback function to return `true`. The callback function is called with an argument that references the item (`item`).
+#### `find(callback: function(item: *, index: Number): Boolean): *`
+Iterate through the list until the callback function (`callback`) called for every item returns `true`. Return the list item that caused the callback function to return `true`. The callback function is called with a argument that reference the item (`item`) and the item's index (`index`).
 
 #### `findIndex(callback: function(item: *): Boolean): Number`
-Iterate through the list until the callback function (`callback`) called for every item returns `true`. Return the index of the list item that caused the callback function to return `true`. The callback function is called with an argument that references the item (`item`).
+Iterate through the list until the callback function (`callback`) called for every item returns `true`. Return the index of the list item that caused the callback function to return `true`. The callback function is called with arguments that reference the item (`item`) and the item's index (`index`).
 
-#### `reduce(callback: function(accumulator: *, item: *): *, initialValue: *): *`
+#### `reduce(callback: function(accumulator: *, item: *, index: Number): *, initialValue: *): *`
 
-Iterate through the list and call a callback function (`callback`) for every item. The callback will be called with arguments for the previous call's return value or the initial provided value (`initialValue`) if it is the first call (`accumulator`), and the current list item (`item`). The last call's return value will be used as the return value of `reduce`.
+Iterate through the list and call a callback function (`callback`) for every item. The callback will be called with arguments for the previous call's return value or the initial provided value (`initialValue`) if it is the first call (`accumulator`), the current list item (`item`) and the item's index (`index`). The last call's return value will be used as the return value of `reduce`.

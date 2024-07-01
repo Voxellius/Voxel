@@ -124,3 +124,60 @@ syscall io_out("\n");
 syscall io_out("Object A is not identical to object B: ");
 syscall io_out(a !== b);
 syscall io_out("\n");
+
+var values = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5};
+
+values.forEach(function(value, key) {
+    syscall io_out("values[\"");
+    syscall io_out(key);
+    syscall io_out("\"] = ");
+    syscall io_out(value);
+    syscall io_out("\n");
+});
+
+
+syscall io_out("Mapping: ");
+syscall io_out(values.map(function(value, key) {
+    return (value * 3) + key;
+}));
+syscall io_out("\n");
+
+syscall io_out("Filtering to get odd numbers: ");
+syscall io_out(values.filter(function(value) {
+    return value % 2 == 1;
+}));
+syscall io_out("\n");
+
+syscall io_out("Finding the first even number: ");
+syscall io_out(values.find(function(value) {
+    return value % 2 == 0;
+}));
+syscall io_out("\n");
+
+syscall io_out("Finding the key of the first even number: ");
+syscall io_out(values.findKey(function(value) {
+    return value % 2 == 0;
+}));
+syscall io_out("\n");
+
+syscall io_out("Finding the value 3: ");
+syscall io_out(values.find(function(value) {
+    return value == 3;
+}));
+syscall io_out("\n");
+
+syscall io_out("Finding the key of value 3: ");
+syscall io_out(values.findKey(function(value) {
+    return value == 3;
+}));
+syscall io_out("\n");
+
+syscall io_out("Reducing to find sum: ");
+syscall io_out(values.reduce(function(accumulator, value) {
+    return accumulator + value;
+}, 0));
+syscall io_out("\n");
+
+syscall io_out("Key of 3: ");
+syscall io_out(values.keyOf(3));
+syscall io_out("\n");

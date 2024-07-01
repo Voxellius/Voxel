@@ -349,7 +349,7 @@ function getProperty(thing, property) {
                 for (var i = 0; i < length; ++i) {
                     var item = thing[i];
 
-                    if (callback(item)) {
+                    if (callback(item, i)) {
                         return item;
                     }
                 }
@@ -363,7 +363,7 @@ function getProperty(thing, property) {
                 var length = syscall Ll(thing);
 
                 for (var i = 0; i < length; ++i) {
-                    if (callback(thing[i])) {
+                    if (callback(thing[i], i)) {
                         return i;
                     }
                 }
@@ -377,7 +377,7 @@ function getProperty(thing, property) {
                 var length = syscall Ll(thing);
 
                 for (var i = 0; i < length; ++i) {
-                    initialValue = callback(initialValue, thing[i]);
+                    initialValue = callback(initialValue, thing[i], i);
                 }
 
                 return initialValue;
@@ -404,6 +404,123 @@ function getProperty(thing, property) {
             return syscall Ol(thing);
         }
 
+        if (#usedprop(prototypes) &&& property == #prop(prototypes)) {
+            return syscall Op(thing);
+        }
+
+        if (#usedprop(keyOf) &&& property == #prop(keyOf)) {
+            return function(value) {
+                var keys = syscall Ok(thing);
+                var length = syscall Ll(keys);
+
+                for (var i = 0; i < length; ++i) {
+                    var key = keys[i];
+
+                    if (thing[key] == value) {
+                        return key;
+                    }
+                }
+
+                return null;
+            };
+        }
+
+        if (#usedprop(forEach) &&& property == #prop(forEach)) {
+            return function(callback) {
+                var keys = syscall Ok(thing);
+                var length = syscall Ll(keys);
+
+                for (var i = 0; i < length; i++) {
+                    var key = keys[i];
+
+                    callback(thing[key], key);
+                }
+            };
+        }
+
+        if (#usedprop(map) &&& property == #prop(map)) {
+            return function(callback) {
+                var keys = syscall Ok(thing);
+                var length = syscall Ll(keys);
+                var result = {};
+
+                for (var i = 0; i < length; ++i) {
+                    var key = keys[i];
+
+                    result[key] = callback(thing[key], key);
+                }
+
+                return result;
+            };
+        }
+
+        if (#usedprop(filter) &&& property == #prop(filter)) {
+            return function(callback) {
+                var keys = syscall Ok(thing);
+                var length = syscall Ll(keys);
+                var result = {};
+
+                for (var i = 0; i < length; ++i) {
+                    var key = keys[i];
+
+                    if (callback(thing[key], key)) {
+                        result[key] = thing[key];
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        if (#usedprop(find) &&& property == #prop(find)) {
+            return function(callback) {
+                var keys = syscall Ok(thing);
+                var length = syscall Ll(keys);
+
+                for (var i = 0; i < length; ++i) {
+                    var key = keys[i];
+
+                    if (callback(thing[key], key)) {
+                        return thing[key];
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        if (#usedprop(findKey) &&& property == #prop(findKey)) {
+            return function(callback) {
+                var keys = syscall Ok(thing);
+                var length = syscall Ll(keys);
+
+                for (var i = 0; i < length; ++i) {
+                    var key = keys[i];
+
+                    if (callback(thing[key], key)) {
+                        return key;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        if (#usedprop(reduce) &&& property == #prop(reduce)) {
+            return function(callback, initialValue) {
+                var keys = syscall Ok(thing);
+                var length = syscall Ll(keys);
+
+                for (var i = 0; i < length; ++i) {
+                    var key = keys[i];
+
+                    initialValue = callback(initialValue, thing[key], key);
+                }
+
+                return initialValue;
+            };
+        }
+
         if (#usedprop(keys) &&& property == #prop(keys)) {
             return syscall Ok(thing);
         }
@@ -413,12 +530,9 @@ function getProperty(thing, property) {
             var keys = syscall Ok(thing);
             var length = syscall Ll(keys);
 
-            for (var i = 0; i < length; i++) {
+            for (var i = 0; i < length; ++i) {
                 syscall Lu(thing[keys[i]], values);
             }
-
-            syscall io_out(values);
-            syscall io_out("\n");
 
             return values;
         }
@@ -428,17 +542,13 @@ function getProperty(thing, property) {
             var keys = syscall Ok(thing);
             var length = syscall Ll(keys);
 
-            for (var i = 0; i < length; i++) {
+            for (var i = 0; i < length; ++i) {
                 var key = keys[i];
 
                 syscall Lu({key: key, value: thing[key]}, pairs);
             }
 
             return pairs;
-        }
-
-        if (#usedprop(prototypes) &&& property == #prop(prototypes)) {
-            return syscall Op(thing);
         }
 
         return syscall Og(thing, property);

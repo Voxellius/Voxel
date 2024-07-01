@@ -11,7 +11,6 @@ Set existing property value using property accessor: {"key":321,"nestedObject":{
 Get object length: 5
 Get object keys: key,nestedObject,list,quoted key value,newKey
 Get object values: 321,{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}},a,b,c,true,789
-321,{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}},a,b,c,true,789
 Get object pairs: {"key":"key","value":321},{"key":"nestedObject","value":{"key1":"value1","key2":"value2","anotherNestedObject":{"key":"value"}}},{"key":"list","value":["a","b","c"]},{"key":"quoted key value","value":true},{"key":"newKey","value":789}
 Removing nested object: {"key":321,"list":["a","b","c"],"quoted key value":true,"newKey":789}
 Get value using property accessor on mangled object: key = 123
@@ -22,3 +21,16 @@ Object A is equal to object B: true
 Object A is identical to object B: false
 Object A is not equal to object B: false
 Object A is not identical to object B: true
+values["a"] = 1
+values["b"] = 2
+values["c"] = 3
+values["d"] = 4
+values["e"] = 5
+Mapping: {"a":"3a","b":"6b","c":"9c","d":"12d","e":"15e"}
+Filtering to get odd numbers: {"a":1,"c":3,"e":5}
+Finding the first even number: 2
+Finding the key of the first even number: b
+Finding the value 3: 3
+Finding the key of value 3: c
+Reducing to find sum: 15
+Key of 3: c
