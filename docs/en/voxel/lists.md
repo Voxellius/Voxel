@@ -51,21 +51,25 @@ Remove the first occurrence of a value (`value`) in the list. Return `true` if i
 #### `forEach(callback: function(item: *, index: Number))`
 Iterate through the list and call a callback function (`callback`) for every item with arguments that reference the item (`item`) and the item's index (`index`).
 
-#### `map(callback: function(item: *, index: Number): *): [*]>`
+#### `map(callback: function(item: *, index: Number): *): List<*>`
 Iterate through the list and call a callback function (`callback`) for every item with arguments that reference the item (`item`) and the item's index (`index`).
 
 The callback function must return a new value. A new list will be returned when calling `map` containing all values returned from calling the callback function for every item.
 
-#### `filter(callback: function(item: *, index: Number): Boolean): [*]>`
+#### `filter(callback: function(item: *, index: Number): Boolean): List<*>`
 Iterate through the list and call a callback function (`callback`) for every item with arguments that reference the item (`item`) and the item's index (`index`).
 
 The callback function must return a boolean value. A new list will be returned when calling `filter` containing all values from the original list where the callback function returned `true`.
 
 #### `find(callback: function(item: *, index: Number): Boolean): *`
-Iterate through the list until the callback function (`callback`) called for every item returns `true`. Return the list item that caused the callback function to return `true`. The callback function is called with a argument that reference the item (`item`) and the item's index (`index`).
+Iterate through the list until the callback function (`callback`) called for every item returns `true`. Return the list item that caused the callback function to return `true`. The callback function is called with arguments that reference the item (`item`) and the item's index (`index`).
 
-#### `findIndex(callback: function(item: *): Boolean): Number`
+If the callback function never returns `true`, then `null` will be returned instead.
+
+#### `findIndex(callback: function(item: *, index: Number): Boolean): Number`
 Iterate through the list until the callback function (`callback`) called for every item returns `true`. Return the index of the list item that caused the callback function to return `true`. The callback function is called with arguments that reference the item (`item`) and the item's index (`index`).
+
+If the callback function never returns `true`, then `-1` will be returned instead.
 
 #### `reduce(callback: function(accumulator: *, item: *, index: Number): *, initialValue: *): *`
 

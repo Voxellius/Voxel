@@ -62,7 +62,7 @@ The action cannot be performed on the thread as it has been closed.
 #### `CANNOT_ENTER_STATE`
 The thread cannot enter the requested state as it is either already in that state or has finished.
 
-### `class Thread(callFunction: Function, callArgs?: [*])`
+### `class Thread(callFunction: Function, callArgs?: List<*>)`
 Create a new thread to execute a function (`callFunction`) concurrently with an optional set of arguments to pass to the function (`callArgs`). Instantiating this class does not begin executing the function right away — the `start` method must be called to begin execution. To prevent memory leaks, you must call the `close` function after you have done with a `Thread` (this is not done automatically since access to the return value may be required after execution finishes).
 
 #### `close()`
