@@ -50,7 +50,7 @@ If the value cannot be found, `null` will be returned instead.
 #### `forEach(callback: function(value: *, key: *))`
 Iterate through the object and call a callback function (`callback`) for every entry pair with arguments that reference the value (`value`) and the key (`key`).
 
-#### `map(callback: function(item: *, key: *): *): Object<*, *>>`
+#### `map(callback: function(item: *, key: *): *): Object<*, *>`
 Iterate through the object and call a callback function (`callback`) for every entry pair with arguments that reference the value (`value`) and the key (`key`).
 
 The callback function must return a new value. A new object will be returned when calling `map` containing all keys and their new values returned from calling the callback function for every entry.
