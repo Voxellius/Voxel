@@ -18,7 +18,8 @@ var object = {
     message: "hello",
     fruit: item,
     list: [3, 2, 1],
-    nested: {object: true}
+    nested: {object: true},
+    retain keyNotMangled: "I am keyNotMangled"
 };
 ```
 
