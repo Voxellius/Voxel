@@ -32,6 +32,48 @@ void voxel_builtins_core_getStringSize(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, string);
 }
 
+void voxel_builtins_core_getStringLength(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_popString(executor);
+
+    if (!string) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getStringLength(string)));
+
+    voxel_unreferenceThing(executor->context, string);
+}
+
+void voxel_builtins_core_stringCharIndexToByteIndex(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int charIndex = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_popString(executor);
+
+    if (!string) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, (voxel_Int)voxel_stringCharIndexToByteIndex(string, charIndex)));
+
+    voxel_unreferenceThing(executor->context, string);
+}
+
+void voxel_builtins_core_getStringByteRange(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int end = voxel_popNumberInt(executor);
+    voxel_Int start = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_popString(executor);
+
+    if (!string) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_getStringByteRange(executor->context, string, start, end));
+
+    voxel_unreferenceThing(executor->context, string);
+}
+
 void voxel_builtins_core_appendToString(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* appendString = voxel_popString(executor);

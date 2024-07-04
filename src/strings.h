@@ -180,12 +180,93 @@ voxel_Count voxel_getStringSize(voxel_Thing* thing) {
     return string->size;
 }
 
+voxel_Count voxel_stringCharIndexToByteIndex(voxel_Thing* thing, voxel_Count charIndex) {
+    voxel_String* string = (voxel_String*)thing->value;
+    voxel_Count byteIndex = 0;
+
+    while (charIndex > 0) {
+        if (byteIndex >= string->size) {
+            return -1;
+        }
+
+        voxel_Byte currentByte = string->value[byteIndex++];
+
+        if ((currentByte & 0x10000000) != 0) {
+            currentByte <<= 1;
+        }
+
+        while ((currentByte & 0x10000000) != 0) {
+            currentByte <<= 1;
+            byteIndex++;
+        }
+
+        charIndex--;
+    }
+
+    return byteIndex;
+}
+
+voxel_Count voxel_getStringLength(voxel_Thing* thing) {
+    voxel_String* string = (voxel_String*)thing->value;
+    voxel_Count byteIndex = 0;
+    voxel_Count charIndex = 0;
+
+    while (byteIndex < string->size) {
+        voxel_Byte currentByte = string->value[byteIndex++];
+
+        if ((currentByte & 0x10000000) != 0) {
+            currentByte <<= 1;
+        }
+
+        while ((currentByte & 0x10000000) != 0) {
+            currentByte <<= 1;
+            byteIndex++;
+        }
+
+        charIndex++;
+    }
+
+    return charIndex;
+}
+
 void voxel_logString(voxel_Thing* thing) {
     voxel_String* string = (voxel_String*)thing->value;
 
     for (voxel_Count i = 0; i < string->size; i++) {
         VOXEL_LOG_BYTE(string->value[i]);
     }
+}
+
+voxel_Thing* voxel_getStringByteRange(voxel_Context* context, voxel_Thing* thing, voxel_Count start, voxel_Count end) {
+    voxel_String* string = (voxel_String*)thing->value;
+
+    voxel_String* resultString = (voxel_String*)VOXEL_MALLOC(sizeof(voxel_String)); VOXEL_TAG_MALLOC(voxel_String);
+
+    if (end < start) {
+        end = start;
+    }
+
+    if (start > string->size) {
+        start = string->size;
+    }
+
+    if (end > string->size) {
+        end = string->size;
+    }
+
+    resultString->size = end - start;
+    resultString->value = (voxel_Byte*)VOXEL_MALLOC(resultString->size); VOXEL_TAG_MALLOC_SIZE("voxel_String->value", resultString->size);
+
+    voxel_Thing* resultThing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_STRING);
+
+    resultThing->type = VOXEL_TYPE_STRING;
+    resultThing->value = resultString;
+
+    for (voxel_Count i = start; i < end; i++) {
+        resultString->value[i - start] = string->value[i];
+    }
+
+    return resultThing;
 }
 
 voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, voxel_Thing* b) {

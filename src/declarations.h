@@ -287,6 +287,9 @@ VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing)
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_stringIsTruthy(voxel_Thing* thing);
 voxel_Count voxel_getStringSize(voxel_Thing* thing);
+voxel_Count voxel_stringCharIndexToByteIndex(voxel_Thing* thing, voxel_Count charIndex);
+voxel_Count voxel_getStringLength(voxel_Thing* thing);
+voxel_Thing* voxel_getStringByteRange(voxel_Context* context, voxel_Thing* thing, voxel_Count start, voxel_Count end);
 void voxel_logString(voxel_Thing* thing);
 voxel_Thing* voxel_concatenateStrings(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);
 VOXEL_ERRORABLE voxel_appendToString(voxel_Context* context, voxel_Thing* a, voxel_Thing* b);

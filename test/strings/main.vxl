@@ -8,6 +8,10 @@ syscall io_out("Size: ");
 syscall io_out(string.size);
 syscall io_out("\n");
 
+syscall io_out("Length: ");
+syscall io_out(string.length);
+syscall io_out("\n");
+
 syscall io_out("Reversed: ");
 syscall io_out(string.reverse());
 syscall io_out("\n");
@@ -36,4 +40,22 @@ var numericString = "1234";
 
 syscall io_out("Numeric string to number + 1: ");
 syscall io_out(numericString.toNumber() + 1);
+syscall io_out("\n");
+
+var multibyteString = "Tést © £10";
+
+syscall io_out("Multibyte string size: ");
+syscall io_out(multibyteString.size);
+syscall io_out("\n");
+
+syscall io_out("Multibyte string length: ");
+syscall io_out(multibyteString.length);
+syscall io_out("\n");
+
+syscall io_out("Multibyte string substring: ");
+syscall io_out(multibyteString.substring(0, 4));
+syscall io_out("\n");
+
+syscall io_out("Multibyte string substring: ");
+syscall io_out(multibyteString.substring(7));
 syscall io_out("\n");
