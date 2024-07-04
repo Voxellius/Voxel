@@ -182,6 +182,12 @@ function getProperty(thing, property) {
             };
         }
 
+        if (#usedprop(byteAt) &&& property == #prop(byteAt)) {
+            return function(index) {
+                return syscall Sgb(thing, index);
+            };
+        }
+
         if (#usedprop(substring) &&& property == #prop(substring)) {
             return function(start, end) {
                 if (start < 0 ||| end < 0) {

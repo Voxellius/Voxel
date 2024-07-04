@@ -341,6 +341,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Sb", &voxel_builtins_core_stringCharIndexToByteIndex);
     voxel_defineBuiltin(context, ".Sr", &voxel_builtins_core_getStringByteRange);
     voxel_defineBuiltin(context, ".Sg", &voxel_builtins_core_getStringChar);
+    voxel_defineBuiltin(context, ".Sgb", &voxel_builtins_core_getStringByte);
     voxel_defineBuiltin(context, ".Sa", &voxel_builtins_core_appendToString);
     voxel_defineBuiltin(context, ".Sre", &voxel_builtins_core_reverseString);
     voxel_defineBuiltin(context, ".Scs", &voxel_builtins_core_cutStringStart);
