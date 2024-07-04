@@ -93,6 +93,12 @@ function getProperty(thing, property) {
     }
 
     if (syscall T(thing) == "B") {
+        if (#usedprop(toString) &&& property == #prop(toString)) {
+            return function() {
+                return syscall B2S(thing);
+            };
+        }
+
         if (#usedprop(size) &&& property == #prop(size)) {
             return syscall Bz(thing);
         }
@@ -122,6 +128,35 @@ function getProperty(thing, property) {
 
         if (#usedprop(section) &&& property == #prop(section)) {
             return function(start, end) {
+                if (start < 0 ||| end < 0) {
+                    var bufferSize = syscall Bz(thing);
+
+                    if (start < 0) {
+                        start = bufferSize + start;
+                    }
+
+                    if (start < 0) {
+                        start = 0;
+                    }
+
+                    if (end < 0) {
+                        end = bufferSize + end;
+                    }
+
+                    if (end < 0) {
+                        end = 0;
+                    }
+                }
+
+                if (end == null) {
+                    end = syscall Bz(thing);
+                } else if (end < start) {
+                    var oldStart = start;
+
+                    start = end;
+                    end = oldStart;
+                }
+
                 var destination = syscall B(end - start);
 
                 while (start >= 0) {
@@ -137,6 +172,12 @@ function getProperty(thing, property) {
         if (#usedprop(toNumber) &&& property == #prop(toNumber)) {
             return function() {
                 return syscall S2N(thing);
+            };
+        }
+
+        if (#usedprop(toBuffer) &&& property == #prop(toBuffer)) {
+            return function() {
+                return syscall S2B(thing);
             };
         }
 

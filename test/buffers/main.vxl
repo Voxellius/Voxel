@@ -1,6 +1,5 @@
 import buffers;
 
-
 var byte1 = Byte(0x41);
 var byte2 = Byte("B");
 
@@ -22,6 +21,12 @@ syscall io_out("Size of buffer: ");
 syscall io_out(buffer.size);
 syscall io_out("\n");
 
+var buffer = Buffer(0x41, 0x42, 0x43, " Hello, world! ", "This is a buffer.");
+
+syscall io_out("Buffer to string: ");
+syscall io_out(buffer.toString());
+syscall io_out("\n");
+
 syscall io_out("Get byte at index 1 from buffer: ");
 syscall io_out(buffer[1]);
 syscall io_out("\n");
@@ -32,9 +37,7 @@ syscall io_out("Set byte at index 1 in buffer: ");
 syscall io_out(buffer[1]);
 syscall io_out("\n");
 
-
 var bigBuffer = buffers.create(65536 * 4, Byte("."));
-
 
 syscall io_out("Section of big buffer: ");
 syscall io_out(bigBuffer.section((65536 * 2) + 4, (65536 * 2) + 12));

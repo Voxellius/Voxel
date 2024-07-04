@@ -136,6 +136,12 @@ VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing)
     return VOXEL_OK_RET(voxel_newNumberFloat(context, result * factor));
 }
 
+voxel_Thing* voxel_stringToBuffer(voxel_Context* context, voxel_Thing* thing) {
+    voxel_String* string = (voxel_String*)thing->value;
+
+    return voxel_newBuffer(context, string->size, string->value);
+}
+
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {
     voxel_String* string = (voxel_String*)thing->value;
     voxel_Thing* vxonString = voxel_newStringTerminated(context, "\"");

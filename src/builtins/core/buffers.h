@@ -13,6 +13,25 @@ void voxel_builtins_core_newBuffer(voxel_Executor* executor) {
     voxel_push(executor, voxel_newBuffer(executor->context, bufferSize, VOXEL_NULL));
 }
 
+void voxel_builtins_core_bufferToString(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* buffer = voxel_pop(executor);
+
+    if (!buffer || buffer->type != VOXEL_TYPE_BUFFER || argCount < 1) {
+        return voxel_pushNull(executor);
+    }
+
+    VOXEL_ERRORABLE stringResult = voxel_bufferToString(executor->context, buffer);
+
+    if (VOXEL_IS_ERROR(stringResult)) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, (voxel_Thing*)stringResult.value);
+
+    voxel_unreferenceThing(executor->context, buffer);
+}
+
 void voxel_builtins_core_getBufferByte(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Int index = voxel_popNumberInt(executor);

@@ -329,6 +329,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ti", &voxel_builtins_core_isInstance);
 
     voxel_defineBuiltin(context, ".B", &voxel_builtins_core_newBuffer);
+    voxel_defineBuiltin(context, ".B2S", &voxel_builtins_core_bufferToString);
     voxel_defineBuiltin(context, ".Bg", &voxel_builtins_core_getBufferByte);
     voxel_defineBuiltin(context, ".Bs", &voxel_builtins_core_setBufferByte);
     voxel_defineBuiltin(context, ".Bf", &voxel_builtins_core_fillBuffer);
@@ -336,6 +337,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Bz", &voxel_builtins_core_getBufferSize);
 
     voxel_defineBuiltin(context, ".S2N", &voxel_builtins_core_stringToNumber);
+    voxel_defineBuiltin(context, ".S2B", &voxel_builtins_core_stringToBuffer);
     voxel_defineBuiltin(context, ".Sz", &voxel_builtins_core_getStringSize);
     voxel_defineBuiltin(context, ".Sl", &voxel_builtins_core_getStringLength);
     voxel_defineBuiltin(context, ".Sb", &voxel_builtins_core_stringCharIndexToByteIndex);

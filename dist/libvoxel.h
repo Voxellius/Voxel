@@ -479,6 +479,7 @@ VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing);
+voxel_Thing* voxel_stringToBuffer(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_stringIsTruthy(voxel_Thing* thing);
 voxel_Count voxel_getStringSize(voxel_Thing* thing);
@@ -760,6 +761,25 @@ void voxel_builtins_core_newBuffer(voxel_Executor* executor) {
     voxel_push(executor, voxel_newBuffer(executor->context, bufferSize, VOXEL_NULL));
 }
 
+void voxel_builtins_core_bufferToString(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* buffer = voxel_pop(executor);
+
+    if (!buffer || buffer->type != VOXEL_TYPE_BUFFER || argCount < 1) {
+        return voxel_pushNull(executor);
+    }
+
+    VOXEL_ERRORABLE stringResult = voxel_bufferToString(executor->context, buffer);
+
+    if (VOXEL_IS_ERROR(stringResult)) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, (voxel_Thing*)stringResult.value);
+
+    voxel_unreferenceThing(executor->context, buffer);
+}
+
 void voxel_builtins_core_getBufferByte(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Int index = voxel_popNumberInt(executor);
@@ -971,6 +991,19 @@ void voxel_builtins_core_stringToNumber(voxel_Executor* executor) {
     }
 
     voxel_push(executor, (voxel_Thing*)result.value);
+}
+
+void voxel_builtins_core_stringToBuffer(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_popString(executor);
+
+    if (!string) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_stringToBuffer(executor->context, string));
+
+    voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_getStringSize(voxel_Executor* executor) {
@@ -2047,6 +2080,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ti", &voxel_builtins_core_isInstance);
 
     voxel_defineBuiltin(context, ".B", &voxel_builtins_core_newBuffer);
+    voxel_defineBuiltin(context, ".B2S", &voxel_builtins_core_bufferToString);
     voxel_defineBuiltin(context, ".Bg", &voxel_builtins_core_getBufferByte);
     voxel_defineBuiltin(context, ".Bs", &voxel_builtins_core_setBufferByte);
     voxel_defineBuiltin(context, ".Bf", &voxel_builtins_core_fillBuffer);
@@ -2054,6 +2088,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Bz", &voxel_builtins_core_getBufferSize);
 
     voxel_defineBuiltin(context, ".S2N", &voxel_builtins_core_stringToNumber);
+    voxel_defineBuiltin(context, ".S2B", &voxel_builtins_core_stringToBuffer);
     voxel_defineBuiltin(context, ".Sz", &voxel_builtins_core_getStringSize);
     voxel_defineBuiltin(context, ".Sl", &voxel_builtins_core_getStringLength);
     voxel_defineBuiltin(context, ".Sb", &voxel_builtins_core_stringCharIndexToByteIndex);
@@ -3399,6 +3434,12 @@ VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing)
     }
 
     return VOXEL_OK_RET(voxel_newNumberFloat(context, result * factor));
+}
+
+voxel_Thing* voxel_stringToBuffer(voxel_Context* context, voxel_Thing* thing) {
+    voxel_String* string = (voxel_String*)thing->value;
+
+    return voxel_newBuffer(context, string->size, string->value);
 }
 
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing) {

@@ -284,6 +284,7 @@ VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_stringToNumber(voxel_Context* context, voxel_Thing* thing);
+voxel_Thing* voxel_stringToBuffer(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_stringToVxon(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_stringIsTruthy(voxel_Thing* thing);
 voxel_Count voxel_getStringSize(voxel_Thing* thing);

@@ -19,6 +19,19 @@ void voxel_builtins_core_stringToNumber(voxel_Executor* executor) {
     voxel_push(executor, (voxel_Thing*)result.value);
 }
 
+void voxel_builtins_core_stringToBuffer(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_popString(executor);
+
+    if (!string) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_stringToBuffer(executor->context, string));
+
+    voxel_unreferenceThing(executor->context, string);
+}
+
 void voxel_builtins_core_getStringSize(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_popString(executor);
