@@ -1028,6 +1028,31 @@ void voxel_builtins_core_getStringByteRange(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, string);
 }
 
+void voxel_builtins_core_getStringChar(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Int index = voxel_popNumberInt(executor);
+    voxel_Thing* string = voxel_popString(executor);
+
+    if (!string) {
+        return voxel_pushNull(executor);
+    }
+
+    if (index < 0) {
+        index = voxel_getStringLength(string) + index;
+
+        if (index < 0) {
+            index = 0;
+        }
+    }
+
+    voxel_Count start = voxel_stringCharIndexToByteIndex(string, index);
+    voxel_Count end = voxel_stringCharIndexToByteIndex(string, index + 1);
+
+    voxel_push(executor, voxel_getStringByteRange(executor->context, string, start, end));
+
+    voxel_unreferenceThing(executor->context, string);
+}
+
 void voxel_builtins_core_appendToString(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* appendString = voxel_popString(executor);
@@ -1795,6 +1820,7 @@ void voxel_builtins_core_getItem(voxel_Executor* executor) {
 
     switch (thing->type) {
         case VOXEL_TYPE_BUFFER: return voxel_builtins_core_getBufferByte(executor);
+        case VOXEL_TYPE_STRING: return voxel_builtins_core_getStringChar(executor);
         case VOXEL_TYPE_OBJECT: return voxel_builtins_core_getObjectItem(executor);
         case VOXEL_TYPE_LIST: return voxel_builtins_core_getListItem(executor);
     }
@@ -2001,6 +2027,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Sl", &voxel_builtins_core_getStringLength);
     voxel_defineBuiltin(context, ".Sb", &voxel_builtins_core_stringCharIndexToByteIndex);
     voxel_defineBuiltin(context, ".Sr", &voxel_builtins_core_getStringByteRange);
+    voxel_defineBuiltin(context, ".Sg", &voxel_builtins_core_getStringChar);
     voxel_defineBuiltin(context, ".Sa", &voxel_builtins_core_appendToString);
     voxel_defineBuiltin(context, ".Sre", &voxel_builtins_core_reverseString);
     voxel_defineBuiltin(context, ".Scs", &voxel_builtins_core_cutStringStart);

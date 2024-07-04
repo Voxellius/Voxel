@@ -122,11 +122,11 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
         var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.loop.vxc")], stdout: "null"});
         var process = command.spawn();
 
-        await delay(4_000);
+        await delay(6_000);
 
         var before = await measureMemoryUsage(process.pid);
         
-        await delay(6_000);
+        await delay(8_000);
 
         var after = await measureMemoryUsage(process.pid);
         

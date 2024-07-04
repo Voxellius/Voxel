@@ -1,6 +1,7 @@
 String: abcdef
 Size: 6
 Length: 6
+Character at index 2: c
 Reversed: fedcba
 Cut start: cdef
 Cut end: abcd
@@ -12,3 +13,4 @@ Multibyte string size: 13
 Multibyte string length: 10
 Multibyte string substring: Tést
 Multibyte string substring: £10
+Multibyte string character at index 5: ©

@@ -12,6 +12,10 @@ syscall io_out("Length: ");
 syscall io_out(string.length);
 syscall io_out("\n");
 
+syscall io_out("Character at index 2: ");
+syscall io_out(string[2]);
+syscall io_out("\n");
+
 syscall io_out("Reversed: ");
 syscall io_out(string.reverse());
 syscall io_out("\n");
@@ -58,4 +62,8 @@ syscall io_out("\n");
 
 syscall io_out("Multibyte string substring: ");
 syscall io_out(multibyteString.substring(7));
+syscall io_out("\n");
+
+syscall io_out("Multibyte string character at index 5: ");
+syscall io_out(multibyteString[5]);
 syscall io_out("\n");
