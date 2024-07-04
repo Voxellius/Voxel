@@ -3,6 +3,8 @@ The **object** data type is for storing pairs of values. Object entries each con
 
 Classes and class intances are also objects.
 
+Objects also allow for a retain keyword which keeps the name of the key after mangling in compilation.
+
 Objects can be created in Voxel using the following syntax:
 
 ```voxel
