@@ -5103,6 +5103,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             break;
 
         case VOXEL_TOKEN_TYPE_THIS:
+        {
             voxel_List* thisStackList = (voxel_List*)executor->thisStack->value;
             voxel_Thing* thisThing = thisStackList->lastItem->value;
 
@@ -5111,6 +5112,7 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, thisThing));
 
             break;
+        }
 
         case VOXEL_TOKEN_TYPE_SET_HANDLER:
         {
