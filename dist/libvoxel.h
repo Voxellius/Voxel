@@ -1462,7 +1462,7 @@ void voxel_builtins_core_getObjectKeys(voxel_Executor* executor) {
         return;
     }
 
-    voxel_Thing* keys = keysResult.value;
+    voxel_Thing* keys = (voxel_Thing*)keysResult.value;
 
     voxel_push(executor, keys);
 
