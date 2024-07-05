@@ -110,42 +110,12 @@ void voxel_builtins_threads_setThreadIsRunning(voxel_Executor* executor) {
     voxel_pushNull(executor);
 }
 
-void voxel_builtins_threads_preserveSymbols(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
-    voxel_Thing* symbolListThing = voxel_pop(executor);
-
-    if (
-        !symbolListThing || symbolListThing->type != VOXEL_TYPE_LIST
-    ) {
-        return voxel_pushNull(executor);
-    }
-
-    if (executor->preserveSymbols && executor->preserveSymbols->type == VOXEL_TYPE_LIST) {
-        voxel_List* symbolList = (voxel_List*)symbolListThing->value;
-        voxel_ListItem* currentSymbol = symbolList->firstItem;
-
-        while (currentSymbol) {
-            voxel_pushOntoList(executor->context, executor->preserveSymbols, currentSymbol->value);
-
-            currentSymbol = currentSymbol->nextItem;
-        }
-
-        voxel_unreferenceThing(executor->context, symbolListThing);
-    } else {
-        executor->preserveSymbols = symbolListThing;
-        symbolListThing->referenceCount++;
-    }
-
-    voxel_pushNull(executor);
-}
-
 void voxel_builtins_threads(voxel_Context* context) {
     voxel_defineBuiltin(context, ".threads_new", &voxel_builtins_threads_newThread);
     voxel_defineBuiltin(context, ".threads_destroy", &voxel_builtins_threads_destroyThread);
     voxel_defineBuiltin(context, ".threads_getOwnId", &voxel_builtins_threads_getOwnThreadId);
     voxel_defineBuiltin(context, ".threads_isRunning", &voxel_builtins_threads_threadIsRunning);
     voxel_defineBuiltin(context, ".threads_setIsRunning", &voxel_builtins_threads_setThreadIsRunning);
-    voxel_defineBuiltin(context, ".threads_preserve", &voxel_builtins_threads_preserveSymbols);
 }
 
 #else

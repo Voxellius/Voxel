@@ -12,6 +12,9 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->callStack[0] = (voxel_Call) {.position = VOXEL_MAGIC_SIZE, .canHandleExceptions = VOXEL_FALSE};
     executor->callStackHead = 0;
     executor->valueStack = voxel_newList(context);
+    executor->thisStack = voxel_newList(context);
+    executor->nextThis = voxel_newNull(context);
+    executor->superStack = voxel_newList(context);
     executor->previousExecutor = context->lastExecutor;
     executor->nextExecutor = VOXEL_NULL;
 
@@ -43,8 +46,13 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
     newExecutor->callStack[0] = (voxel_Call) {.position = *voxel_getExecutorPosition(executor), .canHandleExceptions = VOXEL_FALSE};
     newExecutor->callStackHead = 0;
     newExecutor->valueStack = copyValueStack ? voxel_copyThing(context, executor->valueStack) : voxel_newList(context);
+    newExecutor->thisStack = voxel_copyThing(context, executor->thisStack);
+    newExecutor->nextThis = executor->nextThis;
+    newExecutor->superStack = voxel_copyThing(context, executor->superStack);
     newExecutor->previousExecutor = context->lastExecutor;
     newExecutor->nextExecutor = VOXEL_NULL;
+
+    newExecutor->nextThis->referenceCount++;
 
     if (executor->preserveSymbols) {
         executor->preserveSymbols->referenceCount++;
@@ -84,6 +92,9 @@ VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
     }
 
     VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->valueStack));
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->thisStack));
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->nextThis));
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->superStack));
 
     if (executor == executor->context->firstExecutor) {
         executor->context->firstExecutor = executor->nextExecutor;
@@ -202,6 +213,16 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
         case VOXEL_TOKEN_TYPE_THROW:
             VOXEL_MUST(voxel_throwException(executor));
+            break;
+
+        case VOXEL_TOKEN_TYPE_THIS:
+            voxel_List* thisStackList = (voxel_List*)executor->thisStack->value;
+            voxel_Thing* thisThing = thisStackList->lastItem->value;
+
+            thisThing->referenceCount++;
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, thisThing));
+
             break;
 
         case VOXEL_TOKEN_TYPE_SET_HANDLER:

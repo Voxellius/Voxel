@@ -14,6 +14,7 @@ export const vxcTokens = {
     SYSTEM_CALL: byte("."),
     RETURN: byte("^"),
     THROW: byte("T"),
+    THIS: byte("M"),
     SET_HANDLER: byte("H"),
     CLEAR_HANDLER: byte("h"),
     GET: byte("?"),

@@ -132,6 +132,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_SYSTEM_CALL = '.',
     VOXEL_TOKEN_TYPE_RETURN = '^',
     VOXEL_TOKEN_TYPE_THROW = 'T',
+    VOXEL_TOKEN_TYPE_THIS = 'M',
     VOXEL_TOKEN_TYPE_SET_HANDLER = 'H',
     VOXEL_TOKEN_TYPE_CLEAR_HANDLER = 'h',
     VOXEL_TOKEN_TYPE_GET = '?',
@@ -186,6 +187,9 @@ typedef struct voxel_Executor {
     voxel_Count callStackHead;
     voxel_Count callStackSize;
     voxel_Thing* valueStack;
+    voxel_Thing* thisStack;
+    voxel_Thing* nextThis;
+    voxel_Thing* superStack;
     struct voxel_Executor* previousExecutor;
     struct voxel_Executor* nextExecutor;
 } voxel_Executor;

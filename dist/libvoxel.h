@@ -327,6 +327,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_SYSTEM_CALL = '.',
     VOXEL_TOKEN_TYPE_RETURN = '^',
     VOXEL_TOKEN_TYPE_THROW = 'T',
+    VOXEL_TOKEN_TYPE_THIS = 'M',
     VOXEL_TOKEN_TYPE_SET_HANDLER = 'H',
     VOXEL_TOKEN_TYPE_CLEAR_HANDLER = 'h',
     VOXEL_TOKEN_TYPE_GET = '?',
@@ -381,6 +382,9 @@ typedef struct voxel_Executor {
     voxel_Count callStackHead;
     voxel_Count callStackSize;
     voxel_Thing* valueStack;
+    voxel_Thing* thisStack;
+    voxel_Thing* nextThis;
+    voxel_Thing* superStack;
     struct voxel_Executor* previousExecutor;
     struct voxel_Executor* nextExecutor;
 } voxel_Executor;
@@ -1873,6 +1877,51 @@ void voxel_builtins_core_dupeThing(voxel_Executor* executor) {
     voxel_push(executor, value);
 }
 
+void voxel_builtins_core_pushThis(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    voxel_pushOntoList(executor->context, executor->thisStack, executor->nextThis);
+
+    executor->nextThis->referenceCount++;
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_popThis(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    VOXEL_ERRORABLE popResult = voxel_popFromList(executor->context, executor->thisStack);
+
+    executor->nextThis = !VOXEL_IS_ERROR(popResult) ? (voxel_Thing*)popResult.value : voxel_newNull(executor->context);
+
+    voxel_unreferenceThing(executor->context, executor->nextThis);
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_setNextThis(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* nextThis = voxel_pop(executor);
+
+    if (!nextThis) {
+        return voxel_pushNull(executor);
+    }
+
+    executor->nextThis = nextThis;
+
+    voxel_unreferenceThing(executor->context, nextThis);
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_getSuperStack(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    voxel_push(executor, executor->superStack);
+
+    executor->superStack->referenceCount++;
+}
+
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
     voxel_Thing* argCount = voxel_peek(executor, 0);
 
@@ -2068,6 +2117,11 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".>=", &voxel_builtins_core_greaterThanOrEqualTo);
     voxel_defineBuiltin(context, ".++", &voxel_builtins_core_increment);
     voxel_defineBuiltin(context, ".--", &voxel_builtins_core_decrement);
+
+    voxel_defineBuiltin(context, ".Mu", &voxel_builtins_core_pushThis);
+    voxel_defineBuiltin(context, ".Mp", &voxel_builtins_core_popThis);
+    voxel_defineBuiltin(context, ".Ms", &voxel_builtins_core_setNextThis);
+    voxel_defineBuiltin(context, ".Rg", &voxel_builtins_core_getSuperStack);
 
     voxel_defineBuiltin(context, ".Tc", &voxel_builtins_core_copyThing);
     voxel_defineBuiltin(context, ".Td", &voxel_builtins_core_dupeThing);
@@ -2273,42 +2327,12 @@ void voxel_builtins_threads_setThreadIsRunning(voxel_Executor* executor) {
     voxel_pushNull(executor);
 }
 
-void voxel_builtins_threads_preserveSymbols(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
-    voxel_Thing* symbolListThing = voxel_pop(executor);
-
-    if (
-        !symbolListThing || symbolListThing->type != VOXEL_TYPE_LIST
-    ) {
-        return voxel_pushNull(executor);
-    }
-
-    if (executor->preserveSymbols && executor->preserveSymbols->type == VOXEL_TYPE_LIST) {
-        voxel_List* symbolList = (voxel_List*)symbolListThing->value;
-        voxel_ListItem* currentSymbol = symbolList->firstItem;
-
-        while (currentSymbol) {
-            voxel_pushOntoList(executor->context, executor->preserveSymbols, currentSymbol->value);
-
-            currentSymbol = currentSymbol->nextItem;
-        }
-
-        voxel_unreferenceThing(executor->context, symbolListThing);
-    } else {
-        executor->preserveSymbols = symbolListThing;
-        symbolListThing->referenceCount++;
-    }
-
-    voxel_pushNull(executor);
-}
-
 void voxel_builtins_threads(voxel_Context* context) {
     voxel_defineBuiltin(context, ".threads_new", &voxel_builtins_threads_newThread);
     voxel_defineBuiltin(context, ".threads_destroy", &voxel_builtins_threads_destroyThread);
     voxel_defineBuiltin(context, ".threads_getOwnId", &voxel_builtins_threads_getOwnThreadId);
     voxel_defineBuiltin(context, ".threads_isRunning", &voxel_builtins_threads_threadIsRunning);
     voxel_defineBuiltin(context, ".threads_setIsRunning", &voxel_builtins_threads_setThreadIsRunning);
-    voxel_defineBuiltin(context, ".threads_preserve", &voxel_builtins_threads_preserveSymbols);
 }
 
 #else
@@ -4789,6 +4813,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_CALL:
         case VOXEL_TOKEN_TYPE_RETURN:
         case VOXEL_TOKEN_TYPE_THROW:
+        case VOXEL_TOKEN_TYPE_THIS:
         case VOXEL_TOKEN_TYPE_SET_HANDLER:
         case VOXEL_TOKEN_TYPE_CLEAR_HANDLER:
         case VOXEL_TOKEN_TYPE_GET:
@@ -4874,6 +4899,9 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->callStack[0] = (voxel_Call) {.position = VOXEL_MAGIC_SIZE, .canHandleExceptions = VOXEL_FALSE};
     executor->callStackHead = 0;
     executor->valueStack = voxel_newList(context);
+    executor->thisStack = voxel_newList(context);
+    executor->nextThis = voxel_newNull(context);
+    executor->superStack = voxel_newList(context);
     executor->previousExecutor = context->lastExecutor;
     executor->nextExecutor = VOXEL_NULL;
 
@@ -4905,8 +4933,13 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
     newExecutor->callStack[0] = (voxel_Call) {.position = *voxel_getExecutorPosition(executor), .canHandleExceptions = VOXEL_FALSE};
     newExecutor->callStackHead = 0;
     newExecutor->valueStack = copyValueStack ? voxel_copyThing(context, executor->valueStack) : voxel_newList(context);
+    newExecutor->thisStack = voxel_copyThing(context, executor->thisStack);
+    newExecutor->nextThis = executor->nextThis;
+    newExecutor->superStack = voxel_copyThing(context, executor->superStack);
     newExecutor->previousExecutor = context->lastExecutor;
     newExecutor->nextExecutor = VOXEL_NULL;
+
+    newExecutor->nextThis->referenceCount++;
 
     if (executor->preserveSymbols) {
         executor->preserveSymbols->referenceCount++;
@@ -4946,6 +4979,9 @@ VOXEL_ERRORABLE voxel_destroyExecutor(voxel_Executor* executor) {
     }
 
     VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->valueStack));
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->thisStack));
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->nextThis));
+    VOXEL_MUST(voxel_unreferenceThing(executor->context, executor->superStack));
 
     if (executor == executor->context->firstExecutor) {
         executor->context->firstExecutor = executor->nextExecutor;
@@ -5064,6 +5100,16 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
         case VOXEL_TOKEN_TYPE_THROW:
             VOXEL_MUST(voxel_throwException(executor));
+            break;
+
+        case VOXEL_TOKEN_TYPE_THIS:
+            voxel_List* thisStackList = (voxel_List*)executor->thisStack->value;
+            voxel_Thing* thisThing = thisStackList->lastItem->value;
+
+            thisThing->referenceCount++;
+
+            VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, thisThing));
+
             break;
 
         case VOXEL_TOKEN_TYPE_SET_HANDLER:
