@@ -1654,9 +1654,9 @@ void voxel_builtins_core_pushOntoList(voxel_Executor* executor) {
 
     value->referenceCount--;
 
-    voxel_unreferenceThing(executor->context, list);
-
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
+
+    voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_popFromList(voxel_Executor* executor) {

@@ -26,3 +26,5 @@ Value return called
 Named function called
 Named function called
 Anonymous function called
+Spread all args: (a = 1, b = 2, c = 3, d = 4)
+Spread some args: (a = 5, b = 6, c = 7, d = 8)
