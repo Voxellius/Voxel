@@ -359,6 +359,20 @@ function getProperty(thing, property) {
             };
         }
 
+        if (#usedprop(join) &&& property == #prop(join)) {
+            return function(delimeter) {
+                delimeter ??= ",";
+
+                return syscall Lj(thing, delimeter);
+            }
+        }
+
+        if (#usedprop(concat) &&& property == #prop(concat)) {
+            return function(source) {
+                return syscall Lc(thing, source);
+            }
+        }
+
         if (#usedprop(forEach) &&& property == #prop(forEach)) {
             return function(callback) {
                 var length = syscall Ll(thing);

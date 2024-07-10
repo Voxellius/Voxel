@@ -56,6 +56,10 @@ syscall io_out("Set item at index 4 in list: ");
 syscall io_out(list);
 syscall io_out("\n");
 
+syscall io_out("Joined list items: ");
+syscall io_out(list.join(":"));
+syscall io_out("\n");
+
 syscall io_out("Popping item from list: ");
 syscall io_out(list.pop());
 syscall io_out(" => ");
@@ -142,6 +146,10 @@ syscall io_out("\n");
 
 syscall io_out("List after removal: ");
 syscall io_out(list);
+syscall io_out("\n");
+
+syscall io_out("Concat lists: ");
+syscall io_out(list.concat([5, 7, 9]));
 syscall io_out("\n");
 
 var empty = [];

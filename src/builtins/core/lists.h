@@ -257,4 +257,26 @@ void voxel_builtins_core_joinList(voxel_Executor* executor) {
     voxel_push(executor, (voxel_Thing*)result.value);
 }
 
+void voxel_builtins_core_concatList(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* source = voxel_pop(executor);
+    voxel_Thing* destination = voxel_pop(executor);
+
+    if (
+        !source || source->type != VOXEL_TYPE_LIST ||
+        !destination || destination->type != VOXEL_TYPE_LIST ||
+        argCount < 2
+    ) {
+        voxel_unreferenceThing(executor->context, source);
+
+        return voxel_push(executor, destination);
+    }
+
+    voxel_concatList(executor->context, destination, source);
+
+    voxel_unreferenceThing(executor->context, source);
+
+    voxel_push(executor, destination);
+}
+
 #endif

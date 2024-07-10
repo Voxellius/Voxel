@@ -48,6 +48,12 @@ Return `true` if a value (`value`) is in the list; otherwise, return `false`.
 #### `remove(value: *): Boolean`
 Remove the first occurrence of a value (`value`) in the list. Return `true` if it was found and removed; otherwise, return `false`.
 
+#### `join(delimeter: String = ","): String`
+Join all list values into a string by using the delimeter (`delimeter`) to separate each item, and return it.
+
+#### `concat(source: List<*>): List<*>`
+Concatenate the list with items from the source list (`source`), mutating the original list. The concatenated list will be returned.
+
 #### `forEach(callback: function(item: *, index: Number))`
 Iterate through the list and call a callback function (`callback`) for every item with arguments that reference the item (`item`) and the item's index (`index`).
 

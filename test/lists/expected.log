@@ -10,6 +10,7 @@ Get item at index -4 from list: a
 Set item at index 2 in list: a,b,123,d
 Set item at index -1 in list: a,b,123,true
 Set item at index 4 in list: a,b,123,true,new
+Joined list items: a:b:123:true:new
 Popping item from list: new => a,b,123,true
 Popping item from list: true => a,b,123
 Popping item from list: 123 => a,b
@@ -27,6 +28,7 @@ Removed from list by index: 4
 List after removal: 3,2
 Removed from list by value; success: true
 List after removal: 3
+Concat lists: 3,5,7,9
 values[0] = 1
 values[1] = 2
 values[2] = 3

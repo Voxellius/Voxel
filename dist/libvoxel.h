@@ -535,6 +535,7 @@ VOXEL_ERRORABLE voxel_popFromList(voxel_Context* context, voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing, voxel_Count index, voxel_Thing* value);
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
+VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destination, voxel_Thing* source);
 
 VOXEL_ERRORABLE voxel_registerEnumEntry(voxel_Context* context, voxel_Thing* value, voxel_Thing* identifier);
 voxel_Thing* voxel_getEnumEntryFromLookup(voxel_Context* context, voxel_Thing* value);
@@ -1749,6 +1750,28 @@ void voxel_builtins_core_joinList(voxel_Executor* executor) {
     voxel_push(executor, (voxel_Thing*)result.value);
 }
 
+void voxel_builtins_core_concatList(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* source = voxel_pop(executor);
+    voxel_Thing* destination = voxel_pop(executor);
+
+    if (
+        !source || source->type != VOXEL_TYPE_LIST ||
+        !destination || destination->type != VOXEL_TYPE_LIST ||
+        argCount < 2
+    ) {
+        voxel_unreferenceThing(executor->context, source);
+
+        return voxel_push(executor, destination);
+    }
+
+    voxel_concatList(executor->context, destination, source);
+
+    voxel_unreferenceThing(executor->context, source);
+
+    voxel_push(executor, destination);
+}
+
 #endif
 
 // src/builtins/core/core.h
@@ -2178,6 +2201,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Li", &voxel_builtins_core_insertIntoList);
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
+    voxel_defineBuiltin(context, ".Lc", &voxel_builtins_core_concatList);
 }
 
 #else
@@ -4513,6 +4537,19 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
     }
 
     return VOXEL_OK_RET(string);
+}
+
+VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destination, voxel_Thing* source) {
+    voxel_List* sourceList = (voxel_List*)source->value;
+    voxel_ListItem* currentListItem = (voxel_ListItem*)sourceList->firstItem;
+
+    while (currentListItem) {
+        VOXEL_MUST(voxel_pushOntoList(context, destination, currentListItem->value));
+
+        currentListItem = currentListItem->nextItem;
+    }
+
+    return VOXEL_OK_RET(destination);
 }
 
 // src/enums.h

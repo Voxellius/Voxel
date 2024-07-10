@@ -333,3 +333,16 @@ VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel
 
     return VOXEL_OK_RET(string);
 }
+
+VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destination, voxel_Thing* source) {
+    voxel_List* sourceList = (voxel_List*)source->value;
+    voxel_ListItem* currentListItem = (voxel_ListItem*)sourceList->firstItem;
+
+    while (currentListItem) {
+        VOXEL_MUST(voxel_pushOntoList(context, destination, currentListItem->value));
+
+        currentListItem = currentListItem->nextItem;
+    }
+
+    return VOXEL_OK_RET(destination);
+}
