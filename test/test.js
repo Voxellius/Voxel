@@ -1,5 +1,6 @@
 import * as path from "https://deno.land/std@0.220.1/path/mod.ts";
 
+const START_TIME = Date.now();
 const TEST_DIR = path.dirname(path.fromFileUrl(Deno.mainModule));
 const VXBUILD_FILE = path.join(TEST_DIR, "..", "tools", "vxbuild-js", "vxbuild.js");
 const VOXEL_FILE = path.join(TEST_DIR, "..", "runtime", "build", "voxel");
@@ -15,6 +16,10 @@ async function $(command, args) {
         stdout: new TextDecoder().decode(output.stdout),
         stderr: new TextDecoder().decode(output.stderr)
     };
+}
+
+function note(message) {
+    console.log(`[${(Date.now() - START_TIME) / 1_000}] ${message}`);
 }
 
 function delay(duration) {
@@ -71,7 +76,9 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
 
         var expected = await Deno.readTextFile(path.join(TEST_PATH, "expected.log"));
 
-        if (output.stdout != expected) {
+        if (output.stdout == expected) {
+            note(`Test results matched expected output: ${TEST_NAME}`);
+        } else {
             console.error(
                 `TEST FAIL: ${TEST_NAME}\n` +
                 `Expected:\n` +
@@ -122,15 +129,22 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
         var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.loop.vxc")], stdout: "null"});
         var process = command.spawn();
 
-        await delay(8_000);
+        note(`Beginning warmup for test: ${TEST_NAME}`);
+        await delay(10_000);
+
+        note(`Profiling initial memory usage for test: ${TEST_NAME}`);
 
         var before = await measureMemoryUsage(process.pid);
-        
-        await delay(10_000);
+
+        await delay(6_000);
+
+        note(`Profiling final memory usage for test: ${TEST_NAME}`);
 
         var after = await measureMemoryUsage(process.pid);
         
         process.kill();
+
+        note(`Test process terminated: ${TEST_NAME}`);
 
         if (after > before + 16) {
             /*

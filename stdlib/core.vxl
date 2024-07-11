@@ -1,12 +1,3 @@
-var thisStack = [];
-var nextThis = null;
-var superStack = [];
-
-syscall threads_preserve([
-    #symbol(thisStack),
-    #symbol(nextThis),
-    #symbol(superStack)
-]);
 
 function instantiate(object, constructorArgs) {
     var instance = {};
@@ -48,11 +39,11 @@ function callSuperMethod(object, property, args) {
         var methodFunction = inheritedPrototypes[i][property];
 
         if (syscall T(methodFunction) == "@" ||| syscall T(methodFunction) == "C") {
-            syscall Lu(inheritedPrototypes[i], superStack);
+            syscall Lu(inheritedPrototypes[i], syscall Rg());
 
             var result = methodFunction(...args);
 
-            syscall Lp(superStack);
+            syscall Lp(syscall Rg());
 
             return result;
         }
@@ -74,11 +65,11 @@ function callSuperConstructors(object, constructorArgs) {
         var constructorFunction = inheritedPrototypes[i][#prop(constructor)];
 
         if (syscall T(constructorFunction) == "@" ||| syscall T(constructorFunction) == "C") {
-            syscall Lu(inheritedPrototypes[i], superStack);
+            syscall Lu(inheritedPrototypes[i], syscall Rg());
 
             constructorFunction(...constructorArgs);
 
-            syscall Lp(superStack);
+            syscall Lp(syscall Rg());
         }
     }
 }
@@ -368,6 +359,20 @@ function getProperty(thing, property) {
             };
         }
 
+        if (#usedprop(join) &&& property == #prop(join)) {
+            return function(delimeter) {
+                delimeter ??= ",";
+
+                return syscall Lj(thing, delimeter);
+            }
+        }
+
+        if (#usedprop(concat) &&& property == #prop(concat)) {
+            return function(source) {
+                return syscall Lc(thing, source);
+            }
+        }
+
         if (#usedprop(forEach) &&& property == #prop(forEach)) {
             return function(callback) {
                 var length = syscall Ll(thing);
@@ -452,16 +457,16 @@ function getProperty(thing, property) {
     }
 
     if (syscall T(thing) == "O") {
-        nextThis = thing;
+        syscall Ms(thing);
 
         var getter = syscall Ogg(thing, property);
 
         if (getter) {
-            pushThis();
+            syscall Mu();
 
             var value = getter();
 
-            popThis();
+            syscall Mp();
 
             return value;
         }
@@ -628,31 +633,18 @@ function setProperty(thing, property, value) {
         var setter = syscall Ogs(thing, property);
 
         if (setter) {
-            nextThis = thing;
-
-            pushThis();
+            syscall Ms(thing);
+            syscall Mu();
 
             setter(value);
 
             syscall Td(value);
 
-            popThis();
+            syscall Mp();
 
             return value;
         }
     }
 
     return syscall Ts(value, thing, property);
-}
-
-function pushThis() {
-    syscall Lu(nextThis, thisStack);
-}
-
-function popThis() {
-    nextThis = syscall Lp(thisStack);
-}
-
-function getThis() {
-    return syscall Lg(thisStack, -1);
 }

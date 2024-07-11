@@ -100,6 +100,10 @@ function fibonacci(n) {
     return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
+function reportArgs(a, b, c, d) {
+    return "(a = " + a + ", b = " + b + ", c = " + c + ", d = " + d + ")";
+}
+
 voidReturn();
 
 var valueReturnResult = valueReturn();
@@ -167,3 +171,11 @@ var anonymousFunction = function() {
 }
 
 anonymousFunction();
+
+syscall io_out("Spread all args: ");
+syscall io_out(reportArgs(...[1, 2, 3, 4]));
+syscall io_out("\n");
+
+syscall io_out("Spread some args: ");
+syscall io_out(reportArgs(5, ...[6, 7], 8));
+syscall io_out("\n");

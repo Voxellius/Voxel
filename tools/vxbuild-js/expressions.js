@@ -76,25 +76,13 @@ export class ThisNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.getThisSymbol = new namespaces.Symbol(namespaces.coreNamespace, "getThis");
-
         this.eat(tokens);
 
         return instance;
     }
 
-    checkSymbolUsage(scope) {
-        scope.addCoreNamespaceSymbol(this.getThisSymbol, this);
-
-        super.checkSymbolUsage(scope);
-    }
-
     generateCode(options) {
-        return codeGen.join(
-            codeGen.number(0),
-            this.getThisSymbol.generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL)
-        );
+        return codeGen.bytes(codeGen.vxcTokens.THIS);
     }
 };
 
@@ -1120,6 +1108,31 @@ export class FunctionArgumentsNode extends ast.AstNode {
             );
         }
 
+        if (this.spreading.find((isSpreading) => isSpreading)) {
+            var currentCode = codeGen.bytes();
+
+            for (var i = 0; i < this.children.length; i++) {
+                currentCode = codeGen.join(
+                    currentCode,
+                    this.children[i].generateCode(options),
+                    this.spreading[i] ? codeGen.bytes() : codeGen.join(
+                        codeGen.number(1),
+                        codeGen.systemCall("Lo")
+                    ),
+                    codeGen.number(2),
+                    codeGen.systemCall("Lc")
+                );
+            }
+
+            return codeGen.join(
+                codeGen.number(0),
+                codeGen.systemCall("L"),
+                currentCode,
+                codeGen.number(1),
+                codeGen.systemCall("Au")
+            );
+        }
+
         return codeGen.join(
             ...this.children.map((child) => child.generateCode(options)),
             codeGen.number(this.children.length)
@@ -1147,9 +1160,6 @@ export class FunctionCallNode extends ast.AstNode {
     static create(tokens, namespace) {
         var instance = new this();
 
-        instance.pushThisSymbol = new namespaces.Symbol(namespaces.coreNamespace, "pushThis");
-        instance.popThisSymbol = new namespaces.Symbol(namespaces.coreNamespace, "popThis");
-
         instance.expectChildByMatching(tokens, [FunctionArgumentsNode], namespace);
 
         return instance;
@@ -1161,12 +1171,12 @@ export class FunctionCallNode extends ast.AstNode {
                 this.children[0].generateCode(options),
                 expressionCode,
                 codeGen.number(0),
-                this.pushThisSymbol.generateCode(options),
-                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP),
+                codeGen.systemCall("Mu"),
+                codeGen.bytes(codeGen.vxcTokens.POP),
                 codeGen.bytes(codeGen.vxcTokens.CALL),
                 codeGen.number(0),
-                this.popThisSymbol.generateCode(options),
-                codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.CALL, codeGen.vxcTokens.POP)
+                codeGen.systemCall("Mp"),
+                codeGen.bytes(codeGen.vxcTokens.POP)
             );
         }
 
@@ -1699,17 +1709,6 @@ export class ExpressionLeafNode extends ExpressionNode {
         }
 
         return instance;
-    }
-
-    checkSymbolUsage(scope) {
-        for (var child of this.children) {
-            if (child instanceof FunctionCallNode) {
-                scope.addCoreNamespaceSymbol(child.pushThisSymbol, this);
-                scope.addCoreNamespaceSymbol(child.popThisSymbol, this);
-            }
-        }
-
-        super.checkSymbolUsage(scope);
     }
 
     estimateTruthiness() {

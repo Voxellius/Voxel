@@ -198,6 +198,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_CALL:
         case VOXEL_TOKEN_TYPE_RETURN:
         case VOXEL_TOKEN_TYPE_THROW:
+        case VOXEL_TOKEN_TYPE_THIS:
         case VOXEL_TOKEN_TYPE_SET_HANDLER:
         case VOXEL_TOKEN_TYPE_CLEAR_HANDLER:
         case VOXEL_TOKEN_TYPE_GET:

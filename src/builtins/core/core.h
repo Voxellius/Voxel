@@ -122,6 +122,51 @@ void voxel_builtins_core_dupeThing(voxel_Executor* executor) {
     voxel_push(executor, value);
 }
 
+void voxel_builtins_core_pushThis(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    voxel_pushOntoList(executor->context, executor->thisStack, executor->nextThis);
+
+    executor->nextThis->referenceCount++;
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_popThis(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    VOXEL_ERRORABLE popResult = voxel_popFromList(executor->context, executor->thisStack);
+
+    executor->nextThis = !VOXEL_IS_ERROR(popResult) ? (voxel_Thing*)popResult.value : voxel_newNull(executor->context);
+
+    voxel_unreferenceThing(executor->context, executor->nextThis);
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_setNextThis(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* nextThis = voxel_pop(executor);
+
+    if (!nextThis) {
+        return voxel_pushNull(executor);
+    }
+
+    executor->nextThis = nextThis;
+
+    voxel_unreferenceThing(executor->context, nextThis);
+
+    voxel_pushNull(executor);
+}
+
+void voxel_builtins_core_getSuperStack(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+
+    voxel_push(executor, executor->superStack);
+
+    executor->superStack->referenceCount++;
+}
+
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
     voxel_Thing* argCount = voxel_peek(executor, 0);
 
@@ -318,6 +363,11 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".++", &voxel_builtins_core_increment);
     voxel_defineBuiltin(context, ".--", &voxel_builtins_core_decrement);
 
+    voxel_defineBuiltin(context, ".Mu", &voxel_builtins_core_pushThis);
+    voxel_defineBuiltin(context, ".Mp", &voxel_builtins_core_popThis);
+    voxel_defineBuiltin(context, ".Ms", &voxel_builtins_core_setNextThis);
+    voxel_defineBuiltin(context, ".Rg", &voxel_builtins_core_getSuperStack);
+
     voxel_defineBuiltin(context, ".Tc", &voxel_builtins_core_copyThing);
     voxel_defineBuiltin(context, ".Td", &voxel_builtins_core_dupeThing);
     voxel_defineBuiltin(context, ".Tg", &voxel_builtins_core_getItem);
@@ -373,6 +423,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Li", &voxel_builtins_core_insertIntoList);
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
+    voxel_defineBuiltin(context, ".Lc", &voxel_builtins_core_concatList);
 }
 
 #else
