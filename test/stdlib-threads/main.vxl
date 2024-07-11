@@ -2,9 +2,10 @@ import io;
 import threads;
 
 var currentTurn = 0;
+var nextMyTurn = 0;
 
 function repeat(value, times) {
-    var myTurn = currentTurn;
+    var myTurn = &(nextMyTurn++);
 
     for (var i = 0; i < times; i++) {
         while (currentTurn != myTurn) {}
