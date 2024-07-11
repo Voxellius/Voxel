@@ -1099,8 +1099,6 @@ export class FunctionArgumentsNode extends ast.AstNode {
 
     generateCode(options) {
         if (this.spreading.length == 1 && this.spreading[0]) {
-            // TODO: Allow spreading multiple args
-
             return codeGen.join(
                 this.children[0].generateCode(options),
                 codeGen.number(1),
