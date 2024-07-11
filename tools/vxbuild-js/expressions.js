@@ -1190,6 +1190,33 @@ export class FunctionArgumentsNode extends ast.AstNode {
 
 export class ConstructorArgumentsNode extends FunctionArgumentsNode {
     generateCode(options) {
+        if (this.spreading.length == 1 && this.spreading[0]) {
+            return this.children[0].generateCode(options);
+        }
+
+        if (this.spreading.find((isSpreading) => isSpreading)) {
+            var currentCode = codeGen.bytes();
+
+            for (var i = 0; i < this.children.length; i++) {
+                currentCode = codeGen.join(
+                    currentCode,
+                    this.children[i].generateCode(options),
+                    this.spreading[i] ? codeGen.bytes() : codeGen.join(
+                        codeGen.number(1),
+                        codeGen.systemCall("Lo")
+                    ),
+                    codeGen.number(2),
+                    codeGen.systemCall("Lc")
+                );
+            }
+
+            return codeGen.join(
+                codeGen.number(0),
+                codeGen.systemCall("L"),
+                currentCode
+            );
+        }
+
         return codeGen.join(
             ...this.children.map((child) => child.generateCode(options)),
             codeGen.number(this.children.length),
