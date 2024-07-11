@@ -579,7 +579,7 @@ export class FunctionParametersNode extends ast.AstNode {
     ];
 
     parameters = [];
-    spreadAtIndex = null;
+    restAtIndex = null;
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -597,14 +597,14 @@ export class FunctionParametersNode extends ast.AstNode {
                 this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
             }
 
-            var spreadingToken = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "...")]);
+            var restToken = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "...")]);
 
-            if (spreadingToken) {
-                if (instance.spreadAtIndex != null) {
-                    throw new sources.SourceError("Only one spread operator (...) is allowed in a parameter list", spreadingToken?.sourceContainer, spreadingToken?.location);
+            if (restToken) {
+                if (instance.restAtIndex != null) {
+                    throw new sources.SourceError("Only one rest parameter (...) is allowed in a parameter list", spreadingToken?.sourceContainer, spreadingToken?.location);
                 }
 
-                instance.spreadAtIndex = instance.parameters.length;
+                instance.restAtIndex = instance.parameters.length;
             }
 
             instance.parameters.push(
@@ -626,16 +626,16 @@ export class FunctionParametersNode extends ast.AstNode {
     }
 
     generateCode(options) {
-        if (this.spreadAtIndex != null) {
+        if (this.restAtIndex != null) {
             var currentCode = codeGen.join(
                 codeGen.systemCall("Lo"),
-                this.parameters[this.spreadAtIndex].generateCode(options),
+                this.parameters[this.restAtIndex].generateCode(options),
                 codeGen.bytes(codeGen.vxcTokens.VAR)
             );
 
             var remainingParameters = [...this.parameters];
 
-            for (var i = 0; i < this.spreadAtIndex; i++) {
+            for (var i = 0; i < this.restAtIndex; i++) {
                 currentCode = codeGen.join(
                     currentCode,
                     codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.DUPE),
@@ -651,7 +651,7 @@ export class FunctionParametersNode extends ast.AstNode {
                 );
             }
 
-            for (var i = 0; i < this.parameters.length - this.spreadAtIndex - 1; i++) {
+            for (var i = 0; i < this.parameters.length - this.restAtIndex - 1; i++) {
                 currentCode = codeGen.join(
                     currentCode,
                     codeGen.bytes(codeGen.vxcTokens.DUPE),

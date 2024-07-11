@@ -28,4 +28,4 @@ Named function called
 Anonymous function called
 Spread all args: [1, 2, 3, 4]
 Spread some args: [5, 6, 7, 8]
-Complex parameter spreading: first = 7, second = 8, args = [9, 10], penultimate = 11, last = 12
+Complex rest parameter usage: first = 7, second = 8, args = [9, 10], penultimate = 11, last = 12
