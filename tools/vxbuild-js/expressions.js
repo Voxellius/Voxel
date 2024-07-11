@@ -579,6 +579,7 @@ export class FunctionParametersNode extends ast.AstNode {
     ];
 
     parameters = [];
+    spreadAtIndex = null;
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -594,6 +595,16 @@ export class FunctionParametersNode extends ast.AstNode {
 
             if (addedFirstParameter) {
                 this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
+            }
+
+            var spreadingToken = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "...")]);
+
+            if (spreadingToken) {
+                if (instance.spreadAtIndex != null) {
+                    throw new sources.SourceError("Only one spread operator (...) is allowed in a parameter list", spreadingToken?.sourceContainer, spreadingToken?.location);
+                }
+
+                instance.spreadAtIndex = instance.parameters.length;
             }
 
             instance.parameters.push(
@@ -615,6 +626,45 @@ export class FunctionParametersNode extends ast.AstNode {
     }
 
     generateCode(options) {
+        if (this.spreadAtIndex != null) {
+            var currentCode = codeGen.join(
+                codeGen.systemCall("Lo"),
+                this.parameters[this.spreadAtIndex].generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.VAR)
+            );
+
+            var remainingParameters = [...this.parameters];
+
+            for (var i = 0; i < this.spreadAtIndex; i++) {
+                currentCode = codeGen.join(
+                    currentCode,
+                    codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.DUPE),
+                    codeGen.number(0),
+                    codeGen.number(2),
+                    codeGen.systemCall("Lg"),
+                    remainingParameters.shift().generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.VAR, codeGen.vxcTokens.POP),
+                    codeGen.number(0),
+                    codeGen.number(2),
+                    codeGen.systemCall("Lr"),
+                    codeGen.bytes(codeGen.vxcTokens.POP)
+                );
+            }
+
+            for (var i = 0; i < this.parameters.length - this.spreadAtIndex - 1; i++) {
+                currentCode = codeGen.join(
+                    currentCode,
+                    codeGen.bytes(codeGen.vxcTokens.DUPE),
+                    codeGen.number(1),
+                    codeGen.systemCall("Lp"),
+                    remainingParameters.pop().generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.VAR, codeGen.vxcTokens.POP)
+                );
+            }
+
+            return codeGen.join(currentCode, codeGen.bytes(codeGen.vxcTokens.POP));
+        }
+
         return codeGen.join(
             codeGen.number(this.parameters.length),
             codeGen.systemCall("P"),

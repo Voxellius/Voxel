@@ -100,8 +100,18 @@ function fibonacci(n) {
     return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
-function reportArgs(a, b, c, d) {
-    return "(a = " + a + ", b = " + b + ", c = " + c + ", d = " + d + ")";
+function reportArgs(...args) {
+    return "[" + args.join(", ") + "]";
+}
+
+function reportArgsFirstLast(first, second, ...args, penultimate, last) {
+    return (
+        "first = " + first + ", " +
+        "second = " + second + ", " +
+        "args = [" + args.join(", ") + "], " +
+        "penultimate = " + penultimate + ", " +
+        "last = " + last
+    );
 }
 
 voidReturn();
@@ -178,4 +188,8 @@ syscall io_out("\n");
 
 syscall io_out("Spread some args: ");
 syscall io_out(reportArgs(5, ...[6, 7], 8));
+syscall io_out("\n");
+
+syscall io_out("Complex parameter spreading: ");
+syscall io_out(reportArgsFirstLast(...[7, 8], 9, ...[10, 11], 12));
 syscall io_out("\n");
