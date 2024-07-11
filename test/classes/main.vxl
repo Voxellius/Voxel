@@ -243,3 +243,29 @@ farm.forEach(function(animal) {
     animal.swim();
     animal.fly();
 });
+
+class SpreadingClass {
+    constructor(...args) {
+        syscall io_out("Called constructor with args: ");
+        syscall io_out(args.join(", "));
+        syscall io_out("\n");
+    }
+
+    method(...args) {
+        syscall io_out("Called method with args: ");
+        syscall io_out(args.join(", "));
+        syscall io_out("\n");
+    }
+}
+
+syscall io_out("Simple spreading:\n");
+
+var simpleSpreadingClass = new SpreadingClass(...[1, 2, 3, 4]);
+
+simpleSpreadingClass.method(...[5, 6, 7, 8]);
+
+syscall io_out("Complex spreading:\n");
+
+var complexSpreadingClass = new SpreadingClass(9, ...[10, 11], 12);
+
+complexSpreadingClass.method(13, ...[14, 15], 16);

@@ -30,10 +30,10 @@ class StandardOutputStream extends Stream {
     }
 }
 
-function print(data) {
-    syscall io_out(data);
+function print(...data) {
+    syscall io_out(data.join(" "));
 }
 
-function println(data) {
-    syscall io_out(data + "\n");
+function println(...data) {
+    syscall io_out(data.join(" ") + "\n");
 }

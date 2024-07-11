@@ -579,6 +579,7 @@ export class FunctionParametersNode extends ast.AstNode {
     ];
 
     parameters = [];
+    restAtIndex = null;
 
     static create(tokens, namespace) {
         var instance = new this();
@@ -594,6 +595,16 @@ export class FunctionParametersNode extends ast.AstNode {
 
             if (addedFirstParameter) {
                 this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
+            }
+
+            var restToken = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "...")]);
+
+            if (restToken) {
+                if (instance.restAtIndex != null) {
+                    throw new sources.SourceError("Only one rest parameter (...) is allowed in a parameter list", spreadingToken?.sourceContainer, spreadingToken?.location);
+                }
+
+                instance.restAtIndex = instance.parameters.length;
             }
 
             instance.parameters.push(
@@ -615,6 +626,45 @@ export class FunctionParametersNode extends ast.AstNode {
     }
 
     generateCode(options) {
+        if (this.restAtIndex != null) {
+            var currentCode = codeGen.join(
+                codeGen.systemCall("Lo"),
+                this.parameters[this.restAtIndex].generateCode(options),
+                codeGen.bytes(codeGen.vxcTokens.VAR)
+            );
+
+            var remainingParameters = [...this.parameters];
+
+            for (var i = 0; i < this.restAtIndex; i++) {
+                currentCode = codeGen.join(
+                    currentCode,
+                    codeGen.bytes(codeGen.vxcTokens.DUPE, codeGen.vxcTokens.DUPE),
+                    codeGen.number(0),
+                    codeGen.number(2),
+                    codeGen.systemCall("Lg"),
+                    remainingParameters.shift().generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.VAR, codeGen.vxcTokens.POP),
+                    codeGen.number(0),
+                    codeGen.number(2),
+                    codeGen.systemCall("Lr"),
+                    codeGen.bytes(codeGen.vxcTokens.POP)
+                );
+            }
+
+            for (var i = 0; i < this.parameters.length - this.restAtIndex - 1; i++) {
+                currentCode = codeGen.join(
+                    currentCode,
+                    codeGen.bytes(codeGen.vxcTokens.DUPE),
+                    codeGen.number(1),
+                    codeGen.systemCall("Lp"),
+                    remainingParameters.pop().generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.VAR, codeGen.vxcTokens.POP)
+                );
+            }
+
+            return codeGen.join(currentCode, codeGen.bytes(codeGen.vxcTokens.POP));
+        }
+
         return codeGen.join(
             codeGen.number(this.parameters.length),
             codeGen.systemCall("P"),
@@ -1099,8 +1149,6 @@ export class FunctionArgumentsNode extends ast.AstNode {
 
     generateCode(options) {
         if (this.spreading.length == 1 && this.spreading[0]) {
-            // TODO: Allow spreading multiple args
-
             return codeGen.join(
                 this.children[0].generateCode(options),
                 codeGen.number(1),
@@ -1142,6 +1190,33 @@ export class FunctionArgumentsNode extends ast.AstNode {
 
 export class ConstructorArgumentsNode extends FunctionArgumentsNode {
     generateCode(options) {
+        if (this.spreading.length == 1 && this.spreading[0]) {
+            return this.children[0].generateCode(options);
+        }
+
+        if (this.spreading.find((isSpreading) => isSpreading)) {
+            var currentCode = codeGen.bytes();
+
+            for (var i = 0; i < this.children.length; i++) {
+                currentCode = codeGen.join(
+                    currentCode,
+                    this.children[i].generateCode(options),
+                    this.spreading[i] ? codeGen.bytes() : codeGen.join(
+                        codeGen.number(1),
+                        codeGen.systemCall("Lo")
+                    ),
+                    codeGen.number(2),
+                    codeGen.systemCall("Lc")
+                );
+            }
+
+            return codeGen.join(
+                codeGen.number(0),
+                codeGen.systemCall("L"),
+                currentCode
+            );
+        }
+
         return codeGen.join(
             ...this.children.map((child) => child.generateCode(options)),
             codeGen.number(this.children.length),

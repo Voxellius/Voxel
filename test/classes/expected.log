@@ -39,3 +39,9 @@ This animal jumps up into the air
 This animal can't swim
 This animal flies through the sky
 ...then falls to the ground a few seconds later
+Simple spreading:
+Called constructor with args: 1, 2, 3, 4
+Called method with args: 5, 6, 7, 8
+Complex spreading:
+Called constructor with args: 9, 10, 11, 12
+Called method with args: 13, 14, 15, 16
