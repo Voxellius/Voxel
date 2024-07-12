@@ -15,6 +15,7 @@ Examples of Voxel programs can be found in the [`examples`](examples) and [`test
 ## Key features of the Voxel programming language
 * **Functions** — named and anonymous
     * **Closures** that allow references to non-global variables outside a function's scope
+    * [**Spread and rest syntax (`...`)**](docs/en/Voxel/spreadrest.md) to dynamically provide argument values to functions and allow functions to become variadic
 * [**Expressions**](docs/en/voxel/expressions.md) that follow a defined operator precedence
     * **Short-circuit evaluation** of logical operators using `&&` and `||` (evaluation of subsequent operands is aborted if result's value is guaranteed to be `true` or `false`)
     * **Eager evaluation** of logical operators using `&&&` and `|||` (all operands are evaluated — this produces simpler bytecode but may perform unnecessary computations at runtime)
