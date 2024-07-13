@@ -358,8 +358,15 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, "./", &voxel_builtins_core_divide);
     voxel_defineBuiltin(context, ".%", &voxel_builtins_core_modulo);
     voxel_defineBuiltin(context, ".-x", &voxel_builtins_core_negate);
+    voxel_defineBuiltin(context, ".~x", &voxel_builtins_core_bitwiseNot);
     voxel_defineBuiltin(context, ".<=", &voxel_builtins_core_lessThanOrEqualTo);
     voxel_defineBuiltin(context, ".>=", &voxel_builtins_core_greaterThanOrEqualTo);
+    voxel_defineBuiltin(context, ".<<", &voxel_builtins_core_bitwiseLeftShift);
+    voxel_defineBuiltin(context, ".>>", &voxel_builtins_core_bitwiseRightShift);
+    voxel_defineBuiltin(context, ".>>>", &voxel_builtins_core_bitwiseUnsignedRightShift);
+    voxel_defineBuiltin(context, ".&", &voxel_builtins_core_bitwise_and);
+    voxel_defineBuiltin(context, ".^", &voxel_builtins_core_bitwise_xor);
+    voxel_defineBuiltin(context, ".|", &voxel_builtins_core_bitwise_or);
     voxel_defineBuiltin(context, ".++", &voxel_builtins_core_increment);
     voxel_defineBuiltin(context, ".--", &voxel_builtins_core_decrement);
 

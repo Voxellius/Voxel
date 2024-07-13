@@ -26,12 +26,16 @@ Here is a list of operators that can be used in Voxel, from highest precedence t
 | `++` (unary) | Increment |  | 1 |
 | `--` (unary) | Decrement |  | 1 |
 | `-` (unary) | Negate |  |  |
+| `-` (unary) | Bitwise NOT |  |  |
 | `!` (unary) | Logical NOT |  |  |
 | `&` (unary) | Copy (shallow) |  |  |
 | `*`, `/`, `%` | Multiplication, division, modulo | `*=`, `/=`, `%=` | 2 |
 | `+`, `-` | Addition, subtraction | `+=`, `-=` | 2 |
+| `<<`, `>>`, `>>>` | Bitwise shift left, bitwise shift right, bitwise unsigned shift right | `<<=`, `>>=`, `>>>=` | 2 |
 | `==`, `!=`, `===`, `!==`, `<`, `<=`, `>`, `>=` | Equal to, not equal to, identical to, not identical to, strictly less than, less than or equal to, strightly greater than, strictly greater than or equal to |  | 2, 3 |
 | `is`, `inherits` | Is instance of, Inherits |  | 2, 3 |
+| `&` | Bitwise AND | `&=` |  |
+| `^` | Bitwise XOR | `&=` |  |
 | `&&&` | Logical eager AND | `&&&=` |  |
 | `\|\|\|` | Logical eager OR | `\|\|\|=` |  |
 | `&&` | Logical short-circuiting AND | `&&=` | 4 |

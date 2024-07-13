@@ -604,11 +604,33 @@ void voxel_test();
         voxel_unreferenceThing(executor->context, b); \
     }
 
+#define _VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(name, operator) void name(voxel_Executor* executor) { \
+        voxel_Int argCount = voxel_popNumberInt(executor); \
+        voxel_Thing* b = voxel_popNumber(executor); \
+        voxel_Thing* a = voxel_popNumber(executor); \
+\
+        if (!a || !b) { \
+            voxel_pushNull(executor); \
+\
+            return; \
+        } \
+\
+        voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getNumberInt(a) operator voxel_getNumberInt(b))); \
+\
+        voxel_unreferenceThing(executor->context, a); \
+        voxel_unreferenceThing(executor->context, b); \
+    }
+
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_subtract, -);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_multiply, *);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_divide, /);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_lessThanOrEqualTo, <=);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_greaterThanOrEqualTo, >=);
+_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwiseLeftShift, <<);
+_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwiseRightShift, >>);
+_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_and, &);
+_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_xor, ^);
+_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_or, |);
 
 void voxel_builtins_core_add(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
@@ -658,6 +680,21 @@ void voxel_builtins_core_modulo(voxel_Executor* executor) {
     voxel_push(executor, voxel_newNumberInt(executor->context, a % b));
 }
 
+void voxel_builtins_core_bitwiseUnsignedRightShift(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* b = voxel_popNumber(executor);
+    voxel_Thing* a = voxel_popNumber(executor);
+
+    if (!a || !b) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, (voxel_UInt)voxel_getNumberInt(a) >> voxel_getNumberInt(b)));
+
+    voxel_unreferenceThing(executor->context, a);
+    voxel_unreferenceThing(executor->context, b);
+}
+
 void voxel_builtins_core_equal(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* b = voxel_pop(executor);
@@ -697,6 +734,19 @@ void voxel_builtins_core_negate(voxel_Executor* executor) {
     }
 
     voxel_push(executor, voxel_newNumberFloat(executor->context, -voxel_getNumberFloat(value)));
+
+    voxel_unreferenceThing(executor->context, value);
+}
+
+void voxel_builtins_core_bitwiseNot(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* value = voxel_popNumber(executor);
+
+    if (!value) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, ~voxel_getNumberInt(value)));
 
     voxel_unreferenceThing(executor->context, value);
 }
@@ -2136,8 +2186,15 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, "./", &voxel_builtins_core_divide);
     voxel_defineBuiltin(context, ".%", &voxel_builtins_core_modulo);
     voxel_defineBuiltin(context, ".-x", &voxel_builtins_core_negate);
+    voxel_defineBuiltin(context, ".~x", &voxel_builtins_core_bitwiseNot);
     voxel_defineBuiltin(context, ".<=", &voxel_builtins_core_lessThanOrEqualTo);
     voxel_defineBuiltin(context, ".>=", &voxel_builtins_core_greaterThanOrEqualTo);
+    voxel_defineBuiltin(context, ".<<", &voxel_builtins_core_bitwiseLeftShift);
+    voxel_defineBuiltin(context, ".>>", &voxel_builtins_core_bitwiseRightShift);
+    voxel_defineBuiltin(context, ".>>>", &voxel_builtins_core_bitwiseUnsignedRightShift);
+    voxel_defineBuiltin(context, ".&", &voxel_builtins_core_bitwise_and);
+    voxel_defineBuiltin(context, ".^", &voxel_builtins_core_bitwise_xor);
+    voxel_defineBuiltin(context, ".|", &voxel_builtins_core_bitwise_or);
     voxel_defineBuiltin(context, ".++", &voxel_builtins_core_increment);
     voxel_defineBuiltin(context, ".--", &voxel_builtins_core_decrement);
 

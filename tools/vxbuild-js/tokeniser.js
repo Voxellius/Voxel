@@ -229,12 +229,12 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:\*=|\/=|%=|\+=|-=|&&&=|\|\|\|=|&&=|\|\|=|\?\?=)/)) {
+        if (matchToken(/^(?:\*=|\/=|%=|\+=|-=|<<=|>>>=|>>=|&&&=|\|\|\|=|&&=|\|\|=|\?\?=|&=|\^=|\|=)/)) {
             addToken(AssignmentOperatorToken);
             continue;
         }
 
-        if (matchToken(/^(?:<=|>=|!==|!=|===|==|&&&|\|\|\||&&|\|\||\?\?|is\b|inherits\b|[+\-*\/%<>!&?])/)) {
+        if (matchToken(/^(?:<<|>>>|>>|<=|>=|!==|!=|===|==|&&&|\|\|\||&&|\|\||\?\?|is\b|inherits\b|[+\-*\/%<>!~&^|?])/)) {
             addToken(OperatorToken);
             continue;
         }
