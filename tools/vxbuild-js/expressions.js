@@ -29,6 +29,18 @@ export const ALL_BINARY_OPERATOR_CODE = {
         codeGen.number(2),
         codeGen.systemCall("-")
     ),
+    "<<": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("<<")
+    ),
+    ">>": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall(">>")
+    ),
+    ">>>": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall(">>>")
+    ),
     "<=": codeGen.join(
         codeGen.number(2),
         codeGen.systemCall("<=")
@@ -43,6 +55,18 @@ export const ALL_BINARY_OPERATOR_CODE = {
     "!=": codeGen.bytes(codeGen.vxcTokens.EQUAL, codeGen.vxcTokens.NOT),
     "===": codeGen.bytes(codeGen.vxcTokens.IDENTICAL),
     "==": codeGen.bytes(codeGen.vxcTokens.EQUAL),
+    "&": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("&")
+    ),
+    "^": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("^")
+    ),
+    "|": codeGen.join(
+        codeGen.number(2),
+        codeGen.systemCall("|")
+    ),
     "&&&": codeGen.bytes(codeGen.vxcTokens.AND),
     "&&": codeGen.bytes(codeGen.vxcTokens.AND),
     "|||": codeGen.bytes(codeGen.vxcTokens.OR),
@@ -2042,6 +2066,20 @@ export class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExp
     }
 }
 
+export class BitwiseShiftOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "<<"),
+        new ast.TokenQuery(tokeniser.OperatorToken, ">>"),
+        new ast.TokenQuery(tokeniser.OperatorToken, ">>>")
+    ];
+
+    static CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
 export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode {
     static OPERATOR_TOKEN_QUERIES = [
         new ast.TokenQuery(tokeniser.OperatorToken, "<="),
@@ -2054,7 +2092,7 @@ export class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode
         new ast.TokenQuery(tokeniser.OperatorToken, "==")
     ];
 
-    static CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
+    static CHILD_EXPRESSION_NODE_CLASS = BitwiseShiftOperatorExpressionNode;
 
     estimateTruthiness() {
         return null;
@@ -2125,12 +2163,48 @@ export class InstanceOperatorExpressionNode extends BinaryOperatorExpressionNode
     }
 }
 
+export class BitwiseAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "&")
+    ];
+
+    static CHILD_EXPRESSION_NODE_CLASS = InstanceOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+export class BitwiseXorOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "^")
+    ];
+
+    static CHILD_EXPRESSION_NODE_CLASS = BitwiseAndOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+export class BitwiseOrOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    static OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "|")
+    ];
+
+    static CHILD_EXPRESSION_NODE_CLASS = BitwiseXorOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
 export class LogicalEagerAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
     static OPERATOR_TOKEN_QUERIES = [
         new ast.TokenQuery(tokeniser.OperatorToken, "&&&")
     ];
 
-    static CHILD_EXPRESSION_NODE_CLASS = InstanceOperatorExpressionNode;
+    static CHILD_EXPRESSION_NODE_CLASS = BitwiseOrOperatorExpressionNode;
 
     estimateTruthiness() {
         var anyUnknown = false;

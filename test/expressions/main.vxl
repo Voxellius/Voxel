@@ -22,6 +22,24 @@ syscall io_out("Immediate ternary expression result: ");
 syscall io_out(complexExpression == 6 ? "result is 6" : "result is not 6");
 syscall io_out("\n");
 
+var bitwiseExpression = ((0xFFFFFFFF & 0x77770000) | 0x0000FFFF) ^ 0xFFFFFFFF;
+
+syscall io_out("Bitwise expression result: ");
+syscall io_out(bitwiseExpression);
+syscall io_out("\n");
+
+syscall io_out("Bitwise expression << 2: ");
+syscall io_out(bitwiseExpression << 2);
+syscall io_out("\n");
+
+syscall io_out("Bitwise expression >> 2: ");
+syscall io_out(bitwiseExpression >> 2);
+syscall io_out("\n");
+
+syscall io_out("Bitwise expression >>> 2: ");
+syscall io_out(bitwiseExpression >>> 2);
+syscall io_out("\n");
+
 var floatValue = -3.782e-6;
 
 syscall io_out("Float value result: ");
