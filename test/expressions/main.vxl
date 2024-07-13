@@ -28,6 +28,10 @@ syscall io_out("Bitwise expression result: ");
 syscall io_out(bitwiseExpression);
 syscall io_out("\n");
 
+syscall io_out("Bitwise expression not: ");
+syscall io_out(~bitwiseExpression);
+syscall io_out("\n");
+
 syscall io_out("Bitwise expression << 2: ");
 syscall io_out(bitwiseExpression << 2);
 syscall io_out("\n");

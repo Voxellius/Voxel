@@ -39,8 +39,8 @@ _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_multiply, *);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_divide, /);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_lessThanOrEqualTo, <=);
 _VOXEL_BUILTINS_CORE_NUMBER_OPERATOR(voxel_builtins_core_greaterThanOrEqualTo, >=);
-_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_left_shift, <<);
-_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_right_shift, >>);
+_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwiseLeftShift, <<);
+_VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwiseRightShift, >>);
 _VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_and, &);
 _VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_xor, ^);
 _VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_or, |);
@@ -93,7 +93,7 @@ void voxel_builtins_core_modulo(voxel_Executor* executor) {
     voxel_push(executor, voxel_newNumberInt(executor->context, a % b));
 }
 
-void voxel_builtins_core_bitwise_unsigned_right_shift(voxel_Executor* executor) {
+void voxel_builtins_core_bitwiseUnsignedRightShift(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* b = voxel_popNumber(executor);
     voxel_Thing* a = voxel_popNumber(executor);
@@ -147,6 +147,19 @@ void voxel_builtins_core_negate(voxel_Executor* executor) {
     }
 
     voxel_push(executor, voxel_newNumberFloat(executor->context, -voxel_getNumberFloat(value)));
+
+    voxel_unreferenceThing(executor->context, value);
+}
+
+void voxel_builtins_core_bitwiseNot(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* value = voxel_popNumber(executor);
+
+    if (!value) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, ~voxel_getNumberInt(value)));
 
     voxel_unreferenceThing(executor->context, value);
 }

@@ -1526,6 +1526,7 @@ export class ExpressionNode extends ast.AstNode {
         ...staticMacros.StaticMacroNode.MATCH_QUERIES,
         new ast.TokenQuery(tokeniser.IncrementationOperatorToken),
         new ast.TokenQuery(tokeniser.OperatorToken, "-"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "~"),
         new ast.TokenQuery(tokeniser.OperatorToken, "!"),
         new ast.TokenQuery(tokeniser.OperatorToken, "&")
     ];
@@ -1773,6 +1774,7 @@ export class ExpressionLeafNode extends ExpressionNode {
         if (instance.addChildByMatching(tokens, [
             UnaryPrefixIncrementationOperatorExpressionNode,
             UnaryNegativeOperatorExpressionNode,
+            UnaryBitwiseNotOperatorExpressionNode,
             UnaryNotOperatorExpressionNode,
             CopyOperatorExpressionNode
         ], namespace)) {
@@ -1915,6 +1917,19 @@ export class UnaryNegativeOperatorExpressionNode extends UnaryPrefixOperatorExpr
 
     estimateTruthiness() {
         return this.children[0].estimateTruthiness();
+    }
+}
+
+export class UnaryBitwiseNotOperatorExpressionNode extends UnaryPrefixOperatorExpressionNode {
+    static MATCH_QUERIES = [new ast.TokenQuery(tokeniser.OperatorToken, "~")];
+
+    static OPERATOR_CODE = codeGen.join(
+        codeGen.number(1),
+        codeGen.systemCall("~x")
+    );
+
+    estimateTruthiness() {
+        return null;
     }
 }
 

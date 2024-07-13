@@ -26,6 +26,7 @@ Here is a list of operators that can be used in Voxel, from highest precedence t
 | `++` (unary) | Increment |  | 1 |
 | `--` (unary) | Decrement |  | 1 |
 | `-` (unary) | Negate |  |  |
+| `-` (unary) | Bitwise NOT |  |  |
 | `!` (unary) | Logical NOT |  |  |
 | `&` (unary) | Copy (shallow) |  |  |
 | `*`, `/`, `%` | Multiplication, division, modulo | `*=`, `/=`, `%=` | 2 |
