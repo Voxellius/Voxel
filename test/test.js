@@ -30,8 +30,14 @@ function delay(duration) {
     });
 }
 
-async function measureMemoryUsage(pid) {
-    var status = await Deno.readTextFile(path.join("/", "proc", String(pid), "status"));
+async function measureMemoryUsage(pid, name) {
+    try {
+        var status = await Deno.readTextFile(path.join("/", "proc", String(pid), "status"));
+    } catch (e) {
+        note(`Unable to read process status file for ${name} (permissions error or crash)`);
+
+        return -1;
+    }
 
     return Number(status
         .split("\n")
@@ -134,22 +140,37 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
 
         note(`Profiling initial memory usage for test: ${TEST_NAME}`);
 
-        var before = await measureMemoryUsage(process.pid);
+        var before = await measureMemoryUsage(process.pid, TEST_NAME);
 
         await delay(6_000);
 
         note(`Profiling final memory usage for test: ${TEST_NAME}`);
 
-        var after = await measureMemoryUsage(process.pid);
-        
+        var after = await measureMemoryUsage(process.pid, TEST_NAME);
+
+        if (before == -1 || after == -1) {
+            console.error(
+                `TEST FAIL: ${TEST_NAME}\n` +
+                `Crash detected\n`
+            );
+
+            return Promise.resolve({
+                test: TEST_NAME,
+                result: "fail",
+                reason: "crash",
+                before,
+                after
+            });
+        }
+
         process.kill();
 
         note(`Test process terminated: ${TEST_NAME}`);
 
         if (after > before + 16) {
             /*
-                Give a 16 tolerance since memory usage could happen to be a bit
-                more than beforehand but is not a memory leak
+                Give a 16 byte tolerance since memory usage could happen to be a
+                bit more than beforehand but is not a memory leak
             */
 
             console.error(

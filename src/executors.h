@@ -218,7 +218,8 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
         case VOXEL_TOKEN_TYPE_THIS:
         {
             voxel_List* thisStackList = (voxel_List*)executor->thisStack->value;
-            voxel_Thing* thisThing = thisStackList->lastItem->value;
+            voxel_ListItem* thisStackListItem = thisStackList->lastItem;
+            voxel_Thing* thisThing = thisStackListItem ? thisStackListItem->value : voxel_newNull(executor->context);
 
             thisThing->referenceCount++;
 

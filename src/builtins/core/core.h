@@ -135,11 +135,11 @@ void voxel_builtins_core_pushThis(voxel_Executor* executor) {
 void voxel_builtins_core_popThis(voxel_Executor* executor) {
     voxel_Int argCount = voxel_popNumberInt(executor);
 
+    voxel_unreferenceThing(executor->context, executor->nextThis);
+
     VOXEL_ERRORABLE popResult = voxel_popFromList(executor->context, executor->thisStack);
 
     executor->nextThis = !VOXEL_IS_ERROR(popResult) ? (voxel_Thing*)popResult.value : voxel_newNull(executor->context);
-
-    voxel_unreferenceThing(executor->context, executor->nextThis);
 
     voxel_pushNull(executor);
 }
@@ -152,9 +152,9 @@ void voxel_builtins_core_setNextThis(voxel_Executor* executor) {
         return voxel_pushNull(executor);
     }
 
-    executor->nextThis = nextThis;
+    voxel_unreferenceThing(executor->context, executor->nextThis);
 
-    voxel_unreferenceThing(executor->context, nextThis);
+    executor->nextThis = nextThis;
 
     voxel_pushNull(executor);
 }

@@ -1,0 +1,23 @@
+import patterns;
+
+function testMatch(input, pattern) {
+    var result = patterns.match(input, pattern);
+
+    syscall io_out("Input: " + input + "\n");
+    syscall io_out("Matches: " + !!result.matches + "\n\n");
+}
+
+testMatch("hello", [
+    patterns.string("hello")
+]);
+
+testMatch("test 2", [
+    patterns.string("test "),
+    patterns.anyChar("12345")
+]);
+
+testMatch("hello bob, how are you", [
+    patterns.string("hello "),
+    patterns.anyString(["alice", "bob", "charlie"]),
+    patterns.string(", how are you")
+]);

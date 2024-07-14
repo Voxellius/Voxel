@@ -1,0 +1,86 @@
+function _stringToBuffer(value) {
+    if (value is String) {
+        return value.toBuffer();
+    }
+
+    return value;
+}
+
+function string(value) {
+    value = _stringToBuffer(value);
+
+    return function(input, index) {
+        for (var i = 0; i < value.size; i++) {
+            if (value[i] != input[index + i]) {
+                return {matches: false, index: index};
+            }
+        }
+
+        return {matches: true, index: index + value.size};
+    };
+}
+
+function any(selectors) {
+    return function(input, index) {
+        for (var i = 0; i < selectors.length; i++) {
+            var result = selectors[i](input, index);
+
+            if (result.matches) {
+                return result;
+            }
+        }
+
+        return {matches: false, index: index};
+    };
+}
+
+function anyChar(chars) {
+    return function(input, index) {
+        for (var i = 0; i < chars.length; i++) {
+            var result = string(chars[i])(input, index);
+
+            if (result.matches) {
+                return result;
+            }
+        }
+
+        return {matches: false, index: index};
+    };
+}
+
+function anyString(strings) {
+    return any(strings.map(function(value) {
+        return string(value);
+    }));
+}
+
+function match(input, selectors) {
+    var index = 0;
+    var captures = {};
+
+    input = _stringToBuffer(input);
+
+    for (var i = 0; i < selectors.length; i++) {
+        var result = selectors[i](input, index);
+
+        if (!result.matches) {
+            return null;
+        }
+
+        index = result.index;
+
+        (result.captures ?? {}).forEach(function(captureList, key) {
+            captures[key] ??= [];
+
+            captureList.forEach(function(value) {
+                captures[key].push(value);
+            });
+        });
+    }
+
+    if (index != input.size) {
+        return null;
+    }
+
+    return {matches: true, index: index, captures: captures};
+}
