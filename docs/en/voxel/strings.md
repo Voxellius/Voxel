@@ -20,6 +20,9 @@ The string data type.
 #### `toNumber(): Number`
 Convert the string to a [number](numbers.md).
 
+#### `toBuffer(): Buffer`
+Convert the string to a [buffer](buffers.md).
+
 #### `size: Number`
 The number of bytes in the string.
 
