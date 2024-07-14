@@ -209,7 +209,9 @@ export class ThingNode extends ast.AstNode {
             instance.value = {
                 "true": true,
                 "false": false,
-                "null": null
+                "null": null,
+                "infinity": Infinity,
+                "nan": NaN
             }[token.value] ?? null;
         } else if (token instanceof tokeniser.TypeNameToken) {
             this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")]);

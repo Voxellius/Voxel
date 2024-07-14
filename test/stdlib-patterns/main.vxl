@@ -1,10 +1,12 @@
+import io;
 import patterns;
 
 function testMatch(input, pattern) {
     var result = patterns.match(input, pattern);
 
-    syscall io_out("Input: " + input + "\n");
-    syscall io_out("Matches: " + !!result.matches + "\n\n");
+    io.println("Input:", input);
+    io.println("Matches:", !!result.matches);
+    io.println();
 }
 
 testMatch("hello", [
@@ -20,4 +22,41 @@ testMatch("hello bob, how are you", [
     patterns.string("hello "),
     patterns.anyString(["alice", "bob", "charlie"]),
     patterns.string(", how are you")
+]);
+
+testMatch("b", [
+    patterns.ALPHA
+]);
+
+testMatch("123", [
+    patterns.repeat(3, 5, [
+        patterns.DIGIT
+    ])
+]);
+
+testMatch("45", [
+    patterns.repeat(3, 5, [
+        patterns.DIGIT
+    ])
+]);
+
+testMatch("67890", [
+    patterns.repeat(3, 5, [
+        patterns.DIGIT
+    ])
+]);
+
+testMatch("123456", [
+    patterns.repeat(3, 5, [
+        patterns.DIGIT
+    ])
+]);
+
+testMatch("to infinity and beyond", [
+    patterns.repeat(0, infinity, [
+        patterns.any([
+            patterns.ALPHA,
+            patterns.string(" ")
+        ])
+    ])
 ]);

@@ -179,7 +179,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:null|true|false)\b/)) {
+        if (matchToken(/^(?:null|true|false|infinity|nan)\b/)) {
             addToken(AtomToken);
             continue;
         }

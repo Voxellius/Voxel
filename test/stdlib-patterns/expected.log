@@ -7,3 +7,21 @@ Matches: true
 Input: hello bob, how are you
 Matches: true
 
+Input: b
+Matches: true
+
+Input: 123
+Matches: true
+
+Input: 45
+Matches: false
+
+Input: 67890
+Matches: true
+
+Input: 123456
+Matches: false
+
+Input: to infinity and beyond
+Matches: true
+
