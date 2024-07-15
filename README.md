@@ -39,6 +39,7 @@ Examples of Voxel programs can be found in the [`examples`](examples) and [`test
     * **Tree shaking** to remove functions that are never called and variables that are never read
     * **Potential side effect detection** when deciding how unused variables should be removed so that their assigned value is still evaluated if its expression contains a function call or getter method
 * **Multithreading** through the [`threads` library](docs/en/stdlib/threads.md), which allows multiple functions to be executed concurrently
+* **String pattern matching** through the `patterns` library, which is an alternative to regular expressions found in other programming languages
 
 ## Key features of the VxC bytecode format
 * **Stack-based virtual machine** that enables powerful manipulation of data and easy passing of data as arguments to commands
