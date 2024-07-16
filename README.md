@@ -30,6 +30,7 @@ Examples of Voxel programs can be found in the [`examples`](examples) and [`test
     * **Relative imports** by specifying a path relative to the Voxel file
     * **Circular imports** where _A_ can import _B_ and _B_ can import _A_
 * **Exceptions** to throw and handle errors with `throw` and `try`/`catch`
+* **Weak references** for fine control of memory management, with `weak` method to obtain weak reference and `deref` method to obtain the referenced value
 * [**Enumerations (enums)**](docs/en/voxel/enums.md) to represent a set of discrete named values and to act as error codes
     * **Automatic value assignment** for enumeration entries that have not been explicitly assigned a value
     * **Enumeration entry lookup** to find the original identifier string by enumeration entry value
