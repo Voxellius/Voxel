@@ -48,3 +48,17 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
 VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value) {
     return voxel_setObjectItem(scope->context, scope->things, key, value);
 }
+
+VOXEL_ERRORABLE voxel_removeScopeItem(voxel_Scope* scope, voxel_Thing* key) {
+    voxel_ObjectItem* thisScopeItem = voxel_getObjectItem(scope->things, key);
+
+    if (thisScopeItem) {
+        return voxel_removeObjectItem(scope->context, scope->things, key);
+    }
+
+    if (scope->parentScope) {
+        return voxel_removeScopeItem(scope->context->globalScope, key);
+    }
+
+    return VOXEL_OK;
+}

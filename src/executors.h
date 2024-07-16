@@ -260,7 +260,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, scopeValue));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)getKey.value));
 
-            scopeValue->referenceCount++; // To ensure that builtins don't dereference the thing in the scope
+            if (scopeItem) {
+                scopeValue->referenceCount++; // To ensure that builtins don't dereference the thing in the scope
+            }
 
             break;
         }
@@ -276,6 +278,18 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_MUST((token->type == VOXEL_TOKEN_TYPE_VAR ? voxel_setLocalScopeItem : voxel_setScopeItem)(executor->scope, (voxel_Thing*)setKey.value, setValue));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)setKey.value));
+
+            break;
+        }
+
+        case VOXEL_TOKEN_TYPE_DELETE:
+        {
+            VOXEL_ERRORABLE deleteKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(deleteKey);
+
+            VOXEL_ASSERT(deleteKey.value, VOXEL_ERROR_MISSING_ARG);
+
+            VOXEL_MUST(voxel_removeScopeItem(executor->scope, (voxel_Thing*)deleteKey.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)deleteKey.value));
 
             break;
         }

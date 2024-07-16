@@ -30,6 +30,7 @@ export class StatementNode extends ast.AstNode {
             EnumStatementNode,
             BreakStatementNode,
             ContinueStatementNode,
+            DeleteStatementNode,
             expressions.ExpressionNode
         ], namespace);
 
@@ -719,5 +720,57 @@ export class ContinueStatementNode extends ast.AstNode {
             parentLoop.repeatLoopSymbol.generateCode(options),
             codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
         );
+    }
+}
+
+export class DeleteStatementNode extends ast.AstNode {
+    static HUMAN_READABLE_NAME = "`delete` statement";
+
+    static MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "delete")
+    ];
+
+    keywordToken = null;
+
+    static create(tokens, namespace) {
+        var instance = new this();
+
+        instance.keywordToken = this.eat(tokens);
+
+        instance.expectChildByMatching(tokens, [expressions.ExpressionThingNode], namespace);
+
+        return instance;
+    }
+
+    generateCode(options) {
+        var targetInstance = this.children[0];
+        var target = targetInstance.children.at(-1);
+
+        if (target instanceof expressions.FunctionCallNode) {
+            throw new sources.SourceError("Expected an identifier (cannot delete the return value of a function)", this.keywordToken?.sourceContainer, this.keywordToken?.location);
+        }
+
+        if (target instanceof expressions.IndexAccessorNode || target instanceof expressions.PropertyAccessorNode) {
+            var accessor = targetInstance.children.pop();
+
+            return codeGen.join(
+                targetInstance.generateCode(options),
+                target instanceof expressions.PropertyAccessorNode ? accessor.propertySymbol.generateCode(options) : accessor.children[0].generateCode(options),
+                codeGen.number(2),
+                codeGen.systemCall("Or"),
+                codeGen.bytes(codeGen.vxcTokens.POP)
+            );
+        }
+
+        if (target instanceof expressions.ThingNode) {
+            if (target.value instanceof namespaces.Symbol) {
+                return codeGen.join(
+                    target.value.generateCode(options),
+                    codeGen.bytes(codeGen.vxcTokens.DELETE)
+                );
+            }
+        }
+
+        throw new sources.SourceError("Expected an identifier", this.keywordToken?.sourceContainer, this.keywordToken?.location);
     }
 }

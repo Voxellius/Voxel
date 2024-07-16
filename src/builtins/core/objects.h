@@ -59,11 +59,9 @@ void voxel_builtins_core_removeObjectItem(voxel_Executor* executor) {
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 2) {
-        return voxel_pushNull(executor);
+    if (object && object->type == VOXEL_TYPE_OBJECT && !object->isLocked && argCount >= 2) {
+        voxel_removeObjectItem(executor->context, object, key);
     }
-
-    voxel_removeObjectItem(executor->context, object, key);
 
     voxel_unreferenceThing(executor->context, key);
     voxel_unreferenceThing(executor->context, object);

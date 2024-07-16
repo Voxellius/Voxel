@@ -140,6 +140,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_GET = '?',
     VOXEL_TOKEN_TYPE_SET = ':',
     VOXEL_TOKEN_TYPE_VAR = 'v',
+    VOXEL_TOKEN_TYPE_DELETE = 'D',
     VOXEL_TOKEN_TYPE_POP = 'p',
     VOXEL_TOKEN_TYPE_DUPE = 'd',
     VOXEL_TOKEN_TYPE_OVER = 'o',
@@ -372,6 +373,7 @@ VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope);
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
+VOXEL_ERRORABLE voxel_removeScopeItem(voxel_Scope* scope, voxel_Thing* key);
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
 voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyValueStack);

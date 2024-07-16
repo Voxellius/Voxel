@@ -335,6 +335,7 @@ typedef enum voxel_TokenType {
     VOXEL_TOKEN_TYPE_GET = '?',
     VOXEL_TOKEN_TYPE_SET = ':',
     VOXEL_TOKEN_TYPE_VAR = 'v',
+    VOXEL_TOKEN_TYPE_DELETE = 'D',
     VOXEL_TOKEN_TYPE_POP = 'p',
     VOXEL_TOKEN_TYPE_DUPE = 'd',
     VOXEL_TOKEN_TYPE_OVER = 'o',
@@ -567,6 +568,7 @@ VOXEL_ERRORABLE voxel_destroyScope(voxel_Scope* scope);
 voxel_ObjectItem* voxel_getScopeItem(voxel_Scope* scope, voxel_Thing* key);
 VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
 VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value);
+VOXEL_ERRORABLE voxel_removeScopeItem(voxel_Scope* scope, voxel_Thing* key);
 
 voxel_Executor* voxel_newExecutor(voxel_Context* context);
 voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyValueStack);
@@ -1343,11 +1345,9 @@ void voxel_builtins_core_removeObjectItem(voxel_Executor* executor) {
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 2) {
-        return voxel_pushNull(executor);
+    if (object && object->type == VOXEL_TYPE_OBJECT && !object->isLocked && argCount >= 2) {
+        voxel_removeObjectItem(executor->context, object, key);
     }
-
-    voxel_removeObjectItem(executor->context, object, key);
 
     voxel_unreferenceThing(executor->context, key);
     voxel_unreferenceThing(executor->context, object);
@@ -5030,6 +5030,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_GET:
         case VOXEL_TOKEN_TYPE_SET:
         case VOXEL_TOKEN_TYPE_VAR:
+        case VOXEL_TOKEN_TYPE_DELETE:
         case VOXEL_TOKEN_TYPE_POP:
         case VOXEL_TOKEN_TYPE_DUPE:
         case VOXEL_TOKEN_TYPE_OVER:
@@ -5358,7 +5359,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
             VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, scopeValue));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)getKey.value));
 
-            scopeValue->referenceCount++; // To ensure that builtins don't dereference the thing in the scope
+            if (scopeItem) {
+                scopeValue->referenceCount++; // To ensure that builtins don't dereference the thing in the scope
+            }
 
             break;
         }
@@ -5374,6 +5377,18 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             VOXEL_MUST((token->type == VOXEL_TOKEN_TYPE_VAR ? voxel_setLocalScopeItem : voxel_setScopeItem)(executor->scope, (voxel_Thing*)setKey.value, setValue));
             VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)setKey.value));
+
+            break;
+        }
+
+        case VOXEL_TOKEN_TYPE_DELETE:
+        {
+            VOXEL_ERRORABLE deleteKey = voxel_popFromList(executor->context, executor->valueStack); VOXEL_MUST(deleteKey);
+
+            VOXEL_ASSERT(deleteKey.value, VOXEL_ERROR_MISSING_ARG);
+
+            VOXEL_MUST(voxel_removeScopeItem(executor->scope, (voxel_Thing*)deleteKey.value));
+            VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)deleteKey.value));
 
             break;
         }
@@ -5756,6 +5771,20 @@ VOXEL_ERRORABLE voxel_setScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_T
 
 VOXEL_ERRORABLE voxel_setLocalScopeItem(voxel_Scope* scope, voxel_Thing* key, voxel_Thing* value) {
     return voxel_setObjectItem(scope->context, scope->things, key, value);
+}
+
+VOXEL_ERRORABLE voxel_removeScopeItem(voxel_Scope* scope, voxel_Thing* key) {
+    voxel_ObjectItem* thisScopeItem = voxel_getObjectItem(scope->things, key);
+
+    if (thisScopeItem) {
+        return voxel_removeObjectItem(scope->context, scope->things, key);
+    }
+
+    if (scope->parentScope) {
+        return voxel_removeScopeItem(scope->context->globalScope, key);
+    }
+
+    return VOXEL_OK;
 }
 
 // src/helpers.h
