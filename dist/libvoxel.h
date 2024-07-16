@@ -2170,6 +2170,7 @@ void voxel_builtins_core_isType(voxel_Executor* executor) {
         case '"': isType = thing->type == VOXEL_TYPE_STRING; break;
         case 'O': isType = thing->type == VOXEL_TYPE_OBJECT; break;
         case 'L': isType = thing->type == VOXEL_TYPE_LIST; break;
+        case 'W': isType = thing->type == VOXEL_TYPE_WEAK; break;
     }
 
     voxel_unreferenceThing(executor->context, thing);

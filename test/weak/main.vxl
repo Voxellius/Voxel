@@ -12,6 +12,10 @@ function setRef() {
 
 setRef();
 
+syscall io_out("Is weak reference: ");
+syscall io_out(weakRef is WeakReference);
+syscall io_out("\n");
+
 syscall io_out("After unreference: ");
 syscall io_out(weakRef.deref());
 syscall io_out("\n");

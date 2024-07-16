@@ -184,7 +184,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(/^(?:Boolean|Byte|Function|ClosureFunction|Number|Buffer|String|Object|List)\b/)) {
+        if (matchToken(/^(?:Boolean|Byte|Function|ClosureFunction|Number|Buffer|String|Object|List|WeakReference)\b/)) {
             addToken(TypeNameToken);
             continue;
         }
