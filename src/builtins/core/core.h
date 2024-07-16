@@ -38,6 +38,7 @@ void voxel_builtins_core_getType(voxel_Executor* executor) {
         case VOXEL_TYPE_STRING: thingType[0] = '"'; break;
         case VOXEL_TYPE_OBJECT: thingType[0] = 'O'; break;
         case VOXEL_TYPE_LIST: thingType[0] = 'L'; break;
+        case VOXEL_TYPE_WEAK: thingType[0] = 'W'; break;
     }
 
     voxel_unreferenceThing(executor->context, thing);
@@ -298,6 +299,7 @@ void voxel_builtins_core_isType(voxel_Executor* executor) {
         case '"': isType = thing->type == VOXEL_TYPE_STRING; break;
         case 'O': isType = thing->type == VOXEL_TYPE_OBJECT; break;
         case 'L': isType = thing->type == VOXEL_TYPE_LIST; break;
+        case 'W': isType = thing->type == VOXEL_TYPE_WEAK; break;
     }
 
     voxel_unreferenceThing(executor->context, thing);
@@ -431,6 +433,9 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
     voxel_defineBuiltin(context, ".Lc", &voxel_builtins_core_concatList);
+
+    voxel_defineBuiltin(context, ".W", &voxel_builtins_core_newWeakRef);
+    voxel_defineBuiltin(context, ".Wd", &voxel_builtins_core_dereferenceWeakRef);
 }
 
 #else

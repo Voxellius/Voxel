@@ -30,6 +30,7 @@ include src/builtins/core/buffers.h
 include src/builtins/core/strings.h
 include src/builtins/core/objects.h
 include src/builtins/core/lists.h
+include src/builtins/core/weak.h
 include src/builtins/core/core.h
 include src/builtins/io/io.h
 include src/builtins/threads/threads.h
@@ -46,6 +47,7 @@ include src/buffers.h
 include src/strings.h
 include src/objects.h
 include src/lists.h
+include src/weak.h
 include src/enums.h
 include src/operations.h
 include src/parser.h

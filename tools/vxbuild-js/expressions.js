@@ -2134,7 +2134,8 @@ export class InstanceOperatorExpressionNode extends BinaryOperatorExpressionNode
         "Buffer": "B",
         "String": "\"",
         "Object": "O",
-        "List": "L"
+        "List": "L",
+        "WeakReference": "W"
     };
 
     operatorToken = null;

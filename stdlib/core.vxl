@@ -75,6 +75,12 @@ function callSuperConstructors(object, constructorArgs) {
 }
 
 function getProperty(thing, property) {
+    if (#usedprop(weak) &&& property == #prop(weak)) {
+        return function() {
+            return syscall W(thing);
+        };
+    }
+
     if (syscall T(thing) == "%") {
         if (#usedprop(getEnumEntry) &&& #prop(getEnumEntry)) {
             return function() {
@@ -623,6 +629,14 @@ function getProperty(thing, property) {
         }
 
         return syscall Og(thing, property);
+    }
+
+    if (syscall T(thing) == "W") {
+        if (#usedprop(deref) &&& property == #prop(deref)) {
+            return function() {
+                return syscall Wd(thing);
+            };
+        }
     }
 
     return null;

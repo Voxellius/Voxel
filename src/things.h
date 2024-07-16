@@ -22,6 +22,8 @@ voxel_Thing* voxel_newThing(voxel_Context* context) {
 }
 
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
+    voxel_unreferenceFromWeakRefs(context, thing);
+
     switch (thing->type) {
         case VOXEL_TYPE_NULL: return voxel_destroyNull(thing);
         case VOXEL_TYPE_BOOLEAN: return voxel_destroyBoolean(thing);
@@ -33,6 +35,7 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_STRING: return voxel_destroyString(thing);
         case VOXEL_TYPE_OBJECT: return voxel_destroyObject(context, thing);
         case VOXEL_TYPE_LIST: return voxel_destroyList(context, thing);
+        case VOXEL_TYPE_WEAK: return voxel_destroyWeakRef(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -96,6 +99,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
         case VOXEL_TYPE_OBJECT: return voxel_compareObjects(a, b);
         case VOXEL_TYPE_LIST: return voxel_compareLists(a, b);
+        case VOXEL_TYPE_WEAK: return voxel_compareWeakRefs(a, b);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now\n");
@@ -128,6 +132,7 @@ voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_STRING: return voxel_copyString(context, thing);
         case VOXEL_TYPE_OBJECT: return voxel_copyObject(context, thing);
         case VOXEL_TYPE_LIST: return voxel_copyList(context, thing);
+        case VOXEL_TYPE_WEAK: return voxel_copyWeakRef(context, thing);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning null thing for now\n");
@@ -147,6 +152,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_STRING: return VOXEL_OK_RET(voxel_copyString(context, thing));
         case VOXEL_TYPE_OBJECT: return voxel_objectToVxon(context, thing);
         case VOXEL_TYPE_LIST: return voxel_listToString(context, thing);
+        case VOXEL_TYPE_WEAK: return voxel_weakRefToString(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -174,7 +180,7 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
 
 VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 0));
+        case VOXEL_TYPE_NULL: case VOXEL_TYPE_WEAK: return VOXEL_OK_RET(voxel_newNumberInt(context, 0));
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToNumber(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToNumber(context, thing);
         case VOXEL_TYPE_FUNCTION: case VOXEL_TYPE_CLOSURE: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
@@ -210,6 +216,7 @@ voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
         case VOXEL_TYPE_STRING: return voxel_stringIsTruthy(thing);
         case VOXEL_TYPE_OBJECT: return voxel_objectIsTruthy(thing);
         case VOXEL_TYPE_LIST: return voxel_listIsTruthy(thing);
+        case VOXEL_TYPE_WEAK: return voxel_weakRefIsTruthy(thing);
     }
 
     VOXEL_DEBUG_LOG("Thing truthiness not implemented; returning null thing for now\n");
