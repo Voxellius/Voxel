@@ -1,0 +1,17 @@
+var weakRef;
+
+function setRef() {
+    var value = "hello";
+
+    weakRef = value.weak();
+
+    syscall io_out("Before unreference: ");
+    syscall io_out(weakRef.deref());
+    syscall io_out("\n");
+}
+
+setRef();
+
+syscall io_out("After unreference: ");
+syscall io_out(weakRef.deref());
+syscall io_out("\n");

@@ -222,6 +222,7 @@ typedef struct voxel_Context {
     voxel_Count executorCount;
     struct voxel_Executor* firstExecutor;
     struct voxel_Executor* lastExecutor;
+    struct voxel_Thing* weakRefs;
     struct voxel_Thing* enumLookup;
 } voxel_Context;
 
@@ -235,7 +236,8 @@ typedef enum {
     VOXEL_TYPE_BUFFER,
     VOXEL_TYPE_STRING,
     VOXEL_TYPE_OBJECT,
-    VOXEL_TYPE_LIST
+    VOXEL_TYPE_LIST,
+    VOXEL_TYPE_WEAK
 } voxel_DataType;
 
 typedef struct voxel_Thing {
@@ -536,6 +538,15 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
 VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destination, voxel_Thing* source);
+
+voxel_Thing* voxel_newWeakRef(voxel_Context* context, voxel_Thing* target);
+VOXEL_ERRORABLE voxel_destroyWeakRef(voxel_Context* context, voxel_Thing* thing);
+voxel_Thing* voxel_dereferenceWeakRef(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_compareWeakRefs(voxel_Thing* a, voxel_Thing* b);
+voxel_Thing* voxel_copyWeakRef(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_weakRefToString(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_weakRefIsTruthy(voxel_Thing* thing);
+void voxel_unreferenceFromWeakRefs(voxel_Context* context, voxel_Thing* thing);
 
 VOXEL_ERRORABLE voxel_registerEnumEntry(voxel_Context* context, voxel_Thing* value, voxel_Thing* identifier);
 voxel_Thing* voxel_getEnumEntryFromLookup(voxel_Context* context, voxel_Thing* value);
@@ -1824,6 +1835,38 @@ void voxel_builtins_core_concatList(voxel_Executor* executor) {
 
 #endif
 
+// src/builtins/core/weak.h
+
+#ifdef VOXEL_BUILTINS_CORE
+
+void voxel_builtins_core_newWeakRef(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* thing = voxel_pop(executor);
+
+    if (!thing) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_newWeakRef(executor->context, thing));
+
+    voxel_unreferenceThing(executor->context, thing);
+}
+
+void voxel_builtins_core_dereferenceWeakRef(voxel_Executor* executor) {
+    voxel_Int argCount = voxel_popNumberInt(executor);
+    voxel_Thing* weakRef = voxel_pop(executor);
+
+    if (!weakRef || weakRef->type != VOXEL_TYPE_WEAK) {
+        return voxel_pushNull(executor);
+    }
+
+    voxel_push(executor, voxel_dereferenceWeakRef(executor->context, weakRef));
+
+    voxel_unreferenceThing(executor->context, weakRef);
+}
+
+#endif
+
 // src/builtins/core/core.h
 
 #ifdef VOXEL_BUILTINS_CORE
@@ -1866,6 +1909,7 @@ void voxel_builtins_core_getType(voxel_Executor* executor) {
         case VOXEL_TYPE_STRING: thingType[0] = '"'; break;
         case VOXEL_TYPE_OBJECT: thingType[0] = 'O'; break;
         case VOXEL_TYPE_LIST: thingType[0] = 'L'; break;
+        case VOXEL_TYPE_WEAK: thingType[0] = 'W'; break;
     }
 
     voxel_unreferenceThing(executor->context, thing);
@@ -2259,6 +2303,9 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
     voxel_defineBuiltin(context, ".Lc", &voxel_builtins_core_concatList);
+
+    voxel_defineBuiltin(context, ".W", &voxel_builtins_core_newWeakRef);
+    voxel_defineBuiltin(context, ".Wd", &voxel_builtins_core_dereferenceWeakRef);
 }
 
 #else
@@ -2493,6 +2540,7 @@ voxel_Context* voxel_newContext() {
     context->firstExecutor = VOXEL_NULL;
     context->lastExecutor = VOXEL_NULL;
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
+    context->weakRefs = voxel_newList(context);
     context->enumLookup = voxel_newObject(context);
 
     voxel_newExecutor(context);
@@ -2599,6 +2647,8 @@ voxel_Thing* voxel_newThing(voxel_Context* context) {
 }
 
 VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
+    voxel_unreferenceFromWeakRefs(context, thing);
+
     switch (thing->type) {
         case VOXEL_TYPE_NULL: return voxel_destroyNull(thing);
         case VOXEL_TYPE_BOOLEAN: return voxel_destroyBoolean(thing);
@@ -2610,6 +2660,7 @@ VOXEL_ERRORABLE voxel_destroyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_STRING: return voxel_destroyString(thing);
         case VOXEL_TYPE_OBJECT: return voxel_destroyObject(context, thing);
         case VOXEL_TYPE_LIST: return voxel_destroyList(context, thing);
+        case VOXEL_TYPE_WEAK: return voxel_destroyWeakRef(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -2673,6 +2724,7 @@ voxel_Bool voxel_compareThings(voxel_Thing* a, voxel_Thing* b) {
         case VOXEL_TYPE_STRING: return voxel_compareStrings(a, b);
         case VOXEL_TYPE_OBJECT: return voxel_compareObjects(a, b);
         case VOXEL_TYPE_LIST: return voxel_compareLists(a, b);
+        case VOXEL_TYPE_WEAK: return voxel_compareWeakRefs(a, b);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning `VOXEL_FALSE` for now\n");
@@ -2705,6 +2757,7 @@ voxel_Thing* voxel_copyThing(voxel_Context* context, voxel_Thing* thing) {
         case VOXEL_TYPE_STRING: return voxel_copyString(context, thing);
         case VOXEL_TYPE_OBJECT: return voxel_copyObject(context, thing);
         case VOXEL_TYPE_LIST: return voxel_copyList(context, thing);
+        case VOXEL_TYPE_WEAK: return voxel_copyWeakRef(context, thing);
     }
 
     VOXEL_DEBUG_LOG("Thing comparison not implemented; returning null thing for now\n");
@@ -2724,6 +2777,7 @@ VOXEL_ERRORABLE voxel_thingToString(voxel_Context* context, voxel_Thing* thing) 
         case VOXEL_TYPE_STRING: return VOXEL_OK_RET(voxel_copyString(context, thing));
         case VOXEL_TYPE_OBJECT: return voxel_objectToVxon(context, thing);
         case VOXEL_TYPE_LIST: return voxel_listToString(context, thing);
+        case VOXEL_TYPE_WEAK: return voxel_weakRefToString(context, thing);
     }
 
     VOXEL_THROW(VOXEL_ERROR_NOT_IMPLEMENTED);
@@ -2751,7 +2805,7 @@ VOXEL_ERRORABLE voxel_thingToVxon(voxel_Context* context, voxel_Thing* thing) {
 
 VOXEL_ERRORABLE voxel_thingToNumber(voxel_Context* context, voxel_Thing* thing) {
     switch (thing->type) {
-        case VOXEL_TYPE_NULL: return VOXEL_OK_RET(voxel_newNumberInt(context, 0));
+        case VOXEL_TYPE_NULL: case VOXEL_TYPE_WEAK: return VOXEL_OK_RET(voxel_newNumberInt(context, 0));
         case VOXEL_TYPE_BOOLEAN: return voxel_booleanToNumber(context, thing);
         case VOXEL_TYPE_BYTE: return voxel_byteToNumber(context, thing);
         case VOXEL_TYPE_FUNCTION: case VOXEL_TYPE_CLOSURE: return VOXEL_OK_RET(voxel_newNumberInt(context, 1));
@@ -2787,6 +2841,7 @@ voxel_Bool voxel_thingIsTruthy(voxel_Thing* thing) {
         case VOXEL_TYPE_STRING: return voxel_stringIsTruthy(thing);
         case VOXEL_TYPE_OBJECT: return voxel_objectIsTruthy(thing);
         case VOXEL_TYPE_LIST: return voxel_listIsTruthy(thing);
+        case VOXEL_TYPE_WEAK: return voxel_weakRefIsTruthy(thing);
     }
 
     VOXEL_DEBUG_LOG("Thing truthiness not implemented; returning null thing for now\n");
@@ -4607,6 +4662,105 @@ VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destinatio
     }
 
     return VOXEL_OK_RET(destination);
+}
+
+// src/weak.h
+
+voxel_Thing* voxel_newWeakRef(voxel_Context* context, voxel_Thing* target) {
+    voxel_Thing* thing = voxel_newThing(context); VOXEL_TAG_NEW_THING(VOXEL_TYPE_WEAK);
+
+    thing->type = VOXEL_TYPE_WEAK;
+    thing->value = (void*)target;
+
+    voxel_pushOntoList(context, context->weakRefs, thing);
+
+    voxel_unreferenceThing(context, thing);
+
+    return thing;
+}
+
+VOXEL_ERRORABLE voxel_destroyWeakRef(voxel_Context* context, voxel_Thing* thing) {
+    voxel_List* weakRefsList = (voxel_List*)context->weakRefs->value;
+    voxel_ListItem* currentListItem = weakRefsList->firstItem;
+
+    while (currentListItem) {
+        if (currentListItem->value == thing) {
+            if (currentListItem == weakRefsList->firstItem) {
+                weakRefsList->firstItem = currentListItem->nextItem;
+            }
+
+            if (currentListItem == weakRefsList->lastItem) {
+                weakRefsList->lastItem = currentListItem->previousItem;
+            }
+
+            if (currentListItem->previousItem) {
+                currentListItem->previousItem->nextItem = currentListItem->nextItem;
+            }
+
+            if (currentListItem->nextItem) {
+                currentListItem->nextItem->previousItem = currentListItem->previousItem;
+            }
+
+            VOXEL_FREE(currentListItem); VOXEL_TAG_FREE(voxel_ListItem);
+
+            break;
+        }
+
+        currentListItem = currentListItem->nextItem;
+    }
+
+    VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_WEAK);
+
+    VOXEL_FREE(thing); VOXEL_TAG_FREE(voxel_Thing);
+
+    return VOXEL_OK;
+}
+
+voxel_Thing* voxel_dereferenceWeakRef(voxel_Context* context, voxel_Thing* thing) {
+    if (thing->type != VOXEL_TYPE_WEAK) {
+        return thing;
+    }
+
+    voxel_Thing* dereferencedThing = (voxel_Thing*)thing->value;
+
+    if (dereferencedThing) {
+        dereferencedThing->referenceCount++;
+
+        return dereferencedThing;
+    }
+
+    return voxel_newNull(context);
+}
+
+voxel_Bool voxel_compareWeakRefs(voxel_Thing* a, voxel_Thing* b) {
+    return a->value == b->value;
+}
+
+voxel_Thing* voxel_copyWeakRef(voxel_Context* context, voxel_Thing* thing) {
+    return voxel_newWeakRef(context, (voxel_Thing*)thing->value);
+}
+
+VOXEL_ERRORABLE voxel_weakRefToString(voxel_Context* context, voxel_Thing* thing) {
+    return VOXEL_OK_RET(voxel_newStringTerminated(context, (voxel_Byte*)"(weak)"));
+}
+
+voxel_Bool voxel_weakRefIsTruthy(voxel_Thing* thing) {
+    return thing->value != VOXEL_NULL;
+}
+
+void voxel_unreferenceFromWeakRefs(voxel_Context* context, voxel_Thing* thing) {
+    voxel_List* weakRefsList = (voxel_List*)context->weakRefs->value;
+    voxel_ListItem* currentListItem = weakRefsList->firstItem;
+
+    while (currentListItem) {
+        voxel_Thing* weakRef = currentListItem->value;
+
+        if ((voxel_Thing*)weakRef->value == thing) {
+            weakRef->value = VOXEL_NULL;
+        }
+
+        currentListItem = currentListItem->nextItem;
+    }
 }
 
 // src/enums.h

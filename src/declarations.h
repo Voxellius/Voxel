@@ -27,6 +27,7 @@ typedef struct voxel_Context {
     voxel_Count executorCount;
     struct voxel_Executor* firstExecutor;
     struct voxel_Executor* lastExecutor;
+    struct voxel_Thing* weakRefs;
     struct voxel_Thing* enumLookup;
 } voxel_Context;
 
@@ -40,7 +41,8 @@ typedef enum {
     VOXEL_TYPE_BUFFER,
     VOXEL_TYPE_STRING,
     VOXEL_TYPE_OBJECT,
-    VOXEL_TYPE_LIST
+    VOXEL_TYPE_LIST,
+    VOXEL_TYPE_WEAK
 } voxel_DataType;
 
 typedef struct voxel_Thing {
@@ -341,6 +343,15 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
 VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destination, voxel_Thing* source);
+
+voxel_Thing* voxel_newWeakRef(voxel_Context* context, voxel_Thing* target);
+VOXEL_ERRORABLE voxel_destroyWeakRef(voxel_Context* context, voxel_Thing* thing);
+voxel_Thing* voxel_dereferenceWeakRef(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_compareWeakRefs(voxel_Thing* a, voxel_Thing* b);
+voxel_Thing* voxel_copyWeakRef(voxel_Context* context, voxel_Thing* thing);
+VOXEL_ERRORABLE voxel_weakRefToString(voxel_Context* context, voxel_Thing* thing);
+voxel_Bool voxel_weakRefIsTruthy(voxel_Thing* thing);
+void voxel_unreferenceFromWeakRefs(voxel_Context* context, voxel_Thing* thing);
 
 VOXEL_ERRORABLE voxel_registerEnumEntry(voxel_Context* context, voxel_Thing* value, voxel_Thing* identifier);
 voxel_Thing* voxel_getEnumEntryFromLookup(voxel_Context* context, voxel_Thing* value);
