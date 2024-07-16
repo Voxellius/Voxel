@@ -20,6 +20,7 @@ export const vxcTokens = {
     GET: byte("?"),
     SET: byte(":"),
     VAR: byte("v"),
+    DELETE: byte("D"),
     POP: byte("p"),
     DUPE: byte("d"),
     OVER: byte("o"),

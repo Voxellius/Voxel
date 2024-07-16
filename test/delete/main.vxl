@@ -1,0 +1,44 @@
+var value = "hello";
+
+syscall io_out("Before deletion: ");
+syscall io_out(value);
+syscall io_out("\n");
+
+delete value;
+
+syscall io_out("After deletion: ");
+syscall io_out(value);
+syscall io_out("\n");
+
+var object = {
+    "key": "value1",
+    prop: "value2"
+};
+
+syscall io_out("Before index accessor deletion: ");
+syscall io_out(object["key"]);
+syscall io_out("\n");
+
+delete object["key"];
+
+syscall io_out("After index accessor deletion: ");
+syscall io_out(object["key"]);
+syscall io_out("\n");
+
+syscall io_out("Attempt deletion of non-object index accessor: ");
+syscall io_out(value["key"]);
+syscall io_out("\n");
+
+syscall io_out("Before property accessor deletion: ");
+syscall io_out(object.prop);
+syscall io_out("\n");
+
+delete object.prop;
+
+syscall io_out("After property accessor deletion: ");
+syscall io_out(object.prop);
+syscall io_out("\n");
+
+syscall io_out("Attempt deletion of non-object property accessor: ");
+syscall io_out(value.prop);
+syscall io_out("\n");

@@ -204,6 +204,7 @@ VOXEL_ERRORABLE voxel_nextToken(voxel_Executor* executor, voxel_Position* positi
         case VOXEL_TOKEN_TYPE_GET:
         case VOXEL_TOKEN_TYPE_SET:
         case VOXEL_TOKEN_TYPE_VAR:
+        case VOXEL_TOKEN_TYPE_DELETE:
         case VOXEL_TOKEN_TYPE_POP:
         case VOXEL_TOKEN_TYPE_DUPE:
         case VOXEL_TOKEN_TYPE_OVER:

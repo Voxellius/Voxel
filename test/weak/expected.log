@@ -1,3 +1,5 @@
 Before unreference: hello
 Is weak reference: true
 After unreference: null
+Before global deletion: test
+After global deletion: null

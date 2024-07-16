@@ -1,0 +1,8 @@
+Before deletion: hello
+After deletion: null
+Before index accessor deletion: value1
+After index accessor deletion: null
+Attempt deletion of non-object index accessor: null
+Before property accessor deletion: value2
+After property accessor deletion: null
+Attempt deletion of non-object property accessor: null
