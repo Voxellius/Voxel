@@ -1,3 +1,5 @@
+import io;
+
 import "imported.vxl" as imported;
 import "another.vxl" as another;
 
@@ -15,49 +17,23 @@ import "another.vxl" as another;
 var complexExpression = -5 + 12 * (-3 + 2) * -(5 - 4);
 var thisIsAwesome = true;
 
-// Functions (these ones are mainly for usage later on)
+// Calling library functions
 
-function print(value) {
-    syscall io_out(value);
-}
-
-function println(value) {
-    syscall io_out(value);
-    syscall io_out("\n");
-}
-
-function newList() {
-    return syscall L();
-}
-
-function printList(list) {
-    print("[");
-    print(syscall Lj(list, ", "));
-    println("]");
-}
-
-function removeObjectItem(object, key) {
-    return syscall Or(object, key);
-}
-
-// Calling functions
-
-println("This message was from a .vxl file!");
-println("This time, it was compiled to a .vxc file and loaded by the runtime!");
+io.println("This message was from a .vxl file!");
+io.println("This time, it was compiled to a .vxc file and loaded by the runtime!");
 
 // Imported modules
 
-print("Imported value: ");
-println(imported.valueFromImport);
+io.println("Imported value:", imported.valueFromImport);
 
 imported.functionFromImport();
 
 // `if` statements
 
 if (thisIsAwesome) {
-    println("This is awesome!");
+    io.println("This is awesome!");
 } else {
-    println("This is not awesome!");
+    io.println("This is not awesome!");
 }
 
 // `while` loops
@@ -65,48 +41,42 @@ if (thisIsAwesome) {
 var count = 10;
 
 while (count > 0) {
-    print("Countdown: ");
-    println(count);
+    io.println("Countdown:", count);
 
     count = count - 1;
 }
 
-// More functions
+// Functions
 
 function hello() {
-    println("Hello from another function!");
+    io.println("Hello from another function!");
 }
 
 function test(value, otherValue) {
-    print("This is called from a function with arguments passed: ");
-    print(value);
-    print(" and ");
-    println(otherValue);
+    io.println("This is called from a function with arguments passed:", value, "and", otherValue);
 
     hello();
 
     return otherValue + 1;
 }
 
-print("Here is the result of a complex expression: ");
-println(complexExpression);
+io.println("Here is the result of a complex expression:", complexExpression);
 
 var returned = test("I am a passed-in value!", 2 + 3);
 
-print("Returned value: ");
-println(returned);
+io.println("Returned value:", returned);
 
 // `for` loops
 
 for (var i = 1; i <= 15; i = i + 1) {
     if (i % 3 == 0 && i % 5 == 0) {
-        println("Fizzbuzz!");
+        io.println("Fizzbuzz!");
     } else if (i % 3 == 0) {
-        println("Fizz!");
+        io.println("Fizz!");
     } else if (i % 5 == 0) {
-        println("Buzz!");
+        io.println("Buzz!");
     } else {
-        println(i);
+        io.println(i);
     }
 }
 
@@ -118,93 +88,66 @@ function getSomeList() {
     return someList;
 }
 
+function getListString(list) {
+    return "[" + list.join(", ") + "]";
+}
+
 var list = ["a", "b", "c"];
 
-println("Created new list:");
-printList(list);
+io.println("Created new list:", getListString(list));
 
-print("Pushing item; new length is: ");
-print(list.push("d"));
-println("");
+io.print("Pushing item; new length is: ");
+io.print(list.push("d"));
+io.println("");
 
-printList(list);
+io.println(getListString(list));
 
-print("Getting item 2: ");
-print(list[2]);
-println("");
+io.println("Getting item 2:", list[2]);
+io.println("Popping item:", list.pop());
+io.println("Popping item again:", list.pop());
+io.println("Remaining list:", getListString(list));
 
-print("Popping item: ");
-print(list.pop());
-println("");
-
-print("Popping item again: ");
-print(list.pop());
-println("");
-
-println("Remaining list:");
-printList(list);
-
-print("Some list: ");
-printList(getSomeList());
+io.println("Some list:", getListString(getSomeList()));
 
 getSomeList()[1] = 8;
 
-print("Some list again: ");
-printList(getSomeList());
-
-print("List length: ");
-println(list.length);
-
-print("Some list length: ");
-println(getSomeList().length);
+io.println("Some list again:", getListString(getSomeList()));
+io.println("List length:", list.length);
+io.println("Some list length:", getSomeList().length);
 
 // Objects
 
 var object = {};
 
-print("Created new object: ");
-println(object);
+io.println("Created new object:", object);
 
-print("Getting object length: ");
-println(object.length);
+io.println("Getting object length:", object.length);
 
 object["test"] = "hello";
 object["number"] = 123;
 
 object.isWorking = true;
 
-print("Set some values: ");
-println(object);
+io.println("Set some values:", object);
 
-print("Getting number using index accessor: ");
-println(object["number"]);
-
-print("Getting number using property accessor: ");
-println(object.number);
-
-print("Getting item not in object: ");
-println(object["nothing"]);
-
-print("Getting object length: ");
-println(object.length);
+io.println("Getting number using index accessor:", object["number"]);
+io.println("Getting number using property accessor:", object.number);
+io.println("Getting item not in object:", object["nothing"]);
+io.println("Getting object length:", object.length);
 
 object["number"] = 456;
 
-print("Setting number using index accessor: ");
-println(object);
+io.println("Setting number using index accessor:", object);
 
 object.number = 789;
 
-print("Setting number using property accessor: ");
-println(object);
+io.println("Setting number using property accessor:", object);
 
-removeObjectItem(object, "number");
+delete object["number"];
 
-print("Getting object length: ");
-println(object.length);
+io.println("Getting object length:", object.length);
 
-print("Removing number: ");
-println(object);
+io.println("Removing number:", object);
 
 var structured = {
     hello: {
@@ -216,23 +159,20 @@ var structured = {
     value: 4
 };
 
-print("Object initialiser syntax: ");
-println(structured);
+io.println("Object initialiser syntax:", structured);
 
 // Methods
 
 function method() {
-    print("Object value: ");
-    println(this.value);
+    io.println("Object value:", this.value);
 
     this.value = 5;
 }
 
 structured.method = method;
 
-println("Calling method within object:");
+io.println("Calling method within object:");
 
 structured.method();
 
-print("New value: ");
-println(structured.value);
+io.println("New value:", structured.value);

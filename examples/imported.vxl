@@ -1,10 +1,12 @@
+import io;
+
 import "another.vxl" as another;
 import "hello.vxl" as hello;
 
-syscall io_out("This was imported!\n");
+io.println("This was imported!");
 
 var valueFromImport = "this value has been exported";
 
 function functionFromImport() {
-    hello.println("This function was called from an imported module!");
+    io.println("This function was called from an imported module!");
 }

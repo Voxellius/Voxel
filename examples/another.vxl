@@ -1,1 +1,3 @@
-syscall io_out("This was also imported!\n");
+import io;
+
+io.println("This was also imported!");
