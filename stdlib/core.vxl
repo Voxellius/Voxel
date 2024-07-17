@@ -1,4 +1,3 @@
-
 function instantiate(object, constructorArgs) {
     var instance = {};
     var prototypes = syscall Op(instance);
