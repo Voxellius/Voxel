@@ -16,6 +16,9 @@ To create buffers with a computed size at runtime, the `create(size: Number, val
 ### `Buffer`
 The buffer data type.
 
+#### `toString(): String`
+Convert the buffer to a [string](strings.md).
+
 #### `size: Number`
 The number of bytes in the buffer.
 

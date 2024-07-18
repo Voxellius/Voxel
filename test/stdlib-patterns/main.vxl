@@ -6,6 +6,11 @@ function testMatch(input, pattern) {
 
     io.println("Input:", input);
     io.println("Matches:", !!result.matches);
+
+    if (result.captures) {
+        io.println("Captures:", result.captures);
+    }
+
     io.println();
 }
 
@@ -56,6 +61,25 @@ testMatch("to infinity and beyond", [
     patterns.repeat(0, infinity, [
         patterns.any([
             patterns.ALPHA,
+            patterns.string(" ")
+        ])
+    ])
+]);
+
+testMatch("capture first, capture second, final", [
+    patterns.repeat(0, infinity, [
+        patterns.string("capture "),
+        patterns.capture("multiple", [patterns.ALPHANUMERIC_STRING]),
+        patterns.string(", ")
+    ]),
+    patterns.capture("last", [patterns.ALPHANUMERIC_STRING])
+]);
+
+testMatch("ab cd ef gh", [
+    patterns.repeat(0, infinity, [
+        patterns.capture("first", [patterns.ALPHANUMERIC]),
+        patterns.capture("last", [patterns.ALPHANUMERIC]),
+        patterns.maybe([
             patterns.string(" ")
         ])
     ])

@@ -1732,6 +1732,13 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         );
     }
 
+    findDescendantsOfTypes(nodeTypes, notParentOf = []) {
+        return [
+            ...super.findDescendantsOfTypes(nodeTypes, notParentOf),
+            ...this.targetInstance.findDescendantsOfTypes(nodeTypes, notParentOf)
+        ];
+    }
+
     describe() {
         var parts = super.describe();
         var target = this.targetInstance.children[0];

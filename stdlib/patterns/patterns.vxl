@@ -20,11 +20,11 @@ function pattern(selectors) {
 
             currentIndex = result.index;
 
-            (result.captures ?? {}).forEach(function(captureList, key) {
-                captures[key] ??= [];
+            (result.captures ?? {}).forEach(function(captureList, name) {
+                captures[name] ??= [];
 
                 captureList.forEach(function(value) {
-                    captures[key].push(value);
+                    captures[name].push(value);
                 });
             });
         }
@@ -93,6 +93,16 @@ function byteRangeBetween(start, end) {
     };
 }
 
+function maybe(selectors) {
+    return function(input, index) {
+        var result = pattern(selectors)(input, index);
+
+        result.matches = true;
+
+        return result;
+    };
+}
+
 function repeat(min, max, selectors) {
     return function(input, index) {
         var result;
@@ -112,11 +122,11 @@ function repeat(min, max, selectors) {
 
             currentIndex = result.index;
 
-            (result.captures ?? {}).forEach(function(captureList, key) {
-                captures[key] ??= [];
+            (result.captures ?? {}).forEach(function(captureList, name) {
+                captures[name] ??= [];
 
                 captureList.forEach(function(value) {
-                    captures[key].push(value);
+                    captures[name].push(value);
                 });
             });
         }
@@ -125,13 +135,38 @@ function repeat(min, max, selectors) {
     };
 }
 
+function capture(name, selectors) {
+    return function(input, index) {
+        var result = pattern(selectors)(input, &index);
+
+        if (result.matches) {
+            result.captures ??= {};
+            result.captures[name] ??= [];
+
+            result.captures[name].push(input.section(index, result.index));
+        }
+
+        return result;
+    };
+}
+
 function match(input, selectors) {
+    var inputWasString = input is String;
+
     input = _stringToBuffer(input);
 
     var result = pattern(selectors)(input, 0);
 
     if (!result.matches ||| result.index != input.size) {
         return null;
+    }
+
+    if (result.captures &&& inputWasString) {
+        result.captures.forEach(function(captureList, name) {
+            result.captures[name] = captureList.map(function(value) {
+                return value.toString();
+            });
+        });
     }
 
     return result;
@@ -155,4 +190,8 @@ function DIGIT(...args) {
 
 function ALPHANUMERIC(...args) {
     return any([ALPHA, DIGIT])(...args);
+}
+
+function ALPHANUMERIC_STRING(...args) {
+    return repeat(1, infinity, [ALPHANUMERIC])(...args);
 }

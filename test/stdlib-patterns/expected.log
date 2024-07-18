@@ -25,3 +25,11 @@ Matches: false
 Input: to infinity and beyond
 Matches: true
 
+Input: capture first, capture second, final
+Matches: true
+Captures: {"multiple":["first","second"],"last":["final"]}
+
+Input: ab cd ef gh
+Matches: true
+Captures: {"first":["a","c","e","g"],"last":["b","d","f","h"]}
+
