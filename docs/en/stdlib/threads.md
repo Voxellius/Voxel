@@ -55,6 +55,7 @@ The thread has finished execution and a return value may be available.
 The thread has been closed and is no longer able to run.
 
 ### `enum ThreadError`
+Errors that methods in the `Thread` class may throw.
 
 #### `THREAD_HAS_CLOSED`
 The action cannot be performed on the thread as it has been closed.
