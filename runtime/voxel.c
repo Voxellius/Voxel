@@ -29,9 +29,13 @@ int main(int argc, char* argv[]) {
     if (fread(data, sizeof(char), size, fp) != size) {
         fprintf(stderr, "Error reading file contents\n");
         fclose(fp);
+
         VOXEL_FREE(data);
+
         return 1;
     }
+
+    data[size] = '\0';
 
     context->code = data;
     context->codeSize = size;
