@@ -188,6 +188,10 @@ function DIGIT(...args) {
     return byteRangeBetween(Byte("0"), Byte("9"))(...args);
 }
 
+function INTEGER(...args) {
+    return repeat(1, infinity, [DIGIT])(...args);
+}
+
 function ALPHANUMERIC(...args) {
     return any([ALPHA, DIGIT])(...args);
 }

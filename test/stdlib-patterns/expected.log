@@ -22,6 +22,9 @@ Matches: true
 Input: 123456
 Matches: false
 
+Input: 789
+Matches: true
+
 Input: to infinity and beyond
 Matches: true
 

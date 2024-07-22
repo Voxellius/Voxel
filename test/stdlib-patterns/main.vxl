@@ -57,6 +57,10 @@ testMatch("123456", [
     ])
 ]);
 
+testMatch("789", [
+    patterns.INTEGER
+]);
+
 testMatch("to infinity and beyond", [
     patterns.repeat(0, infinity, [
         patterns.any([
