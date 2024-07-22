@@ -136,7 +136,7 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
         var process = command.spawn();
 
         note(`Beginning warmup for test: ${TEST_NAME}`);
-        await delay(10_000);
+        await delay(14_000);
 
         note(`Profiling initial memory usage for test: ${TEST_NAME}`);
 
