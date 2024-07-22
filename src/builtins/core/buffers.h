@@ -1,7 +1,8 @@
 #ifdef VOXEL_BUILTINS_CORE
 
 void voxel_builtins_core_newBuffer(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Int bufferSize = voxel_popNumberInt(executor);
 
     #ifdef VOXEL_MAX_BUFFER_INIT_SIZE
@@ -11,35 +12,35 @@ void voxel_builtins_core_newBuffer(voxel_Executor* executor) {
     #endif
 
     voxel_push(executor, voxel_newBuffer(executor->context, bufferSize, VOXEL_NULL));
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_bufferToString(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* buffer = voxel_pop(executor);
 
-    if (!buffer || buffer->type != VOXEL_TYPE_BUFFER || argCount < 1) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(buffer, VOXEL_TYPE_BUFFER));
 
     VOXEL_ERRORABLE stringResult = voxel_bufferToString(executor->context, buffer);
 
-    if (VOXEL_IS_ERROR(stringResult)) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(stringResult));
 
     voxel_push(executor, (voxel_Thing*)stringResult.value);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, buffer);
 }
 
 void voxel_builtins_core_getBufferByte(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* bufferThing = voxel_pop(executor);
 
-    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(bufferThing, VOXEL_TYPE_BUFFER));
 
     voxel_Buffer* buffer = (voxel_Buffer*)bufferThing->value;
 
@@ -47,30 +48,31 @@ void voxel_builtins_core_getBufferByte(voxel_Executor* executor) {
         index = buffer->size + index;
     }
 
-    if (index < 0 || index >= buffer->size) {
-        voxel_unreferenceThing(executor->context, bufferThing);
+    if (index < 0 && index >= buffer->size) {
+        voxel_pushNull(executor);
 
-        return voxel_pushNull(executor);
+        goto voxel_finally;
     }
 
     voxel_Byte byte = buffer->value[index];
 
-    voxel_unreferenceThing(executor->context, bufferThing);
-
     voxel_push(executor, voxel_newByte(executor->context, byte));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, bufferThing);
 }
 
 void voxel_builtins_core_setBufferByte(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* bufferThing = voxel_pop(executor);
     voxel_Thing* value = voxel_popByte(executor);
 
     voxel_push(executor, value);
 
-    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || bufferThing->isLocked || argCount < 3) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(bufferThing, VOXEL_TYPE_BUFFER) && !bufferThing->isLocked);
 
     voxel_Buffer* buffer = (voxel_Buffer*)bufferThing->value;
 
@@ -78,30 +80,29 @@ void voxel_builtins_core_setBufferByte(voxel_Executor* executor) {
         index = buffer->size + index;
     }
 
-    if (index < 0 || index >= buffer->size) {
-        voxel_unreferenceThing(executor->context, bufferThing);
-
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(index >= 0 && index < buffer->size);
 
     buffer->value[index] = (voxel_Byte)(voxel_IntPtr)value->value;
-
-    voxel_unreferenceThing(executor->context, bufferThing);
 
     value->referenceCount++;
 
     voxel_push(executor, value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, bufferThing);
 }
 
 void voxel_builtins_core_getBufferSize(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* buffer = voxel_pop(executor);
 
-    if (!buffer || buffer->type != VOXEL_TYPE_BUFFER) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(buffer, VOXEL_TYPE_BUFFER));
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getBufferSize(buffer)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, buffer);
 }
@@ -114,12 +115,14 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
     voxel_Thing* bufferThing = voxel_pop(executor);
 
     if (
+        argCount < 4 ||
         !byteThing || !bufferThing ||
         byteThing->type != VOXEL_TYPE_BYTE || bufferThing->type != VOXEL_TYPE_BUFFER ||
-        bufferThing->isLocked ||
-        argCount < 4
+        bufferThing->isLocked
     ) {
-        return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+
+        goto voxel_finally;
     }
 
     voxel_Byte byte = (voxel_Byte)(voxel_IntPtr)byteThing->value;
@@ -134,10 +137,9 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
     }
 
     if (start < 0 || end < 0 || start >= end || start >= buffer->size) {
-        voxel_unreferenceThing(executor->context, byteThing);
-        voxel_unreferenceThing(executor->context, bufferThing);
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
 
-        return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+        goto voxel_finally;
     }
 
     voxel_Count writeCount = 0;
@@ -160,10 +162,12 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
         writeCount++;
     }
 
+    voxel_push(executor, voxel_newNumberInt(executor->context, start));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, byteThing);
     voxel_unreferenceThing(executor->context, bufferThing);
-
-    voxel_push(executor, voxel_newNumberInt(executor->context, start));
 }
 
 void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
@@ -175,23 +179,24 @@ void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
     voxel_Thing* sourceBufferThing = voxel_pop(executor);
 
     if (
+        argCount < 5 ||
         !sourceBufferThing || !destinationBufferThing ||
         sourceBufferThing->type != VOXEL_TYPE_BUFFER ||
         destinationBufferThing->type != VOXEL_TYPE_BUFFER ||
-        destinationBufferThing->isLocked ||
-        argCount < 5
+        destinationBufferThing->isLocked
     ) {
-        return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+
+        goto voxel_finally;
     }
 
     voxel_Buffer* sourceBuffer = (voxel_Buffer*)sourceBufferThing->value;
     voxel_Buffer* destinationBuffer = (voxel_Buffer*)destinationBufferThing->value;
 
     if (start < 0 || end < 0 || offset < 0 || start >= end || start >= sourceBuffer->size || offset >= destinationBuffer->size) {
-        voxel_unreferenceThing(executor->context, sourceBufferThing);
-        voxel_unreferenceThing(executor->context, destinationBufferThing);
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
 
-        return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+        goto voxel_finally;
     }
 
     voxel_Count copyCount = 0;
@@ -214,10 +219,12 @@ void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
         copyCount++;
     }
 
+    voxel_push(executor, voxel_newNumberInt(executor->context, start));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, sourceBufferThing);
     voxel_unreferenceThing(executor->context, destinationBufferThing);
-
-    voxel_push(executor, voxel_newNumberInt(executor->context, start));
 }
 
 #endif

@@ -1,16 +1,19 @@
 #ifdef VOXEL_BUILTINS_IO
 
 void voxel_builtins_io_out(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (thing) {
-        voxel_logThing(executor->context, thing);
+    VOXEL_REQUIRE(thing);
 
-        voxel_unreferenceThing(executor->context, thing);
-    }
+    voxel_logThing(executor->context, thing);
 
     voxel_pushNull(executor);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, thing);
 }
 
 void voxel_builtins_io(voxel_Context* context) {

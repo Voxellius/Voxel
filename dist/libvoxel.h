@@ -61,6 +61,31 @@ typedef VOXEL_INTPTR voxel_IntPtr;
     #define VOXEL_TAG_REALLOC(name, oldSize, newSize) VOXEL_NOOP
 #endif
 
+#ifdef VOXEL_LOG_BUILTIN_FAULTS
+    #define VOXEL_BUILTINS_LOG(text) VOXEL_ERROR_MESSAGE(text, "", __func__, __FILE__, __LINE__)
+#else
+    #define VOXEL_BUILTINS_LOG(text) VOXEL_NOOP
+#endif
+
+#define VOXEL_FAIL() do { \
+        voxel_pushNull(executor); \
+        VOXEL_BUILTINS_LOG("Voxel builtin fault"); \
+        goto voxel_finally; \
+    } while (0)
+
+#define VOXEL_REQUIRE(condition) if (!(condition)) { \
+        voxel_pushNull(executor); \
+        VOXEL_BUILTINS_LOG("Voxel builtin requirement fault"); \
+        goto voxel_finally; \
+    }
+
+#define VOXEL_ARGC(count) if (voxel_popNumberInt(executor) != (count)) { \
+        VOXEL_BUILTINS_LOG("Voxel builtin arg count fault"); \
+        return; \
+    }
+
+#define VOXEL_ARG(thing, requiredType) (thing && thing->type == requiredType)
+
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size) {
     for (voxel_Count i = 0; i < size; i++) {
         destination[i] = source[i];
@@ -646,7 +671,8 @@ _VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_xor, ^);
 _VOXEL_BUILTINS_CORE_NUMBER_INT_OPERATOR(voxel_builtins_core_bitwise_or, |);
 
 void voxel_builtins_core_add(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* b = voxel_pop(executor);
     voxel_Thing* a = voxel_pop(executor);
 
@@ -654,123 +680,125 @@ void voxel_builtins_core_add(voxel_Executor* executor) {
         VOXEL_ERRORABLE aStringResult = voxel_thingToString(executor->context, a);
         VOXEL_ERRORABLE bStringResult = voxel_thingToString(executor->context, b);
 
-        if (VOXEL_IS_ERROR(aStringResult) || VOXEL_IS_ERROR(bStringResult)) {
-            return voxel_pushNull(executor);
-        }
+        VOXEL_REQUIRE(!VOXEL_IS_ERROR(aStringResult) && !VOXEL_IS_ERROR(bStringResult));
 
         voxel_Thing* aString = (voxel_Thing*)aStringResult.value;
         voxel_Thing* bString = (voxel_Thing*)bStringResult.value;
-
-        voxel_unreferenceThing(executor->context, a);
-        voxel_unreferenceThing(executor->context, b);
 
         voxel_push(executor, voxel_concatenateStrings(executor->context, aString, bString));
 
         voxel_unreferenceThing(executor->context, aString);
         voxel_unreferenceThing(executor->context, bString);
 
-        return;
+        goto voxel_finally;
     }
 
     voxel_Float aFloat = voxel_getNumberFloat(a);
     voxel_Float bFloat = voxel_getNumberFloat(b);
 
+    voxel_push(executor, voxel_newNumberFloat(executor->context, aFloat + bFloat));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, a);
     voxel_unreferenceThing(executor->context, b);
-
-    voxel_push(executor, voxel_newNumberFloat(executor->context, aFloat + bFloat));
 }
 
 void voxel_builtins_core_modulo(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int b = voxel_popNumberInt(executor);
     voxel_Int a = voxel_popNumberInt(executor);
 
-    if (b == 0) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(b != 0);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, a % b));
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_bitwiseUnsignedRightShift(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* b = voxel_popNumber(executor);
     voxel_Thing* a = voxel_popNumber(executor);
 
-    if (!a || !b) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(a && b);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, (voxel_UInt)voxel_getNumberInt(a) >> voxel_getNumberInt(b)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, a);
     voxel_unreferenceThing(executor->context, b);
 }
 
 void voxel_builtins_core_equal(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* b = voxel_pop(executor);
     voxel_Thing* a = voxel_pop(executor);
 
-    if (!a || !b) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(a && b);
 
     voxel_push(executor, voxel_newBoolean(executor->context, voxel_compareThings(a, b)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, a);
     voxel_unreferenceThing(executor->context, b);
 }
 
 void voxel_builtins_core_notEqual(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* b = voxel_pop(executor);
     voxel_Thing* a = voxel_pop(executor);
 
-    if (!a || !b) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(a && b);
 
     voxel_push(executor, voxel_newBoolean(executor->context, !voxel_compareThings(a, b)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, a);
     voxel_unreferenceThing(executor->context, b);
 }
 
 void voxel_builtins_core_negate(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* value = voxel_popNumber(executor);
 
-    if (!value) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(value);
 
     voxel_push(executor, voxel_newNumberFloat(executor->context, -voxel_getNumberFloat(value)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, value);
 }
 
 void voxel_builtins_core_bitwiseNot(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* value = voxel_popNumber(executor);
 
-    if (!value) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(value);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, ~voxel_getNumberInt(value)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, value);
 }
 
 void voxel_builtins_core_increment(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_popNumber(executor);
 
-    if (!thing || thing->isLocked) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(thing && !thing->isLocked);
 
     voxel_Number* number = (voxel_Number*)thing->value;
 
@@ -785,15 +813,16 @@ void voxel_builtins_core_increment(voxel_Executor* executor) {
     }
 
     voxel_push(executor, thing);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_decrement(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_popNumber(executor);
 
-    if (!thing || thing->isLocked) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(thing && !thing->isLocked);
 
     voxel_Number* number = (voxel_Number*)thing->value;
 
@@ -808,6 +837,8 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
     }
 
     voxel_push(executor, thing);
+
+    voxel_finally:
 }
 
 #endif
@@ -817,7 +848,8 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
 #ifdef VOXEL_BUILTINS_CORE
 
 void voxel_builtins_core_newBuffer(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Int bufferSize = voxel_popNumberInt(executor);
 
     #ifdef VOXEL_MAX_BUFFER_INIT_SIZE
@@ -827,35 +859,35 @@ void voxel_builtins_core_newBuffer(voxel_Executor* executor) {
     #endif
 
     voxel_push(executor, voxel_newBuffer(executor->context, bufferSize, VOXEL_NULL));
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_bufferToString(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* buffer = voxel_pop(executor);
 
-    if (!buffer || buffer->type != VOXEL_TYPE_BUFFER || argCount < 1) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(buffer, VOXEL_TYPE_BUFFER));
 
     VOXEL_ERRORABLE stringResult = voxel_bufferToString(executor->context, buffer);
 
-    if (VOXEL_IS_ERROR(stringResult)) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(stringResult));
 
     voxel_push(executor, (voxel_Thing*)stringResult.value);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, buffer);
 }
 
 void voxel_builtins_core_getBufferByte(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* bufferThing = voxel_pop(executor);
 
-    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(bufferThing, VOXEL_TYPE_BUFFER));
 
     voxel_Buffer* buffer = (voxel_Buffer*)bufferThing->value;
 
@@ -863,30 +895,31 @@ void voxel_builtins_core_getBufferByte(voxel_Executor* executor) {
         index = buffer->size + index;
     }
 
-    if (index < 0 || index >= buffer->size) {
-        voxel_unreferenceThing(executor->context, bufferThing);
+    if (index < 0 && index >= buffer->size) {
+        voxel_pushNull(executor);
 
-        return voxel_pushNull(executor);
+        goto voxel_finally;
     }
 
     voxel_Byte byte = buffer->value[index];
 
-    voxel_unreferenceThing(executor->context, bufferThing);
-
     voxel_push(executor, voxel_newByte(executor->context, byte));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, bufferThing);
 }
 
 void voxel_builtins_core_setBufferByte(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* bufferThing = voxel_pop(executor);
     voxel_Thing* value = voxel_popByte(executor);
 
     voxel_push(executor, value);
 
-    if (!bufferThing || bufferThing->type != VOXEL_TYPE_BUFFER || bufferThing->isLocked || argCount < 3) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(bufferThing, VOXEL_TYPE_BUFFER) && !bufferThing->isLocked);
 
     voxel_Buffer* buffer = (voxel_Buffer*)bufferThing->value;
 
@@ -894,30 +927,29 @@ void voxel_builtins_core_setBufferByte(voxel_Executor* executor) {
         index = buffer->size + index;
     }
 
-    if (index < 0 || index >= buffer->size) {
-        voxel_unreferenceThing(executor->context, bufferThing);
-
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(index >= 0 && index < buffer->size);
 
     buffer->value[index] = (voxel_Byte)(voxel_IntPtr)value->value;
-
-    voxel_unreferenceThing(executor->context, bufferThing);
 
     value->referenceCount++;
 
     voxel_push(executor, value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, bufferThing);
 }
 
 void voxel_builtins_core_getBufferSize(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* buffer = voxel_pop(executor);
 
-    if (!buffer || buffer->type != VOXEL_TYPE_BUFFER) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(buffer, VOXEL_TYPE_BUFFER));
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getBufferSize(buffer)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, buffer);
 }
@@ -930,12 +962,14 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
     voxel_Thing* bufferThing = voxel_pop(executor);
 
     if (
+        argCount < 4 ||
         !byteThing || !bufferThing ||
         byteThing->type != VOXEL_TYPE_BYTE || bufferThing->type != VOXEL_TYPE_BUFFER ||
-        bufferThing->isLocked ||
-        argCount < 4
+        bufferThing->isLocked
     ) {
-        return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+
+        goto voxel_finally;
     }
 
     voxel_Byte byte = (voxel_Byte)(voxel_IntPtr)byteThing->value;
@@ -950,10 +984,9 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
     }
 
     if (start < 0 || end < 0 || start >= end || start >= buffer->size) {
-        voxel_unreferenceThing(executor->context, byteThing);
-        voxel_unreferenceThing(executor->context, bufferThing);
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
 
-        return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+        goto voxel_finally;
     }
 
     voxel_Count writeCount = 0;
@@ -976,10 +1009,12 @@ void voxel_builtins_core_fillBuffer(voxel_Executor* executor) {
         writeCount++;
     }
 
+    voxel_push(executor, voxel_newNumberInt(executor->context, start));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, byteThing);
     voxel_unreferenceThing(executor->context, bufferThing);
-
-    voxel_push(executor, voxel_newNumberInt(executor->context, start));
 }
 
 void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
@@ -991,23 +1026,24 @@ void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
     voxel_Thing* sourceBufferThing = voxel_pop(executor);
 
     if (
+        argCount < 5 ||
         !sourceBufferThing || !destinationBufferThing ||
         sourceBufferThing->type != VOXEL_TYPE_BUFFER ||
         destinationBufferThing->type != VOXEL_TYPE_BUFFER ||
-        destinationBufferThing->isLocked ||
-        argCount < 5
+        destinationBufferThing->isLocked
     ) {
-        return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+
+        goto voxel_finally;
     }
 
     voxel_Buffer* sourceBuffer = (voxel_Buffer*)sourceBufferThing->value;
     voxel_Buffer* destinationBuffer = (voxel_Buffer*)destinationBufferThing->value;
 
     if (start < 0 || end < 0 || offset < 0 || start >= end || start >= sourceBuffer->size || offset >= destinationBuffer->size) {
-        voxel_unreferenceThing(executor->context, sourceBufferThing);
-        voxel_unreferenceThing(executor->context, destinationBufferThing);
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
 
-        return voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+        goto voxel_finally;
     }
 
     voxel_Count copyCount = 0;
@@ -1030,10 +1066,12 @@ void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
         copyCount++;
     }
 
+    voxel_push(executor, voxel_newNumberInt(executor->context, start));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, sourceBufferThing);
     voxel_unreferenceThing(executor->context, destinationBufferThing);
-
-    voxel_push(executor, voxel_newNumberInt(executor->context, start));
 }
 
 #endif
@@ -1043,100 +1081,103 @@ void voxel_builtins_core_copyBufferInto(voxel_Executor* executor) {
 #ifdef VOXEL_BUILTINS_CORE
 
 void voxel_builtins_core_stringToNumber(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* string = voxel_popString(executor);
 
-    if (!string) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(string);
 
     VOXEL_ERRORABLE result = voxel_stringToNumber(executor->context, string);
 
-    voxel_unreferenceThing(executor->context, string);
-
-    if (VOXEL_IS_ERROR(result)) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(result));
 
     voxel_push(executor, (voxel_Thing*)result.value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_stringToBuffer(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* string = voxel_popString(executor);
 
-    if (!string) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(string);
 
     voxel_push(executor, voxel_stringToBuffer(executor->context, string));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_getStringSize(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* string = voxel_popString(executor);
 
-    if (!string) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(string);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getStringSize(string)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_getStringLength(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* string = voxel_popString(executor);
 
-    if (!string) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(string);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getStringLength(string)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_stringCharIndexToByteIndex(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int charIndex = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_popString(executor);
 
-    if (!string) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(string);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, (voxel_Int)voxel_stringCharIndexToByteIndex(string, charIndex)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_getStringByteRange(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Int end = voxel_popNumberInt(executor);
     voxel_Int start = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_popString(executor);
 
-    if (!string) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(string);
 
     voxel_push(executor, voxel_getStringByteRange(executor->context, string, start, end));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_getStringChar(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_popString(executor);
 
-    if (!string) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(string);
 
     if (index < 0) {
         index = voxel_getStringLength(string) + index;
@@ -1151,17 +1192,18 @@ void voxel_builtins_core_getStringChar(voxel_Executor* executor) {
 
     voxel_push(executor, voxel_getStringByteRange(executor->context, string, start, end));
 
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_getStringByte(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_popString(executor);
 
-    if (!string) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(string);
 
     voxel_String* stringValue = (voxel_String*)string->value;
 
@@ -1174,108 +1216,128 @@ void voxel_builtins_core_getStringByte(voxel_Executor* executor) {
     }
 
     if (index >= stringValue->size) {
-        voxel_unreferenceThing(executor->context, string);
+        voxel_pushNull(executor);
 
-        return voxel_pushNull(executor);
+        goto voxel_finally;
     }
 
-
     voxel_push(executor, voxel_newByte(executor->context, stringValue->value[index]));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, string);
 }
 
 void voxel_builtins_core_appendToString(voxel_Executor* executor) {
+    VOXEL_ARGC(2);
+
     voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* appendString = voxel_popString(executor);
     voxel_Thing* baseString = voxel_peek(executor, 0); // Keep as return value
 
-    if (!appendString || !baseString || baseString->type != VOXEL_TYPE_STRING || baseString->isLocked || argCount < 2) {
-        return;
+    if (!appendString || !baseString || baseString->type != VOXEL_TYPE_STRING || baseString->isLocked) {
+        goto voxel_finally;
     }
 
     voxel_appendToString(executor->context, baseString, appendString);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, appendString);
 }
 
 void voxel_builtins_core_reverseString(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 1) {
-        return;
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked) {
+        goto voxel_finally;
     }
 
     voxel_reverseString(executor->context, string);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_cutStringStart(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int size = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
-        return;
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked) {
+        goto voxel_finally;
     }
 
     if (size < 0) {
-        return;
+        goto voxel_finally;
     }
 
     voxel_cutStringStart(executor->context, string, size);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_cutStringEnd(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int size = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
-        return;
+    if (!string || string->type != VOXEL_TYPE_STRING || string->isLocked) {
+        goto voxel_finally;
     }
 
     if (size < 0) {
-        return;
+        goto voxel_finally;
     }
 
     voxel_cutStringEnd(executor->context, string, size);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_padStringStart(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Thing* fill = voxel_popString(executor);
     voxel_Int minSize = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!fill || !string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
-        return;
+    if (!fill || !string || string->type != VOXEL_TYPE_STRING || string->isLocked) {
+        goto voxel_finally;
     }
 
     if (minSize < 0) {
-        return;
+        goto voxel_finally;
     }
 
     voxel_padStringStart(executor->context, string, minSize, fill);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, fill);
 }
 
 void voxel_builtins_core_padStringEnd(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Thing* fill = voxel_popString(executor);
     voxel_Int minSize = voxel_popNumberInt(executor);
     voxel_Thing* string = voxel_peek(executor, 0); // Keep as return value
 
-    if (!fill || !string || string->type != VOXEL_TYPE_STRING || string->isLocked || argCount < 2) {
-        return;
+    if (!fill || !string || string->type != VOXEL_TYPE_STRING || string->isLocked) {
+        goto voxel_finally;
     }
 
     if (minSize < 0) {
-        return;
+        goto voxel_finally;
     }
 
     voxel_padStringEnd(executor->context, string, minSize, fill);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, fill);
 }
@@ -1287,96 +1349,113 @@ void voxel_builtins_core_padStringEnd(voxel_Executor* executor) {
 #ifdef VOXEL_BUILTINS_CORE
 
 void voxel_builtins_core_newObject(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_push(executor, voxel_newObject(executor->context));
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_getObjectItem(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(
+        key &&
+        VOXEL_ARG(object, VOXEL_TYPE_OBJECT)
+    );
 
     voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
 
     if (!objectItem) {
-        voxel_unreferenceThing(executor->context, key);
-        voxel_unreferenceThing(executor->context, object);
+        voxel_pushNull(executor);
 
-        return voxel_pushNull(executor);
+        goto voxel_finally;
     }
 
     voxel_Thing* value = objectItem->value;
 
     value->referenceCount++;
 
+    voxel_push(executor, value);
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, key);
     voxel_unreferenceThing(executor->context, object);
-
-    voxel_push(executor, value);
 }
 
 void voxel_builtins_core_setObjectItem(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
-        return;
+    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked) {
+        goto voxel_finally;
     }
 
     voxel_setObjectItem(executor->context, object, key, value);
 
-    voxel_unreferenceThing(executor->context, key);
-    voxel_unreferenceThing(executor->context, object);
-
     value->referenceCount++;
 
     voxel_push(executor, value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
 }
 
 void voxel_builtins_core_removeObjectItem(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
 
-    if (object && object->type == VOXEL_TYPE_OBJECT && !object->isLocked && argCount >= 2) {
-        voxel_removeObjectItem(executor->context, object, key);
-    }
+    VOXEL_REQUIRE(
+        key &&
+        VOXEL_ARG(object, VOXEL_TYPE_OBJECT) && !object->isLocked
+    );
+
+    voxel_removeObjectItem(executor->context, object, key);
+
+    voxel_pushNull(executor);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, key);
     voxel_unreferenceThing(executor->context, object);
-
-    voxel_pushNull(executor);
 }
 
 void voxel_builtins_core_getObjectItemGetter(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
-        return;
-    }
+    VOXEL_REQUIRE(
+        key &&
+        VOXEL_ARG(object, VOXEL_TYPE_OBJECT)
+    );
 
     voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
 
-    voxel_unreferenceThing(executor->context, key);
-    voxel_unreferenceThing(executor->context, object);
-
     if (!objectItem) {
-        return voxel_pushNull(executor);
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
     }
 
     voxel_ObjectItemDescriptor* descriptor = objectItem->descriptor;
 
     if (!descriptor || !descriptor->getterFunction) {
-        return voxel_pushNull(executor);
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
     }
 
     voxel_Thing* getterFunction = descriptor->getterFunction;
@@ -1384,26 +1463,32 @@ void voxel_builtins_core_getObjectItemGetter(voxel_Executor* executor) {
     getterFunction->referenceCount++;
 
     voxel_push(executor, getterFunction);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
 }
 
 void voxel_builtins_core_setObjectItemGetter(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
-        return;
-    }
+    VOXEL_REQUIRE(
+        key &&
+        VOXEL_ARG(object, VOXEL_TYPE_OBJECT) && !object->isLocked &&
+        value
+    );
 
     voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
 
     if (!objectItem) {
         VOXEL_ERRORABLE objectItemResult = voxel_setObjectItem(executor->context, object, key, voxel_newNull(executor->context));
 
-        if (VOXEL_IS_ERROR(objectItemResult)) {
-            return voxel_pushNull(executor);
-        }
+        VOXEL_REQUIRE(!VOXEL_IS_ERROR(objectItemResult));
 
         objectItem = (voxel_ObjectItem*)objectItemResult.value;
 
@@ -1418,36 +1503,41 @@ void voxel_builtins_core_setObjectItemGetter(voxel_Executor* executor) {
 
     descriptor->getterFunction = value;
 
-    voxel_unreferenceThing(executor->context, key);
-    voxel_unreferenceThing(executor->context, object);
-
     value->referenceCount++;
 
     voxel_push(executor, value);
-}
 
-void voxel_builtins_core_getObjectItemSetter(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
-    voxel_Thing* key = voxel_pop(executor);
-    voxel_Thing* object = voxel_pop(executor);
-
-    if (!object || object->type != VOXEL_TYPE_OBJECT || argCount < 2) {
-        return;
-    }
-
-    voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, key);
     voxel_unreferenceThing(executor->context, object);
+}
+
+void voxel_builtins_core_getObjectItemSetter(voxel_Executor* executor) {
+    VOXEL_ARGC(2);
+
+    voxel_Thing* key = voxel_pop(executor);
+    voxel_Thing* object = voxel_pop(executor);
+
+    VOXEL_REQUIRE(
+        key &&
+        VOXEL_ARG(object, VOXEL_TYPE_OBJECT)
+    );
+
+    voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
 
     if (!objectItem) {
-        return voxel_pushNull(executor);
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
     }
 
     voxel_ObjectItemDescriptor* descriptor = objectItem->descriptor;
 
     if (!descriptor || !descriptor->setterFunction) {
-        return voxel_pushNull(executor);
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
     }
 
     voxel_Thing* setterFunction = descriptor->setterFunction;
@@ -1455,26 +1545,32 @@ void voxel_builtins_core_getObjectItemSetter(voxel_Executor* executor) {
     setterFunction->referenceCount++;
 
     voxel_push(executor, setterFunction);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
 }
 
 void voxel_builtins_core_setObjectItemSetter(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT || object->isLocked || argCount < 3) {
-        return;
-    }
+    VOXEL_REQUIRE(
+        key &&
+        VOXEL_ARG(object, VOXEL_TYPE_OBJECT) && !object->isLocked &&
+        value
+    );
 
     voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
 
     if (!objectItem) {
         VOXEL_ERRORABLE objectItemResult = voxel_setObjectItem(executor->context, object, key, voxel_newNull(executor->context));
 
-        if (VOXEL_IS_ERROR(objectItemResult)) {
-            return voxel_pushNull(executor);
-        }
+        VOXEL_REQUIRE(!VOXEL_IS_ERROR(objectItemResult));
 
         objectItem = (voxel_ObjectItem*)objectItemResult.value;
 
@@ -1489,61 +1585,64 @@ void voxel_builtins_core_setObjectItemSetter(voxel_Executor* executor) {
 
     descriptor->setterFunction = value;
 
-    voxel_unreferenceThing(executor->context, key);
-    voxel_unreferenceThing(executor->context, object);
-
     value->referenceCount++;
 
     voxel_push(executor, value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, key);
+    voxel_unreferenceThing(executor->context, object);
 }
 
 void voxel_builtins_core_getObjectLength(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(object, VOXEL_TYPE_OBJECT));
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getObjectLength(object)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, object);
 }
 
 void voxel_builtins_core_getObjectKeys(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT) {
-        return;
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(object, VOXEL_TYPE_OBJECT));
 
     VOXEL_ERRORABLE keysResult = voxel_getObjectKeys(executor->context, object, VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH);
 
-    if (VOXEL_IS_ERROR(keysResult)) {
-        return;
-    }
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(keysResult))
 
     voxel_Thing* keys = (voxel_Thing*)keysResult.value;
 
     voxel_push(executor, keys);
 
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, object);
 }
 
 void voxel_builtins_core_getObjectPrototypes(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* object = voxel_pop(executor);
 
-    if (!object || object->type != VOXEL_TYPE_OBJECT) {
-        return;
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(object, VOXEL_TYPE_OBJECT));
 
     voxel_Thing* prototypes = voxel_getObjectPrototypes(executor->context, object);
 
     prototypes->referenceCount++;
 
     voxel_push(executor, prototypes);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, object);
 }
@@ -1555,9 +1654,11 @@ void voxel_builtins_core_getObjectPrototypes(voxel_Executor* executor) {
 #ifdef VOXEL_BUILTINS_CORE
 
 void voxel_builtins_core_newList(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_push(executor, voxel_newList(executor->context));
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_newListOf(voxel_Executor* executor) {
@@ -1576,16 +1677,17 @@ void voxel_builtins_core_newListOf(voxel_Executor* executor) {
     }
 
     voxel_push(executor, list);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_getListItem(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST));
 
     voxel_List* listValue = (voxel_List*)list->value;
 
@@ -1594,72 +1696,71 @@ void voxel_builtins_core_getListItem(voxel_Executor* executor) {
     }
 
     if (index < 0 || index >= listValue->length) {
-        voxel_unreferenceThing(executor->context, list);
+        voxel_pushNull(executor);
 
-        return voxel_pushNull(executor);
+        goto voxel_finally;
     }
 
     VOXEL_ERRORABLE listItemResult = voxel_getListItem(executor->context, list, index);
 
-    if (VOXEL_IS_ERROR(listItemResult)) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(listItemResult));
 
     voxel_ListItem* listItem = (voxel_ListItem*)listItemResult.value;
 
     if (!listItem) {
-        return voxel_pushNull(executor);
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
     }
 
     voxel_Thing* value = listItem->value;
 
     value->referenceCount++;
 
-    voxel_unreferenceThing(executor->context, list);
-
     voxel_push(executor, value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_setListItem(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 3) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST) && !list->isLocked);
 
     if (index < 0) {
         index = voxel_getListLength(list) + index;
     }
 
     if (index < 0) {
-        return voxel_pushNull(executor);
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
     }
 
     VOXEL_ERRORABLE getListItemResult = voxel_getListItem(executor->context, list, index);
 
-    if (VOXEL_IS_ERROR(getListItemResult)) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(getListItemResult));
 
     voxel_ListItem* listItem = (voxel_ListItem*)getListItemResult.value;
 
     if (!listItem) {
         if (index == voxel_getListLength(list)) {
-            if (VOXEL_IS_ERROR(voxel_pushOntoList(executor->context, list, value))) {
-                return voxel_pushNull(executor);
-            }
+            VOXEL_REQUIRE(!VOXEL_IS_ERROR(voxel_pushOntoList(executor->context, list, value)));
 
             value->referenceCount++;
 
-            voxel_unreferenceThing(executor->context, list);
-
-            return voxel_push(executor, value);
+            voxel_push(executor, value);
+        } else {
+            voxel_pushNull(executor);
         }
 
-        return voxel_pushNull(executor);
+        goto voxel_finally;
     }
 
     voxel_Thing* currentValue = listItem->value;
@@ -1669,72 +1770,73 @@ void voxel_builtins_core_setListItem(voxel_Executor* executor) {
     listItem->value = value;
     value->referenceCount += 2;
 
-    voxel_unreferenceThing(executor->context, list);
-
     voxel_push(executor, value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_removeListItem(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST) && !list->isLocked);
 
     if (index < 0) {
         index = voxel_getListLength(list) + index;
     }
 
     if (index < 0) {
-        voxel_unreferenceThing(executor->context, list);
+        voxel_pushNull(executor);
 
-        return voxel_pushNull(executor);
+        goto voxel_finally;
     }
 
     voxel_removeListItem(executor->context, list, index);
 
-    voxel_unreferenceThing(executor->context, list);
-
     voxel_pushNull(executor);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_pushOntoList(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST) && !list->isLocked);
 
-    if (VOXEL_IS_ERROR(voxel_pushOntoList(executor->context, list, value))) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(voxel_pushOntoList(executor->context, list, value)));
 
     value->referenceCount--;
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
 
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_popFromList(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST) && !list->isLocked);
 
     voxel_List* listValue = (voxel_List*)list->value;
     voxel_ListItem* lastItem = listValue->lastItem;
 
     if (!lastItem) {
-        voxel_unreferenceThing(executor->context, list);
+        voxel_pushNull(executor);
 
-        return voxel_pushNull(executor);
+        goto voxel_finally;
     }
 
     voxel_Thing* lastThing = lastItem->value;
@@ -1743,23 +1845,24 @@ void voxel_builtins_core_popFromList(voxel_Executor* executor) {
 
     VOXEL_ERRORABLE result = voxel_popFromList(executor->context, list);
 
-    if (VOXEL_IS_ERROR(result)) {
-        return voxel_pushNull(executor);
-    }
-
-    voxel_unreferenceThing(executor->context, list);
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(result));
 
     voxel_push(executor, lastThing);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_insertIntoList(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Int index = voxel_popNumberInt(executor);
     voxel_Thing* list = voxel_pop(executor);
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
-    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked || argCount < 3) {
-        return;
+    if (!list || list->type != VOXEL_TYPE_LIST || list->isLocked) {
+        goto voxel_finally;
     }
 
     if (index < 0) {
@@ -1767,70 +1870,70 @@ void voxel_builtins_core_insertIntoList(voxel_Executor* executor) {
     }
 
     if (index < 0) {
-        return;
+        goto voxel_finally;
     }
 
     if (VOXEL_IS_ERROR(voxel_insertIntoList(executor->context, list, index, value))) {
-        return;
+        goto voxel_finally;
     }
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_getListLength(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST));
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_joinList(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* delimeter = voxel_popString(executor);
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST));
 
     VOXEL_ERRORABLE result = voxel_joinList(executor->context, list, delimeter);
 
-    if (VOXEL_IS_ERROR(result)) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(result));
+
+    voxel_push(executor, (voxel_Thing*)result.value);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, list);
     voxel_unreferenceThing(executor->context, delimeter);
-
-    voxel_push(executor, (voxel_Thing*)result.value);
 }
 
 void voxel_builtins_core_concatList(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* source = voxel_pop(executor);
     voxel_Thing* destination = voxel_pop(executor);
 
-    if (
-        !source || source->type != VOXEL_TYPE_LIST ||
-        !destination || destination->type != VOXEL_TYPE_LIST ||
-        argCount < 2
-    ) {
-        voxel_unreferenceThing(executor->context, source);
-
-        return voxel_push(executor, destination);
-    }
+    VOXEL_REQUIRE(
+        VOXEL_ARG(source, VOXEL_TYPE_LIST) &&
+        VOXEL_ARG(destination, VOXEL_TYPE_LIST)
+    );
 
     voxel_concatList(executor->context, destination, source);
 
-    voxel_unreferenceThing(executor->context, source);
-
     voxel_push(executor, destination);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, source);
 }
 
 #endif
@@ -1840,27 +1943,29 @@ void voxel_builtins_core_concatList(voxel_Executor* executor) {
 #ifdef VOXEL_BUILTINS_CORE
 
 void voxel_builtins_core_newWeakRef(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(thing);
 
     voxel_push(executor, voxel_newWeakRef(executor->context, thing));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, thing);
 }
 
 void voxel_builtins_core_dereferenceWeakRef(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* weakRef = voxel_pop(executor);
 
-    if (!weakRef || weakRef->type != VOXEL_TYPE_WEAK) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(weakRef, VOXEL_TYPE_WEAK));
 
     voxel_push(executor, voxel_dereferenceWeakRef(executor->context, weakRef));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, weakRef);
 }
@@ -1889,12 +1994,11 @@ void voxel_builtins_core_params(voxel_Executor* executor) {
 }
 
 void voxel_builtins_core_getType(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(thing);
 
     voxel_Byte thingType[2] = {0x00, 0x00};
 
@@ -1912,47 +2016,42 @@ void voxel_builtins_core_getType(voxel_Executor* executor) {
         case VOXEL_TYPE_WEAK: thingType[0] = 'W'; break;
     }
 
-    voxel_unreferenceThing(executor->context, thing);
-
     voxel_push(executor, voxel_newStringTerminated(executor->context, thingType));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, thing);
 }
 
 void voxel_builtins_core_toClosure(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* environment = voxel_pop(executor);
     voxel_Thing* function = voxel_pop(executor);
 
-    if (
-        !environment || environment->type != VOXEL_TYPE_OBJECT ||
-        !function || function->type != VOXEL_TYPE_FUNCTION ||
-        argCount < 2
-    ) {
-        return voxel_pushNull(executor);
-    }
-
-    if (voxel_getFunctionType(executor->context, function) != VOXEL_FUNCTION_TYPE_POS_REF) {
-        voxel_unreferenceThing(executor->context, environment);
-        voxel_unreferenceThing(executor->context, function);
-
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(
+        VOXEL_ARG(environment, VOXEL_TYPE_OBJECT) &&
+        VOXEL_ARG(function, VOXEL_TYPE_FUNCTION) &&
+        voxel_getFunctionType(executor->context, function) == VOXEL_FUNCTION_TYPE_POS_REF
+    );
 
     voxel_push(
         executor,
         voxel_newClosure(executor->context, (voxel_Position)(voxel_IntPtr)function->value, environment)
     );
 
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, environment);
     voxel_unreferenceThing(executor->context, function);
 }
 
 void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST) {
-        return;
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST));
 
     voxel_List* listValue = (voxel_List*)list->value;
     voxel_ListItem* currentItem = listValue->firstItem;
@@ -1969,43 +2068,51 @@ void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
 
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_copyThing(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing) {
-        return;
-    }
+    VOXEL_REQUIRE(thing);
 
     voxel_push(executor, voxel_copyThing(executor->context, thing));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, thing);
 }
 
 void voxel_builtins_core_dupeThing(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
     value->referenceCount++;
 
     voxel_push(executor, value);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_pushThis(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_pushOntoList(executor->context, executor->thisStack, executor->nextThis);
 
     executor->nextThis->referenceCount++;
 
     voxel_pushNull(executor);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_popThis(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_unreferenceThing(executor->context, executor->nextThis);
 
@@ -2014,29 +2121,34 @@ void voxel_builtins_core_popThis(voxel_Executor* executor) {
     executor->nextThis = !VOXEL_IS_ERROR(popResult) ? (voxel_Thing*)popResult.value : voxel_newNull(executor->context);
 
     voxel_pushNull(executor);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_setNextThis(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* nextThis = voxel_pop(executor);
 
-    if (!nextThis) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(nextThis);
 
     voxel_unreferenceThing(executor->context, executor->nextThis);
 
     executor->nextThis = nextThis;
 
     voxel_pushNull(executor);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_getSuperStack(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_push(executor, executor->superStack);
 
     executor->superStack->referenceCount++;
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
@@ -2148,13 +2260,16 @@ void voxel_builtins_core_getSize(voxel_Executor* executor) {
 }
 
 void voxel_builtins_core_isType(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
+
     voxel_Thing* typeByte = voxel_pop(executor);
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing || !typeByte || typeByte->type != VOXEL_TYPE_BYTE || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(
+        thing &&
+        VOXEL_ARG(typeByte, VOXEL_TYPE_BYTE)
+    );
 
     voxel_Byte type = (voxel_Byte)(voxel_IntPtr)typeByte->value;
     voxel_Bool isType = VOXEL_FALSE;
@@ -2173,21 +2288,22 @@ void voxel_builtins_core_isType(voxel_Executor* executor) {
         case 'W': isType = thing->type == VOXEL_TYPE_WEAK; break;
     }
 
+    voxel_push(executor, voxel_newBoolean(executor->context, isType));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, thing);
     voxel_unreferenceThing(executor->context, typeByte);
-
-    voxel_push(executor, voxel_newBoolean(executor->context, isType));
 }
 
 void voxel_builtins_core_isInstance(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Bool shouldCheckRecursively = voxel_popBoolean(executor);
     voxel_Thing* target = voxel_pop(executor);
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing || !target || argCount < 3) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(target && thing);
 
     voxel_Bool isInstance = (
         thing->type == VOXEL_TYPE_OBJECT &&
@@ -2195,25 +2311,28 @@ void voxel_builtins_core_isInstance(voxel_Executor* executor) {
         voxel_checkWhetherObjectInherits(thing, target, shouldCheckRecursively ? VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH : 0)
     );
 
+    voxel_push(executor, voxel_newBoolean(executor->context, isInstance));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, thing);
     voxel_unreferenceThing(executor->context, target);
-
-    voxel_push(executor, voxel_newBoolean(executor->context, isInstance));
 }
 
 void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* value = voxel_pop(executor);
 
-    if (value->type != VOXEL_TYPE_NUMBER) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(value, VOXEL_TYPE_NUMBER));
 
     voxel_Thing* entry = voxel_getEnumEntryFromLookup(executor->context, value);
 
     entry->referenceCount++;
 
     voxel_push(executor, entry);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, value);
 }
@@ -2320,16 +2439,19 @@ void voxel_builtins_core(voxel_Context* context) {}
 #ifdef VOXEL_BUILTINS_IO
 
 void voxel_builtins_io_out(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (thing) {
-        voxel_logThing(executor->context, thing);
+    VOXEL_REQUIRE(thing);
 
-        voxel_unreferenceThing(executor->context, thing);
-    }
+    voxel_logThing(executor->context, thing);
 
     voxel_pushNull(executor);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, thing);
 }
 
 void voxel_builtins_io(voxel_Context* context) {
@@ -2347,22 +2469,16 @@ void voxel_builtins_io(voxel_Context* context) {}
 #ifdef VOXEL_BUILTINS_THREADS
 
 void voxel_builtins_threads_newThread(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* callArgs = voxel_pop(executor);
     voxel_Thing* callFunction = voxel_pop(executor);
 
-    if (
-        !callFunction || callFunction->type != VOXEL_TYPE_FUNCTION ||
-        !callArgs || callArgs->type != VOXEL_TYPE_LIST || argCount < 2
-    ) {
-        return voxel_pushNull(executor);
-    }
-
-    voxel_FunctionType functionType = voxel_getFunctionType(executor->context, callFunction);
-
-    if (functionType != VOXEL_FUNCTION_TYPE_POS_REF) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(
+        VOXEL_ARG(callFunction, VOXEL_TYPE_FUNCTION) &&
+        VOXEL_ARG(callArgs, VOXEL_TYPE_LIST) &&
+        voxel_getFunctionType(executor->context, callFunction) == VOXEL_FUNCTION_TYPE_POS_REF
+    );
 
     voxel_Executor* newExecutor = voxel_cloneExecutor(executor, VOXEL_FALSE);
 
@@ -2402,58 +2518,65 @@ void voxel_builtins_threads_newThread(voxel_Executor* executor) {
 
     voxel_push(executor, voxel_newNumberInt(executor->context, newExecutor->id));
 
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, callArgs);
     voxel_unreferenceThing(executor->context, callFunction);
 }
 
 void voxel_builtins_threads_destroyThread(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Count executorId = voxel_popNumberInt(executor);
 
     voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
 
-    if (!targetExecutor) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(targetExecutor);
 
     voxel_destroyExecutor(targetExecutor);
 
     voxel_pushNull(executor);
+
+    voxel_finally:
 }
 
 void voxel_builtins_threads_getOwnThreadId(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_push(executor, voxel_newNumberInt(executor->context, executor->id));
+
+    voxel_finally:
 }
 
 void voxel_builtins_threads_threadIsRunning(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Count executorId = voxel_popNumberInt(executor);
 
     voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
 
-    if (!targetExecutor) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(targetExecutor);
 
     voxel_push(executor, voxel_newBoolean(executor->context, targetExecutor->isRunning));
+
+    voxel_finally:
 }
 
 void voxel_builtins_threads_setThreadIsRunning(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Count executorId = voxel_popNumberInt(executor);
     voxel_Bool isRunning = voxel_popBoolean(executor);
 
     voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
 
-    if (!targetExecutor) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(targetExecutor);
 
     targetExecutor->isRunning = isRunning;
 
     voxel_pushNull(executor);
+
+    voxel_finally:
 }
 
 void voxel_builtins_threads(voxel_Context* context) {

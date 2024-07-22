@@ -56,6 +56,31 @@ typedef VOXEL_INTPTR voxel_IntPtr;
     #define VOXEL_TAG_REALLOC(name, oldSize, newSize) VOXEL_NOOP
 #endif
 
+#ifdef VOXEL_LOG_BUILTIN_FAULTS
+    #define VOXEL_BUILTINS_LOG(text) VOXEL_ERROR_MESSAGE(text, "", __func__, __FILE__, __LINE__)
+#else
+    #define VOXEL_BUILTINS_LOG(text) VOXEL_NOOP
+#endif
+
+#define VOXEL_FAIL() do { \
+        voxel_pushNull(executor); \
+        VOXEL_BUILTINS_LOG("Voxel builtin fault"); \
+        goto voxel_finally; \
+    } while (0)
+
+#define VOXEL_REQUIRE(condition) if (!(condition)) { \
+        voxel_pushNull(executor); \
+        VOXEL_BUILTINS_LOG("Voxel builtin requirement fault"); \
+        goto voxel_finally; \
+    }
+
+#define VOXEL_ARGC(count) if (voxel_popNumberInt(executor) != (count)) { \
+        VOXEL_BUILTINS_LOG("Voxel builtin arg count fault"); \
+        return; \
+    }
+
+#define VOXEL_ARG(thing, requiredType) (thing && thing->type == requiredType)
+
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size) {
     for (voxel_Count i = 0; i < size; i++) {
         destination[i] = source[i];

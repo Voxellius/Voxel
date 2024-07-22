@@ -18,12 +18,11 @@ void voxel_builtins_core_params(voxel_Executor* executor) {
 }
 
 void voxel_builtins_core_getType(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(thing);
 
     voxel_Byte thingType[2] = {0x00, 0x00};
 
@@ -41,47 +40,42 @@ void voxel_builtins_core_getType(voxel_Executor* executor) {
         case VOXEL_TYPE_WEAK: thingType[0] = 'W'; break;
     }
 
-    voxel_unreferenceThing(executor->context, thing);
-
     voxel_push(executor, voxel_newStringTerminated(executor->context, thingType));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, thing);
 }
 
 void voxel_builtins_core_toClosure(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
     voxel_Thing* environment = voxel_pop(executor);
     voxel_Thing* function = voxel_pop(executor);
 
-    if (
-        !environment || environment->type != VOXEL_TYPE_OBJECT ||
-        !function || function->type != VOXEL_TYPE_FUNCTION ||
-        argCount < 2
-    ) {
-        return voxel_pushNull(executor);
-    }
-
-    if (voxel_getFunctionType(executor->context, function) != VOXEL_FUNCTION_TYPE_POS_REF) {
-        voxel_unreferenceThing(executor->context, environment);
-        voxel_unreferenceThing(executor->context, function);
-
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(
+        VOXEL_ARG(environment, VOXEL_TYPE_OBJECT) &&
+        VOXEL_ARG(function, VOXEL_TYPE_FUNCTION) &&
+        voxel_getFunctionType(executor->context, function) == VOXEL_FUNCTION_TYPE_POS_REF
+    );
 
     voxel_push(
         executor,
         voxel_newClosure(executor->context, (voxel_Position)(voxel_IntPtr)function->value, environment)
     );
 
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, environment);
     voxel_unreferenceThing(executor->context, function);
 }
 
 void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* list = voxel_pop(executor);
 
-    if (!list || list->type != VOXEL_TYPE_LIST) {
-        return;
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST));
 
     voxel_List* listValue = (voxel_List*)list->value;
     voxel_ListItem* currentItem = listValue->firstItem;
@@ -98,43 +92,51 @@ void voxel_builtins_core_pushArgs(voxel_Executor* executor) {
 
     voxel_push(executor, voxel_newNumberInt(executor->context, voxel_getListLength(list)));
 
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, list);
 }
 
 void voxel_builtins_core_copyThing(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing) {
-        return;
-    }
+    VOXEL_REQUIRE(thing);
 
     voxel_push(executor, voxel_copyThing(executor->context, thing));
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, thing);
 }
 
 void voxel_builtins_core_dupeThing(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* value = voxel_peek(executor, 0); // Keep as return value
 
     value->referenceCount++;
 
     voxel_push(executor, value);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_pushThis(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_pushOntoList(executor->context, executor->thisStack, executor->nextThis);
 
     executor->nextThis->referenceCount++;
 
     voxel_pushNull(executor);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_popThis(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_unreferenceThing(executor->context, executor->nextThis);
 
@@ -143,29 +145,34 @@ void voxel_builtins_core_popThis(voxel_Executor* executor) {
     executor->nextThis = !VOXEL_IS_ERROR(popResult) ? (voxel_Thing*)popResult.value : voxel_newNull(executor->context);
 
     voxel_pushNull(executor);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_setNextThis(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* nextThis = voxel_pop(executor);
 
-    if (!nextThis) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(nextThis);
 
     voxel_unreferenceThing(executor->context, executor->nextThis);
 
     executor->nextThis = nextThis;
 
     voxel_pushNull(executor);
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_getSuperStack(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(0);
 
     voxel_push(executor, executor->superStack);
 
     executor->superStack->referenceCount++;
+
+    voxel_finally:
 }
 
 void voxel_builtins_core_getItem(voxel_Executor* executor) {
@@ -277,13 +284,16 @@ void voxel_builtins_core_getSize(voxel_Executor* executor) {
 }
 
 void voxel_builtins_core_isType(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(2);
+
+
     voxel_Thing* typeByte = voxel_pop(executor);
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing || !typeByte || typeByte->type != VOXEL_TYPE_BYTE || argCount < 2) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(
+        thing &&
+        VOXEL_ARG(typeByte, VOXEL_TYPE_BYTE)
+    );
 
     voxel_Byte type = (voxel_Byte)(voxel_IntPtr)typeByte->value;
     voxel_Bool isType = VOXEL_FALSE;
@@ -302,21 +312,22 @@ void voxel_builtins_core_isType(voxel_Executor* executor) {
         case 'W': isType = thing->type == VOXEL_TYPE_WEAK; break;
     }
 
+    voxel_push(executor, voxel_newBoolean(executor->context, isType));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, thing);
     voxel_unreferenceThing(executor->context, typeByte);
-
-    voxel_push(executor, voxel_newBoolean(executor->context, isType));
 }
 
 void voxel_builtins_core_isInstance(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(3);
+
     voxel_Bool shouldCheckRecursively = voxel_popBoolean(executor);
     voxel_Thing* target = voxel_pop(executor);
     voxel_Thing* thing = voxel_pop(executor);
 
-    if (!thing || !target || argCount < 3) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(target && thing);
 
     voxel_Bool isInstance = (
         thing->type == VOXEL_TYPE_OBJECT &&
@@ -324,25 +335,28 @@ void voxel_builtins_core_isInstance(voxel_Executor* executor) {
         voxel_checkWhetherObjectInherits(thing, target, shouldCheckRecursively ? VOXEL_MAX_PROTOTYPE_TRAVERSE_DEPTH : 0)
     );
 
+    voxel_push(executor, voxel_newBoolean(executor->context, isInstance));
+
+    voxel_finally:
+
     voxel_unreferenceThing(executor->context, thing);
     voxel_unreferenceThing(executor->context, target);
-
-    voxel_push(executor, voxel_newBoolean(executor->context, isInstance));
 }
 
 void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
-    voxel_Int argCount = voxel_popNumberInt(executor);
+    VOXEL_ARGC(1);
+
     voxel_Thing* value = voxel_pop(executor);
 
-    if (value->type != VOXEL_TYPE_NUMBER) {
-        return voxel_pushNull(executor);
-    }
+    VOXEL_REQUIRE(VOXEL_ARG(value, VOXEL_TYPE_NUMBER));
 
     voxel_Thing* entry = voxel_getEnumEntryFromLookup(executor->context, value);
 
     entry->referenceCount++;
 
     voxel_push(executor, entry);
+
+    voxel_finally:
 
     voxel_unreferenceThing(executor->context, value);
 }
