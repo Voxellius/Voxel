@@ -185,6 +185,7 @@ typedef struct voxel_Executor {
     voxel_Thing* preserveSymbols;
     voxel_Count id;
     voxel_Bool isRunning;
+    voxel_Bool hasFinished;
     voxel_TokenisationState tokenisationState;
     voxel_Call* callStack;
     voxel_Count callStackHead;

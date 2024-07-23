@@ -60,6 +60,9 @@ Errors that methods in the `Thread` class may throw.
 #### `THREAD_HAS_CLOSED`
 The action cannot be performed on the thread as it has been closed.
 
+#### `THREAD_NOT_FINISHED`
+The action cannot be performed on the thread as it has not finished execution yet.
+
 #### `CANNOT_ENTER_STATE`
 The thread cannot enter the requested state as it is either already in that state or has finished.
 
@@ -81,11 +84,20 @@ The ID of the thread.
 #### `isRunning(): Boolean`
 Return `true` if the thread is running, or `false` otherwise. This will return `false` in cases where the thread is paused or has finished execution.
 
+#### `isPaused(): Boolean`
+Return `true` if the thread is paused, or `false` otherwise.
+
 #### `hasFinished(): Boolean`
 Return `true` if the thread has finished execution, or `false` otherwise. This will return `false` if the thread has not began execution.
 
 #### `waitUntilFinished()`
 Wait until the thread has finished execution. This method will also start the thread if it has not been started yet or resume execution if it is paused.
+
+#### `getReturnValue(): *`
+Get the thread's return value. The thread must have finished execution before this method can be called.
+
+#### `join(): *`
+Wait until the thread has finished execution, close the thread and then return the thread's return value. This method will also start the thread if it has not been started yet or resume execution if it is paused.
 
 #### `state: ThreadState`
 The current state of the thread.

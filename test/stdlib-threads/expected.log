@@ -16,6 +16,8 @@ Main executor
 My thread ID: 1
 My thread ID: 2
 My thread ID: 0
+Thread 1 return value: 3
 Closed thread 1
+Thread 2 return value: 6
 Closed thread 2
 Main executor ID: 0

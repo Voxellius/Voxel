@@ -405,6 +405,7 @@ typedef struct voxel_Executor {
     voxel_Thing* preserveSymbols;
     voxel_Count id;
     voxel_Bool isRunning;
+    voxel_Bool hasFinished;
     voxel_TokenisationState tokenisationState;
     voxel_Call* callStack;
     voxel_Count callStackHead;
@@ -2579,12 +2580,52 @@ void voxel_builtins_threads_setThreadIsRunning(voxel_Executor* executor) {
     voxel_finally:
 }
 
+void voxel_builtins_threads_threadHasFinished(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Count executorId = voxel_popNumberInt(executor);
+
+    voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
+
+    VOXEL_REQUIRE(targetExecutor);
+
+    voxel_push(executor, voxel_newBoolean(executor->context, targetExecutor->hasFinished));
+
+    voxel_finally:
+}
+
+void voxel_builtins_threads_getThreadReturnValue(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Count executorId = voxel_popNumberInt(executor);
+
+    voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
+
+    VOXEL_REQUIRE(targetExecutor && targetExecutor->hasFinished);
+
+    voxel_List* valueStackList = (voxel_List*)targetExecutor->valueStack->value;
+
+    if (valueStackList->lastItem) {
+        voxel_Thing* returnValue = valueStackList->lastItem->value;
+
+        returnValue->referenceCount++;
+
+        voxel_push(executor, returnValue);
+    } else {
+        voxel_pushNull(executor);
+    }
+
+    voxel_finally:
+}
+
 void voxel_builtins_threads(voxel_Context* context) {
     voxel_defineBuiltin(context, ".threads_new", &voxel_builtins_threads_newThread);
     voxel_defineBuiltin(context, ".threads_destroy", &voxel_builtins_threads_destroyThread);
     voxel_defineBuiltin(context, ".threads_getOwnId", &voxel_builtins_threads_getOwnThreadId);
     voxel_defineBuiltin(context, ".threads_isRunning", &voxel_builtins_threads_threadIsRunning);
     voxel_defineBuiltin(context, ".threads_setIsRunning", &voxel_builtins_threads_setThreadIsRunning);
+    voxel_defineBuiltin(context, ".threads_hasFinished", &voxel_builtins_threads_threadHasFinished);
+    voxel_defineBuiltin(context, ".threads_retVal", &voxel_builtins_threads_getThreadReturnValue);
 }
 
 #else
@@ -5228,6 +5269,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->preserveSymbols = VOXEL_NULL;
     executor->id = context->executorCount++;
     executor->isRunning = VOXEL_TRUE;
+    executor->hasFinished = VOXEL_FALSE;
     executor->tokenisationState = VOXEL_STATE_NONE;
     executor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
     executor->callStack = (voxel_Call*)VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
@@ -5262,6 +5304,7 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
     newExecutor->preserveSymbols = executor->preserveSymbols;
     newExecutor->id = context->executorCount++;
     newExecutor->isRunning = VOXEL_TRUE;
+    newExecutor->hasFinished = VOXEL_FALSE;
     newExecutor->tokenisationState = VOXEL_STATE_NONE;
     newExecutor->callStackSize = VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call);
     newExecutor->callStack = (voxel_Call*)VOXEL_MALLOC(executor->callStackSize); VOXEL_TAG_MALLOC_SIZE("executor->callStack", VOXEL_CALL_STACK_BLOCK_LENGTH * sizeof(voxel_Call));
@@ -5371,8 +5414,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
     if (!token) {
         executor->isRunning = VOXEL_FALSE;
+        executor->hasFinished = VOXEL_TRUE;
 
-        return VOXEL_OK;
+        return voxel_pushOntoList(executor->context, executor->valueStack, voxel_newNull(executor->context));
     }
 
     switch (token->type) {
@@ -5778,6 +5822,7 @@ void voxel_stepInExecutor(voxel_Executor* executor, voxel_Position position) {
 void voxel_stepOutExecutor(voxel_Executor* executor) {
     if (executor->callStackHead == 0) {
         executor->isRunning = VOXEL_FALSE;
+        executor->hasFinished = VOXEL_TRUE;
 
         return;
     }

@@ -1,12 +1,14 @@
 enum ThreadState {
     NOT_STARTED,
     RUNNING,
+    PAUSED,
     FINISHED,
     CLOSED
 }
 
 enum ThreadError {
     THREAD_HAS_CLOSED,
+    THREAD_NOT_FINISHED,
     CANNOT_ENTER_STATE
 }
 
@@ -95,7 +97,11 @@ class Thread {
     }
 
     hasFinished() {
-        return this._hasStarted && !this.isRunning() && !this._isPaused;
+        if (this._hasBeenClosed || !this._hasStarted) {
+            return false;
+        }
+
+        return syscall threads_hasFinished(this._id);
     }
 
     waitUntilFinished() {
@@ -106,6 +112,26 @@ class Thread {
         while (!this.hasFinished()) {}
     }
 
+    getReturnValue() {
+        this._checkThreadExists();
+
+        if (!this.hasFinished()) {
+            throw ThreadError.THREAD_NOT_FINISHED;
+        }
+
+        return syscall threads_retVal(this._id);
+    }
+
+    join() {
+        this.waitUntilFinished();
+
+        var returnValue = this.getReturnValue();
+
+        this.close();
+
+        return returnValue;
+    }
+
     get state() {
         if (this._hasBeenClosed) {
             return ThreadState.CLOSED;
@@ -113,6 +139,10 @@ class Thread {
 
         if (!this._hasStarted) {
             return ThreadState.NOT_STARTED;
+        }
+
+        if (this._isPaused) {
+            return ThreadState.PAUSED;
         }
 
         if (this.isRunning()) {

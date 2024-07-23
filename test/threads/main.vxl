@@ -2,6 +2,8 @@ function repeat(value, times) {
     for (var i = 0; i < times; i++) {
         syscall io_out(value);
     }
+
+    return syscall threads_getOwnId();
 }
 
 var thread1 = syscall threads_new(repeat, ["Thread 1\n", 5]);
@@ -11,10 +13,18 @@ repeat("Main executor\n", 5);
 
 while (syscall threads_isRunning(thread1)) {}
 
+syscall io_out("Thread 1 return value: ");
+syscall io_out(syscall threads_retVal(thread1));
+syscall io_out("\n");
+
 syscall threads_destroy(thread1);
 syscall io_out("Destroyed thread 1\n");
 
 while (syscall threads_isRunning(thread2)) {}
+
+syscall io_out("Thread 2 return value: ");
+syscall io_out(syscall threads_retVal(thread2));
+syscall io_out("\n");
 
 syscall threads_destroy(thread2);
 syscall io_out("Destroyed thread 2\n");

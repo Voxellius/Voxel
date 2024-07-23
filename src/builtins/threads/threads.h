@@ -111,12 +111,52 @@ void voxel_builtins_threads_setThreadIsRunning(voxel_Executor* executor) {
     voxel_finally:
 }
 
+void voxel_builtins_threads_threadHasFinished(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Count executorId = voxel_popNumberInt(executor);
+
+    voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
+
+    VOXEL_REQUIRE(targetExecutor);
+
+    voxel_push(executor, voxel_newBoolean(executor->context, targetExecutor->hasFinished));
+
+    voxel_finally:
+}
+
+void voxel_builtins_threads_getThreadReturnValue(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Count executorId = voxel_popNumberInt(executor);
+
+    voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
+
+    VOXEL_REQUIRE(targetExecutor && targetExecutor->hasFinished);
+
+    voxel_List* valueStackList = (voxel_List*)targetExecutor->valueStack->value;
+
+    if (valueStackList->lastItem) {
+        voxel_Thing* returnValue = valueStackList->lastItem->value;
+
+        returnValue->referenceCount++;
+
+        voxel_push(executor, returnValue);
+    } else {
+        voxel_pushNull(executor);
+    }
+
+    voxel_finally:
+}
+
 void voxel_builtins_threads(voxel_Context* context) {
     voxel_defineBuiltin(context, ".threads_new", &voxel_builtins_threads_newThread);
     voxel_defineBuiltin(context, ".threads_destroy", &voxel_builtins_threads_destroyThread);
     voxel_defineBuiltin(context, ".threads_getOwnId", &voxel_builtins_threads_getOwnThreadId);
     voxel_defineBuiltin(context, ".threads_isRunning", &voxel_builtins_threads_threadIsRunning);
     voxel_defineBuiltin(context, ".threads_setIsRunning", &voxel_builtins_threads_setThreadIsRunning);
+    voxel_defineBuiltin(context, ".threads_hasFinished", &voxel_builtins_threads_threadHasFinished);
+    voxel_defineBuiltin(context, ".threads_retVal", &voxel_builtins_threads_getThreadReturnValue);
 }
 
 #else
