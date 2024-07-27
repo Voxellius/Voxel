@@ -49,6 +49,7 @@ include src/objects.h
 include src/lists.h
 include src/weak.h
 include src/enums.h
+include src/handles.h
 include src/operations.h
 include src/parser.h
 include src/executors.h

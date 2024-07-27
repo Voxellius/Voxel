@@ -14,6 +14,9 @@ voxel_Context* voxel_newContext() {
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
     context->weakRefs = voxel_newList(context);
     context->enumLookup = voxel_newObject(context);
+    context->firstHandle = VOXEL_NULL;
+    context->lastHandle = VOXEL_NULL;
+    context->nextHandleId = 0;
 
     voxel_newExecutor(context);
 

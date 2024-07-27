@@ -221,8 +221,10 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
 typedef voxel_Count voxel_Position;
 
 struct voxel_Executor;
+struct voxel_Handle;
 
 typedef void (*voxel_Builtin)(struct voxel_Executor* executor);
+typedef void (*voxel_HandleCloser)(struct voxel_Handle* handle);
 
 typedef struct voxel_Result {
     voxel_ErrorCode errorCode;
@@ -249,6 +251,9 @@ typedef struct voxel_Context {
     struct voxel_Executor* lastExecutor;
     struct voxel_Thing* weakRefs;
     struct voxel_Thing* enumLookup;
+    struct voxel_Handle* firstHandle;
+    struct voxel_Handle* lastHandle;
+    voxel_Count nextHandleId;
 } voxel_Context;
 
 typedef enum {
@@ -418,6 +423,18 @@ typedef struct voxel_Executor {
     struct voxel_Executor* nextExecutor;
 } voxel_Executor;
 
+typedef struct voxel_HandleType {
+    voxel_HandleCloser closer;
+} voxel_HandleType;
+
+typedef struct voxel_Handle {
+    voxel_HandleType* type;
+    voxel_Count id;
+    void* value;
+    struct voxel_Handle* previousHandle;
+    struct voxel_Handle* nextHandle;
+} voxel_Handle;
+
 void voxel_copy(voxel_Byte* source, voxel_Byte* destination, voxel_Count size);
 voxel_Bool voxel_compare(voxel_Byte* a, voxel_Byte* b, voxel_Count aSize, voxel_Count bSize);
 
@@ -461,6 +478,7 @@ VOXEL_ERRORABLE voxel_booleanToNumber(voxel_Context* context, voxel_Thing* thing
 voxel_Bool voxel_booleanIsTruthy(voxel_Thing* thing);
 
 voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value);
+voxel_Byte voxel_getByte(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing);
 voxel_Bool voxel_compareBytes(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyByte(voxel_Context* context, voxel_Thing* thing);
@@ -608,12 +626,17 @@ void voxel_setExceptionHandler(voxel_Executor* executor, voxel_Position exceptio
 void voxel_clearExceptionHandler(voxel_Executor* executor);
 VOXEL_ERRORABLE voxel_throwException(voxel_Executor* executor);
 
+voxel_Handle* voxel_openHandle(voxel_Context* context, voxel_HandleType* type, void* value);
+void voxel_closeHandle(voxel_Context* context, voxel_Handle* handle);
+voxel_Handle* voxel_getHandleById(voxel_Context* context, voxel_Count id);
+
 void voxel_push(voxel_Executor* executor, voxel_Thing* thing);
 void voxel_pushNull(voxel_Executor* executor);
 voxel_Thing* voxel_pop(voxel_Executor* executor);
 void voxel_popVoid(voxel_Executor* executor);
 voxel_Bool voxel_popBoolean(voxel_Executor* executor);
 voxel_Thing* voxel_popByte(voxel_Executor* executor);
+voxel_Byte voxel_popByteValue(voxel_Executor* executor);
 voxel_Thing* voxel_popNumber(voxel_Executor* executor);
 voxel_Int voxel_popNumberInt(voxel_Executor* executor);
 voxel_Float voxel_popNumberFloat(voxel_Executor* executor);
@@ -1232,7 +1255,6 @@ void voxel_builtins_core_getStringByte(voxel_Executor* executor) {
 void voxel_builtins_core_appendToString(voxel_Executor* executor) {
     VOXEL_ARGC(2);
 
-    voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* appendString = voxel_popString(executor);
     voxel_Thing* baseString = voxel_peek(executor, 0); // Keep as return value
 
@@ -2455,8 +2477,75 @@ void voxel_builtins_io_out(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, thing);
 }
 
+#ifdef VOXEL_USE_STDLIB
+
+void voxel_builtins_io_closeHandle(voxel_Handle* handle) {
+    fclose((FILE*)handle->value);
+}
+
+voxel_HandleType voxel_builtins_io_handle = {
+    .closer = voxel_builtins_io_closeHandle
+};
+
+void voxel_builtins_io_open(voxel_Executor* executor) {
+    VOXEL_ARGC(2);
+
+    voxel_Byte mode = voxel_popByteValue(executor);
+    voxel_Thing* path = voxel_popString(executor);
+
+    VOXEL_REQUIRE(path);
+
+    voxel_String* pathValue = (voxel_String*)path->value;
+    voxel_Byte* modeString;
+
+    switch (mode) {
+        case 'r': modeString = "rb"; break;
+        case 'w': modeString = "wb"; break;
+        default: VOXEL_FAIL(); break;
+    }
+
+    FILE* fp = fopen(pathValue->value, modeString);
+
+    if (!fp) {
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
+    }
+
+    voxel_Handle* handle = voxel_openHandle(executor->context, &voxel_builtins_io_handle, fp);
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, handle->id));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, path);
+}
+
+void voxel_builtins_io_close(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Count handleId = voxel_popNumberInt(executor);
+
+    voxel_Handle* handle = voxel_getHandleById(executor->context, handleId);
+    
+    VOXEL_REQUIRE(handle);
+
+    voxel_closeHandle(executor->context, handle);
+
+    voxel_pushNull(executor);
+
+    voxel_finally:
+}
+
+#endif
+
 void voxel_builtins_io(voxel_Context* context) {
     voxel_defineBuiltin(context, ".io_out", &voxel_builtins_io_out);
+
+    #ifdef VOXEL_USE_STDLIB
+        voxel_defineBuiltin(context, ".io_open", &voxel_builtins_io_open);
+        voxel_defineBuiltin(context, ".io_close", &voxel_builtins_io_close);
+    #endif
 }
 
 #else
@@ -2707,6 +2796,9 @@ voxel_Context* voxel_newContext() {
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
     context->weakRefs = voxel_newList(context);
     context->enumLookup = voxel_newObject(context);
+    context->firstHandle = VOXEL_NULL;
+    context->lastHandle = VOXEL_NULL;
+    context->nextHandleId = 0;
 
     voxel_newExecutor(context);
 
@@ -3098,6 +3190,12 @@ voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
 
     thing->type = VOXEL_TYPE_BYTE;
     thing->value = (void*)(voxel_IntPtr)value;
+}
+
+voxel_Byte voxel_getByte(voxel_Thing* thing) {
+    voxel_Byte bytes[1] = {(voxel_IntPtr)thing->value};
+
+    return bytes[0];
 }
 
 VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing) {
@@ -4940,6 +5038,68 @@ voxel_Thing* voxel_getEnumEntryFromLookup(voxel_Context* context, voxel_Thing* v
     return enumLookupObjectItem ? enumLookupObjectItem->value : value;
 }
 
+// src/handles.h
+
+voxel_Handle* voxel_openHandle(voxel_Context* context, voxel_HandleType* type, void* value) {
+    voxel_Handle* handle = (voxel_Handle*)VOXEL_MALLOC(sizeof(voxel_Handle)); VOXEL_TAG_MALLOC(voxel_Handle);
+
+    handle->type = type;
+    handle->id = context->nextHandleId++;
+    handle->value = value;
+    handle->previousHandle = context->lastHandle;
+    handle->nextHandle = VOXEL_NULL;
+
+    if (context->lastHandle) {
+        context->lastHandle->nextHandle = handle;
+    }
+
+    context->lastHandle = handle;
+
+    if (!context->firstHandle) {
+        context->firstHandle = handle;
+    }
+
+    return handle;
+}
+
+void voxel_closeHandle(voxel_Context* context, voxel_Handle* handle) {
+    if (handle->type->closer) {
+        handle->type->closer(handle);
+    }
+
+    if (handle == context->firstHandle) {
+        context->firstHandle = handle->nextHandle;
+    }
+
+    if (handle == context->lastHandle) {
+        context->lastHandle = handle->previousHandle;
+    }
+
+    if (handle->previousHandle) {
+        handle->previousHandle->nextHandle = handle->nextHandle;
+    }
+
+    if (handle->nextHandle) {
+        handle->nextHandle->previousHandle = handle->previousHandle;
+    }
+
+    VOXEL_FREE(handle); VOXEL_TAG_FREE(voxel_Handle);
+}
+
+voxel_Handle* voxel_getHandleById(voxel_Context* context, voxel_Count id) {
+    voxel_Handle* currentHandle = context->firstHandle;
+
+    while (currentHandle) {
+        if (currentHandle->id == id) {
+            return currentHandle;
+        }
+
+        currentHandle = currentHandle->nextHandle;
+    }
+
+    return VOXEL_NULL;
+}
+
 // src/operations.h
 
 VOXEL_ERRORABLE voxel_notOperation(voxel_Context* context, voxel_Thing* thing) {
@@ -6032,6 +6192,8 @@ voxel_Thing* voxel_popByte(voxel_Executor* executor) {
 
     return (voxel_Thing*)result.value;
 }
+
+_VOXEL_HELPER_POP_VALUE(voxel_popByteValue, voxel_Byte, voxel_popByte, voxel_getByte, 0);
 
 voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
     voxel_Thing* poppedThing = voxel_pop(executor);

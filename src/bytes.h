@@ -5,6 +5,12 @@ voxel_Thing* voxel_newByte(voxel_Context* context, voxel_Byte value) {
     thing->value = (void*)(voxel_IntPtr)value;
 }
 
+voxel_Byte voxel_getByte(voxel_Thing* thing) {
+    voxel_Byte bytes[1] = {(voxel_IntPtr)thing->value};
+
+    return bytes[0];
+}
+
 VOXEL_ERRORABLE voxel_destroyByte(voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_BYTE);
 

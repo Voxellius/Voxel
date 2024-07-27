@@ -151,7 +151,6 @@ void voxel_builtins_core_getStringByte(voxel_Executor* executor) {
 void voxel_builtins_core_appendToString(voxel_Executor* executor) {
     VOXEL_ARGC(2);
 
-    voxel_Int argCount = voxel_popNumberInt(executor);
     voxel_Thing* appendString = voxel_popString(executor);
     voxel_Thing* baseString = voxel_peek(executor, 0); // Keep as return value
 

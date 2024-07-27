@@ -74,6 +74,8 @@ voxel_Thing* voxel_popByte(voxel_Executor* executor) {
     return (voxel_Thing*)result.value;
 }
 
+_VOXEL_HELPER_POP_VALUE(voxel_popByteValue, voxel_Byte, voxel_popByte, voxel_getByte, 0);
+
 voxel_Thing* voxel_popNumber(voxel_Executor* executor) {
     voxel_Thing* poppedThing = voxel_pop(executor);
 

@@ -1,0 +1,5 @@
+syscall io_out("Hello, world!\n");
+
+var file = syscall io_open("test/io/read.txt", Byte("r"));
+
+syscall io_close(file);
