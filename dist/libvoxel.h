@@ -2537,6 +2537,42 @@ void voxel_builtins_io_close(voxel_Executor* executor) {
     voxel_finally:
 }
 
+void voxel_builtins_io_seek(voxel_Executor* executor) {
+    VOXEL_ARGC(3);
+
+    voxel_Bool seekRelative = voxel_popBoolean(executor);
+    voxel_Int seekBy = voxel_popNumberInt(executor);
+    voxel_Count handleId = voxel_popNumberInt(executor);
+
+    voxel_Handle* handle = voxel_getHandleById(executor->context, handleId);
+
+    VOXEL_REQUIRE(handle);
+
+    FILE* fp = (FILE*)handle->value;
+
+    voxel_Bool isSuccess = VOXEL_FALSE;
+
+    if (!seekRelative && seekBy < 0) {
+        isSuccess = fseek(fp, 0, SEEK_END) == 0;
+
+        seekBy += 1;
+
+        if (seekBy < 0) {
+            isSuccess &= fseek(fp, seekBy, SEEK_CUR) == 0;
+        }
+    } else {
+        isSuccess = fseek(fp, seekBy, seekRelative ? SEEK_CUR : SEEK_SET) == 0;
+    }
+
+    if (isSuccess) {
+        voxel_push(executor, voxel_newNumberInt(executor->context, ftell(fp)));
+    } else {
+        voxel_pushNull(executor);
+    }
+
+    voxel_finally:
+}
+
 #endif
 
 void voxel_builtins_io(voxel_Context* context) {
@@ -2545,6 +2581,7 @@ void voxel_builtins_io(voxel_Context* context) {
     #ifdef VOXEL_USE_STDLIB
         voxel_defineBuiltin(context, ".io_open", &voxel_builtins_io_open);
         voxel_defineBuiltin(context, ".io_close", &voxel_builtins_io_close);
+        voxel_defineBuiltin(context, ".io_seek", &voxel_builtins_io_seek);
     #endif
 }
 
