@@ -2,10 +2,16 @@ syscall io_out("Hello, world!\n");
 
 var file = syscall io_open("test/io/read.txt", Byte("r"));
 
-syscall io_out("File length: ");
-syscall io_out(syscall io_seek(file, -1, false));
+var size = syscall io_seek(file, -1, false);
+
+syscall io_out("File size: ");
+syscall io_out(size);
 syscall io_out("\n");
 
 syscall io_seek(file, 0, false);
+
+syscall io_out("File contents: ");
+syscall io_out(syscall io_read(file, size));
+syscall io_out("\n");
 
 syscall io_close(file);

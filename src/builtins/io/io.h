@@ -112,6 +112,30 @@ void voxel_builtins_io_seek(voxel_Executor* executor) {
     voxel_finally:
 }
 
+void voxel_builtins_io_read(voxel_Executor* executor) {
+    VOXEL_ARGC(2);
+
+    voxel_Int size = voxel_popNumberInt(executor);
+    voxel_Int handleId = voxel_popNumberInt(executor);
+
+    voxel_Handle* handle = voxel_getHandleById(executor->context, handleId);
+
+    VOXEL_REQUIRE(size >= 0 && handle);
+
+    if (size > VOXEL_MAX_BUFFER_WRITE_BLOCK) {
+        size = VOXEL_MAX_BUFFER_WRITE_BLOCK;
+    }
+
+    voxel_Thing* buffer = voxel_newBuffer(executor->context, size, VOXEL_NULL);
+    voxel_Buffer* bufferValue = (voxel_Buffer*)buffer->value;
+
+    fread(bufferValue->value, sizeof(voxel_Byte), size, (FILE*)handle->value);
+
+    voxel_push(executor, buffer);
+
+    voxel_finally:
+}
+
 #endif
 
 void voxel_builtins_io(voxel_Context* context) {
@@ -121,6 +145,7 @@ void voxel_builtins_io(voxel_Context* context) {
         voxel_defineBuiltin(context, ".io_open", &voxel_builtins_io_open);
         voxel_defineBuiltin(context, ".io_close", &voxel_builtins_io_close);
         voxel_defineBuiltin(context, ".io_seek", &voxel_builtins_io_seek);
+        voxel_defineBuiltin(context, ".io_read", &voxel_builtins_io_read);
     #endif
 }
 
