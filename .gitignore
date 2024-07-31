@@ -3,3 +3,4 @@ runtime/build.zip
 *.loop.vxl
 test/*/main.vxc
 test/*/main.loop.vxc
+*.tmp

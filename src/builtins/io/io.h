@@ -129,11 +129,62 @@ void voxel_builtins_io_read(voxel_Executor* executor) {
     voxel_Thing* buffer = voxel_newBuffer(executor->context, size, VOXEL_NULL);
     voxel_Buffer* bufferValue = (voxel_Buffer*)buffer->value;
 
-    fread(bufferValue->value, sizeof(voxel_Byte), size, (FILE*)handle->value);
+    if (size == 0) {
+        voxel_push(executor, buffer);
+
+        goto voxel_finally;
+    }
+
+    voxel_Count bytesRead = fread(bufferValue->value, sizeof(voxel_Byte), size, (FILE*)handle->value);
+
+    if (bytesRead == 0) {
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
+    }
 
     voxel_push(executor, buffer);
 
     voxel_finally:
+}
+
+void voxel_builtins_io_write(voxel_Executor* executor) {
+    VOXEL_ARGC(2);
+
+    voxel_Int handleId = voxel_popNumberInt(executor);
+    voxel_Thing* buffer = voxel_pop(executor);
+
+    voxel_Handle* handle = voxel_getHandleById(executor->context, handleId);
+
+    VOXEL_REQUIRE(VOXEL_ARG(buffer, VOXEL_TYPE_BUFFER) && handle);
+
+    voxel_Buffer* bufferValue = (voxel_Buffer*)buffer->value;
+
+    voxel_Count size = bufferValue->size;
+
+    if (size == 0) {
+        voxel_push(executor, voxel_newNumberInt(executor->context, 0));
+
+        goto voxel_finally;
+    }
+
+    if (size > VOXEL_MAX_BUFFER_WRITE_BLOCK) {
+        size = VOXEL_MAX_BUFFER_WRITE_BLOCK;
+    }
+
+    voxel_Count bytesWritten = fwrite(bufferValue->value, sizeof(voxel_Byte), size, (FILE*)handle->value);
+
+    if (bytesWritten == 0) {
+        voxel_push(executor, voxel_newNumberInt(executor->context, -1));
+
+        goto voxel_finally;
+    }
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, bytesWritten));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, buffer);
 }
 
 #endif
@@ -146,6 +197,7 @@ void voxel_builtins_io(voxel_Context* context) {
         voxel_defineBuiltin(context, ".io_close", &voxel_builtins_io_close);
         voxel_defineBuiltin(context, ".io_seek", &voxel_builtins_io_seek);
         voxel_defineBuiltin(context, ".io_read", &voxel_builtins_io_read);
+        voxel_defineBuiltin(context, ".io_write", &voxel_builtins_io_write);
     #endif
 }
 

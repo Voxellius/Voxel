@@ -1,3 +1,5 @@
+var writeLocation = "test/io/write.tmp";
+
 syscall io_out("Hello, world!\n");
 
 var file = syscall io_open("test/io/read.txt", Byte("r"));
@@ -15,3 +17,18 @@ syscall io_out(syscall io_read(file, size));
 syscall io_out("\n");
 
 syscall io_close(file);
+
+var writeFile = syscall io_open(writeLocation, Byte("w"));
+var writtenData = Buffer("This is a test!");
+
+syscall io_write(writtenData, writeFile);
+
+syscall io_close(writeFile);
+
+var writtenFile = syscall io_open(writeLocation, Byte("r"));
+
+syscall io_out("Written file contents: ");
+syscall io_out(syscall io_read(writtenFile, writtenData.size));
+syscall io_out("\n");
+
+syscall io_close(writtenFile);
