@@ -1,0 +1,7 @@
+var args = &(syscall process_args());
+
+args.shift();
+
+syscall io_out("Process args: ");
+syscall io_out(args.join(" "));
+syscall io_out("\n");

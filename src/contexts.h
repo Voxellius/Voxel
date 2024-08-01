@@ -14,6 +14,7 @@ voxel_Context* voxel_newContext() {
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
     context->weakRefs = voxel_newList(context);
     context->enumLookup = voxel_newObject(context);
+    context->argsList = voxel_newList(context);
     context->firstHandle = VOXEL_NULL;
     context->lastHandle = VOXEL_NULL;
     context->nextHandleId = 0;
@@ -22,9 +23,16 @@ voxel_Context* voxel_newContext() {
 
     voxel_builtins_core(context);
     voxel_builtins_io(context);
+    voxel_builtins_process(context);
     voxel_builtins_threads(context);
 
     return context;
+}
+
+VOXEL_ERRORABLE voxel_addArg(voxel_Context* context, voxel_Byte* argValue) {
+    VOXEL_ASSERT(!context->isInitialised, VOXEL_ERROR_ARGS_LOCKED);
+
+    return voxel_pushOntoList(context, context->argsList, voxel_newStringTerminated(context, argValue));
 }
 
 VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
@@ -45,6 +53,8 @@ VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
             }
         }
     #endif
+
+    voxel_lockThing(context->argsList);
 
     context->isInitialised = VOXEL_TRUE;
 

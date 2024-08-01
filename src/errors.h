@@ -36,6 +36,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_INVALID_MAGIC -0x12
 #define VOXEL_ERROR_TOKENISATION_BYTE -0x13
 #define VOXEL_ERROR_TOKENISATION_END -0x14
+#define VOXEL_ERROR_ARGS_LOCKED -0x15
 #define VOXEL_ERROR_TYPE_MISMATCH -0x20
 #define VOXEL_ERROR_NOT_IMPLEMENTED -0x21
 #define VOXEL_ERROR_INVALID_ARG -0x22
@@ -67,6 +68,9 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
 
         case VOXEL_ERROR_TOKENISATION_END:
             return "Unexpectedly reached end when tokenising";
+
+        case VOXEL_ERROR_ARGS_LOCKED:
+            return "Arguments must be added before initialisation";
 
         case VOXEL_ERROR_TYPE_MISMATCH:
             return "Type mismatch";

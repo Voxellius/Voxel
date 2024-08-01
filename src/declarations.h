@@ -31,6 +31,7 @@ typedef struct voxel_Context {
     struct voxel_Executor* lastExecutor;
     struct voxel_Thing* weakRefs;
     struct voxel_Thing* enumLookup;
+    struct voxel_Thing* argsList;
     struct voxel_Handle* firstHandle;
     struct voxel_Handle* lastHandle;
     voxel_Count nextHandleId;
@@ -306,6 +307,7 @@ voxel_Count voxel_getBufferSize(voxel_Thing* thing);
 
 voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data);
 voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
+voxel_Byte* voxel_getString(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing);

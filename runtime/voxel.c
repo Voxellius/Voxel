@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <libvoxel-config.h>
 #include <libvoxel.h>
 
@@ -21,12 +22,12 @@ int main(int argc, char* argv[]) {
 
     fseek(fp, 0, SEEK_END);
 
-    size_t size = ftell(fp);
-    char* data = (char*)VOXEL_MALLOC(size + 1);
+    voxel_Count size = ftell(fp);
+    voxel_Byte* data = (voxel_Byte*)VOXEL_MALLOC(size + 1);
 
     fseek(fp, 0, SEEK_SET);
-    
-    if (fread(data, sizeof(char), size, fp) != size) {
+
+    if (fread(data, sizeof(voxel_Byte), size, fp) != size) {
         fprintf(stderr, "Error reading file contents\n");
         fclose(fp);
 
@@ -39,6 +40,20 @@ int main(int argc, char* argv[]) {
 
     context->code = data;
     context->codeSize = size;
+
+    voxel_addArg(context, argv[0] != VOXEL_NULL ? argv[0] : "");
+
+    voxel_Bool hasMetRuntimeOptionEnd = VOXEL_FALSE;
+
+    for (voxel_Count i = 2; i < argc; i++) {
+        if (!hasMetRuntimeOptionEnd && strcmp(argv[i], "--") == 0) {
+            hasMetRuntimeOptionEnd = VOXEL_TRUE;
+
+            continue;
+        }
+
+        voxel_addArg(context, argv[i]);
+    }
 
     VOXEL_MUST_CODE(voxel_initContext(context));
 

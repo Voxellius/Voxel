@@ -33,6 +33,7 @@ include src/builtins/core/lists.h
 include src/builtins/core/weak.h
 include src/builtins/core/core.h
 include src/builtins/io/io.h
+include src/builtins/process/process.h
 include src/builtins/threads/threads.h
 include src/maths.h
 include src/contexts.h

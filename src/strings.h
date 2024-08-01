@@ -26,6 +26,17 @@ voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data)
     return voxel_newString(context, size, data);
 }
 
+voxel_Byte* voxel_getString(voxel_Thing* thing) {
+    voxel_String* string = (voxel_String*)thing->value;
+    voxel_Byte* bytes = (voxel_Byte*)VOXEL_MALLOC(sizeof(voxel_Byte) * (string->size + 1)); VOXEL_TAG_MALLOC(voxel_Byte*);
+
+    voxel_copy(string->value, bytes, string->size);
+
+    bytes[string->size] = '\0';
+
+    return bytes;
+}
+
 VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing) {
     VOXEL_TAG_DESTROY_THING(VOXEL_TYPE_STRING);
 

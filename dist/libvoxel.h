@@ -146,6 +146,7 @@ typedef int voxel_ErrorCode;
 #define VOXEL_ERROR_INVALID_MAGIC -0x12
 #define VOXEL_ERROR_TOKENISATION_BYTE -0x13
 #define VOXEL_ERROR_TOKENISATION_END -0x14
+#define VOXEL_ERROR_ARGS_LOCKED -0x15
 #define VOXEL_ERROR_TYPE_MISMATCH -0x20
 #define VOXEL_ERROR_NOT_IMPLEMENTED -0x21
 #define VOXEL_ERROR_INVALID_ARG -0x22
@@ -177,6 +178,9 @@ const voxel_Byte* voxel_lookupError(voxel_ErrorCode error) {
 
         case VOXEL_ERROR_TOKENISATION_END:
             return "Unexpectedly reached end when tokenising";
+
+        case VOXEL_ERROR_ARGS_LOCKED:
+            return "Arguments must be added before initialisation";
 
         case VOXEL_ERROR_TYPE_MISMATCH:
             return "Type mismatch";
@@ -251,6 +255,7 @@ typedef struct voxel_Context {
     struct voxel_Executor* lastExecutor;
     struct voxel_Thing* weakRefs;
     struct voxel_Thing* enumLookup;
+    struct voxel_Thing* argsList;
     struct voxel_Handle* firstHandle;
     struct voxel_Handle* lastHandle;
     voxel_Count nextHandleId;
@@ -526,6 +531,7 @@ voxel_Count voxel_getBufferSize(voxel_Thing* thing);
 
 voxel_Thing* voxel_newString(voxel_Context* context, voxel_Count size, voxel_Byte* data);
 voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data);
+voxel_Byte* voxel_getString(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing);
 voxel_Bool voxel_compareStrings(voxel_Thing* a, voxel_Thing* b);
 voxel_Thing* voxel_copyString(voxel_Context* context, voxel_Thing* thing);
@@ -2495,7 +2501,7 @@ void voxel_builtins_io_open(voxel_Executor* executor) {
 
     VOXEL_REQUIRE(path);
 
-    voxel_String* pathValue = (voxel_String*)path->value;
+    voxel_Byte* pathString = voxel_getString(path);
     voxel_Byte* modeString;
 
     switch (mode) {
@@ -2504,7 +2510,7 @@ void voxel_builtins_io_open(voxel_Executor* executor) {
         default: VOXEL_FAIL(); break;
     }
 
-    FILE* fp = fopen(pathValue->value, modeString);
+    FILE* fp = fopen(pathString, modeString);
 
     if (!fp) {
         voxel_pushNull(executor);
@@ -2517,6 +2523,8 @@ void voxel_builtins_io_open(voxel_Executor* executor) {
     voxel_push(executor, voxel_newNumberInt(executor->context, handle->id));
 
     voxel_finally:
+
+    VOXEL_FREE(pathString); VOXEL_TAG_FREE(voxel_Byte*);
 
     voxel_unreferenceThing(executor->context, path);
 }
@@ -2665,6 +2673,32 @@ void voxel_builtins_io(voxel_Context* context) {
 #else
 
 void voxel_builtins_io(voxel_Context* context) {}
+
+#endif
+
+// src/builtins/process/process.h
+
+#ifdef VOXEL_BUILTINS_PROCESS
+
+void voxel_builtins_core_getProcessArgs(voxel_Executor* executor) {
+    VOXEL_ARGC(0);
+
+    voxel_Thing* argsList = executor->context->argsList;
+
+    argsList->referenceCount++;
+
+    voxel_push(executor, argsList);
+
+    voxel_finally:
+}
+
+void voxel_builtins_process(voxel_Context* context) {
+    voxel_defineBuiltin(context, ".process_args", &voxel_builtins_core_getProcessArgs);
+}
+
+#else
+
+void voxel_builtins_process(voxel_Context* context) {}
 
 #endif
 
@@ -2910,6 +2944,7 @@ voxel_Context* voxel_newContext() {
     context->globalScope = voxel_newScope(context, VOXEL_NULL);
     context->weakRefs = voxel_newList(context);
     context->enumLookup = voxel_newObject(context);
+    context->argsList = voxel_newList(context);
     context->firstHandle = VOXEL_NULL;
     context->lastHandle = VOXEL_NULL;
     context->nextHandleId = 0;
@@ -2918,9 +2953,16 @@ voxel_Context* voxel_newContext() {
 
     voxel_builtins_core(context);
     voxel_builtins_io(context);
+    voxel_builtins_process(context);
     voxel_builtins_threads(context);
 
     return context;
+}
+
+VOXEL_ERRORABLE voxel_addArg(voxel_Context* context, voxel_Byte* argValue) {
+    VOXEL_ASSERT(!context->isInitialised, VOXEL_ERROR_ARGS_LOCKED);
+
+    return voxel_pushOntoList(context, context->argsList, voxel_newStringTerminated(context, argValue));
 }
 
 VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
@@ -2941,6 +2983,8 @@ VOXEL_ERRORABLE voxel_initContext(voxel_Context* context) {
             }
         }
     #endif
+
+    voxel_lockThing(context->argsList);
 
     context->isInitialised = VOXEL_TRUE;
 
@@ -3861,6 +3905,17 @@ voxel_Thing* voxel_newStringTerminated(voxel_Context* context, voxel_Byte* data)
     }
 
     return voxel_newString(context, size, data);
+}
+
+voxel_Byte* voxel_getString(voxel_Thing* thing) {
+    voxel_String* string = (voxel_String*)thing->value;
+    voxel_Byte* bytes = (voxel_Byte*)VOXEL_MALLOC(sizeof(voxel_Byte) * (string->size + 1)); VOXEL_TAG_MALLOC(voxel_Byte*);
+
+    voxel_copy(string->value, bytes, string->size);
+
+    bytes[string->size] = '\0';
+
+    return bytes;
 }
 
 VOXEL_ERRORABLE voxel_destroyString(voxel_Thing* thing) {

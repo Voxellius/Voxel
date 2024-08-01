@@ -34,7 +34,7 @@ void voxel_builtins_io_open(voxel_Executor* executor) {
 
     VOXEL_REQUIRE(path);
 
-    voxel_String* pathValue = (voxel_String*)path->value;
+    voxel_Byte* pathString = voxel_getString(path);
     voxel_Byte* modeString;
 
     switch (mode) {
@@ -43,7 +43,7 @@ void voxel_builtins_io_open(voxel_Executor* executor) {
         default: VOXEL_FAIL(); break;
     }
 
-    FILE* fp = fopen(pathValue->value, modeString);
+    FILE* fp = fopen(pathString, modeString);
 
     if (!fp) {
         voxel_pushNull(executor);
@@ -56,6 +56,8 @@ void voxel_builtins_io_open(voxel_Executor* executor) {
     voxel_push(executor, voxel_newNumberInt(executor->context, handle->id));
 
     voxel_finally:
+
+    VOXEL_FREE(pathString); VOXEL_TAG_FREE(voxel_Byte*);
 
     voxel_unreferenceThing(executor->context, path);
 }

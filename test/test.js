@@ -58,6 +58,10 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
     const TEST_NAME = entry.name;
     const TEST_PATH = path.join(TEST_DIR, entry.name);
 
+    const RUNTIME_ARGS = {
+        "process": ["--", "test", "args"]
+    }[TEST_NAME] || [];
+
     var mainCode = await Deno.readTextFile(path.join(TEST_PATH, "main.vxl"));
 
     Deno.writeTextFile(path.join(TEST_PATH, "main.loop.vxl"), `while (true) {\n\n` + mainCode + `\n\n}`);
@@ -78,7 +82,7 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
             console.error(buildOutput.stderr);
         }
 
-        var output = await $(VOXEL_FILE, [path.join(TEST_PATH, "main.vxc")]);
+        var output = await $(VOXEL_FILE, [path.join(TEST_PATH, "main.vxc"), ...RUNTIME_ARGS]);
 
         var expected = await Deno.readTextFile(path.join(TEST_PATH, "expected.log"));
 
@@ -132,11 +136,11 @@ for await (var entry of Deno.readDir(TEST_DIR)) {
             path.join(TEST_PATH, "main.loop.vxc")
         ]);
 
-        var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.loop.vxc")], stdout: "null"});
+        var command = new Deno.Command(VOXEL_FILE, {args: [path.join(TEST_PATH, "main.loop.vxc"), ...RUNTIME_ARGS], stdout: "null"});
         var process = command.spawn();
 
         note(`Beginning warmup for test: ${TEST_NAME}`);
-        await delay(18_000);
+        await delay(20_000);
 
         note(`Profiling initial memory usage for test: ${TEST_NAME}`);
 
