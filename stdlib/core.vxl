@@ -321,11 +321,11 @@ function getProperty(thing, property) {
         }
 
         if (#usedprop(indexOf) &&& property == #prop(indexOf)) {
-            return function(value) {
+            return function(value, equality) {
                 var length = syscall Ll(thing);
 
                 for (var i = 0; i < length; ++i) {
-                    if (thing[i] == value) {
+                    if (thing[i] === value || (equality && thing[i] == value)) {
                         return i;
                     }
                 }
@@ -335,11 +335,11 @@ function getProperty(thing, property) {
         }
 
         if (#usedprop(contains) &&& property == #prop(contains)) {
-            return function(value) {
+            return function(value, equality) {
                 var length = syscall Ll(thing);
 
                 for (var i = 0; i < length; ++i) {
-                    if (thing[i] == value) {
+                    if (thing[i] === value || (equality && thing[i] == value)) {
                         return true;
                     }
                 }
@@ -349,11 +349,11 @@ function getProperty(thing, property) {
         }
 
         if (#usedprop(remove) &&& property == #prop(remove)) {
-            return function(value) {
+            return function(value, equality) {
                 var length = syscall Ll(thing);
 
                 for (var i = 0; i < length; ++i) {
-                    if (thing[i] == value) {
+                    if (thing[i] === value || (equality && thing[i] == value)) {
                         syscall Lr(thing, i);
 
                         return true;

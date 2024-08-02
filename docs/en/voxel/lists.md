@@ -38,15 +38,15 @@ Insert an item (`value`) onto the list at a specified index (`index`) and return
 Remove an item from the list at a specified index (`index`) and return that item.
 
 #### `indexOf(value: *): Number`
-Find the index of the first occurrence of a value (`value`) in the list and return it.
+Find the index of the first occurrence of a value (`value`) in the list and return it. If `equality` is `true`, then perform equality checking; otherwise, perform identity checking.
 
 If the item cannot be found, `-1` will be returned instead.
 
-#### `contains(value: *): Boolean`
-Return `true` if a value (`value`) is in the list; otherwise, return `false`.
+#### `contains(value: *, equality: Boolean): Boolean`
+Return `true` if a value (`value`) is in the list; otherwise, return `false`. If `equality` is `true`, then perform equality checking; otherwise, perform identity checking.
 
 #### `remove(value: *): Boolean`
-Remove the first occurrence of a value (`value`) in the list. Return `true` if it was found and removed; otherwise, return `false`.
+Remove the first occurrence of a value (`value`) in the list. Return `true` if it was found and removed; otherwise, return `false`. If `equality` is `true`, then perform equality checking; otherwise, perform identity checking.
 
 #### `join(delimeter: String = ","): String`
 Join all list values into a string by using the delimeter (`delimeter`) to separate each item, and return it.

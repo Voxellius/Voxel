@@ -26,6 +26,9 @@ Convert the string to a [buffer](buffers.md).
 #### `size: Number`
 The number of bytes in the string.
 
+#### `length: Number`
+The number of characters (Unicode code points) in the string.
+
 #### `reverse(): String`
 Return a reversed version of the string.
 

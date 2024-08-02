@@ -1,0 +1,9 @@
+import io;
+
+import "namespaces.vxl" as namespaces;
+
+io.println("Hello, world!");
+
+namespaces.init();
+
+io.println("All working so far!");

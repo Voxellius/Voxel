@@ -141,7 +141,7 @@ syscall io_out(list);
 syscall io_out("\n");
 
 syscall io_out("Removed from list by value; success: ");
-syscall io_out(list.remove(2));
+syscall io_out(list.remove(2, true));
 syscall io_out("\n");
 
 syscall io_out("List after removal: ");
@@ -210,17 +210,17 @@ syscall io_out(values.reduce(function(accumulator, value) {
 syscall io_out("\n");
 
 syscall io_out("Index of 3: ");
-syscall io_out(values.indexOf(3));
+syscall io_out(values.indexOf(3, true));
 syscall io_out("\n");
 
 syscall io_out("Index of 6: ");
-syscall io_out(values.indexOf(6));
+syscall io_out(values.indexOf(6, true));
 syscall io_out("\n");
 
 syscall io_out("List contains 3: ");
-syscall io_out(values.contains(3));
+syscall io_out(values.contains(3, true));
 syscall io_out("\n");
 
 syscall io_out("List contains 6: ");
-syscall io_out(values.contains(6));
+syscall io_out(values.contains(6, true));
 syscall io_out("\n");

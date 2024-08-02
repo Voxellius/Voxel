@@ -1,0 +1,48 @@
+import io;
+
+class SourceContainer {
+    constructor(source, location) {
+        this.source = source;
+        this.location = location;
+    }
+
+    get name() {
+        return this.location;
+    }
+
+    get shortName() {
+        // TODO: Replace all non-word characters
+        return this.location.split("/")[-1].split(".")[0];
+    }
+
+    positionToRowAndCol(position) {
+        var linesBeforePosition = this.source.substring(0, position).split("\n");
+
+        return {
+            row: linesBeforePosition.length,
+            col: linesBeforePosition[-1].length + 1
+        };
+    }
+}
+
+export class SourceError {
+    constructor(message, sourceContainer, location) {
+        this.message = message;
+        this.sourceContainer = sourceContainer;
+        this.location = location;
+    }
+
+    log() {
+        io.println("VxBuild source error: " + this.message);
+
+        if (this.sourceContainer == null) {
+            return;
+        }
+
+        var rowAndCol = this.sourceContainer.positionToRowAndCol(this.location);
+
+        io.println("    in " + this.sourceContainer.name + ":" + rowAndCol.row + ":" + rowAndCol.col);
+
+        // TODO: Print line preview (needs `Number.toString()` and `String.repeat()`)
+    }
+}
