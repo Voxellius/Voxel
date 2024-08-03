@@ -281,6 +281,18 @@ function getProperty(thing, property) {
                 return syscall Sr(thing, syscall Sb(thing, start), syscall Sb(thing, end));
             };
         }
+
+        if (#usedprop(repeat) &&& property == #prop(repeat)) {
+            return function(times) {
+                var result = "";
+
+                for (var i = 0; i < times; i++) {
+                    syscall Sa(result, thing);
+                }
+
+                return result;
+            };
+        }
     }
 
     if (syscall T(thing) == "L") {

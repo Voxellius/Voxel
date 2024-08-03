@@ -9,6 +9,7 @@ Cut end: abcd
 Substring: cd
 Pad start: 1231abcdef
 Pad end: abcdef1231
+Repeat string: abcdefabcdefabcdef
 String to buffer: abcdef
 Numeric string to number + 1: 1235
 Multibyte string size: 13

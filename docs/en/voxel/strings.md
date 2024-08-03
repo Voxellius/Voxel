@@ -52,3 +52,6 @@ If the fill string is not specified, then it will default to `" "`.
 Return a new string that is a section of the string from the start index (`start`) up to the end index (`end`). The end index will not be included.
 
 If the end index is not specified, then it will default to the size of the string.
+
+#### `repeat(times: Number): String`
+Return a new string that is a repetition of the string for a given number of times (`times`). If the number of times is _n_, then the returned string will be _n_ times the size of the original string.
