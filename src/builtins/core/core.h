@@ -401,6 +401,11 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Tt", &voxel_builtins_core_isType);
     voxel_defineBuiltin(context, ".Ti", &voxel_builtins_core_isInstance);
 
+    voxel_defineBuiltin(context, ".N2S", &voxel_builtins_core_numberToString);
+    voxel_defineBuiltin(context, ".N2Sb", &voxel_builtins_core_numberToBaseString);
+    voxel_defineBuiltin(context, ".N2b", &voxel_builtins_core_numberToByte);
+    voxel_defineBuiltin(context, ".Nan", &voxel_builtins_core_isNan);
+
     voxel_defineBuiltin(context, ".B", &voxel_builtins_core_newBuffer);
     voxel_defineBuiltin(context, ".B2S", &voxel_builtins_core_bufferToString);
     voxel_defineBuiltin(context, ".Bg", &voxel_builtins_core_getBufferByte);

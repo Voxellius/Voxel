@@ -295,6 +295,7 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
 VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* thing, voxel_Count base, voxel_Count minSize);
 VOXEL_ERRORABLE voxel_numberToByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing);
+voxel_Bool voxel_isNan(voxel_Thing* thing);
 
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data);
 VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing);

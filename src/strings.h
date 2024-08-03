@@ -398,16 +398,16 @@ VOXEL_ERRORABLE _voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, 
 
     voxel_String* string = (voxel_String*)thing->value;
     voxel_String* fillString = (voxel_String*)fill->value;
-    voxel_Count padding = minSize - string->size;
-    voxel_Count newSize = string->size + padding;
+    voxel_Int padding = minSize - string->size;
+    voxel_Int newSize = string->size + padding;
 
-    if (minSize <= 0 || fillString->size == 0) {
+    if (padding <= 0 || minSize <= 0 || fillString->size == 0) {
         return VOXEL_OK;
     }
 
     string->value = (voxel_Byte*)VOXEL_REALLOC(string->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", string->size, newSize);
 
-    for (voxel_Count i = 0; i < padding; i++) {
+    for (voxel_Int i = 0; i < padding; i++) {
         if (reversed) {
             string->value[string->size + (padding - i - 1)] = fillString->value[i % fillString->size];
         } else {

@@ -81,7 +81,29 @@ function getProperty(thing, property) {
     }
 
     if (syscall T(thing) == "%") {
-        if (#usedprop(getEnumEntry) &&& #prop(getEnumEntry)) {
+        if (#usedprop(toString) &&& property == #prop(toString)) {
+            return function(base) {
+                if (base) {
+                    return syscall N2Sb(thing, base);
+                }
+
+                return syscall N2S(thing);
+            };
+        }
+
+        if (#usedprop(toByte) &&& property == #prop(toByte)) {
+            return function() {
+                return syscall N2b(thing);
+            };
+        }
+
+        if (#usedprop(isNan) &&& property == #prop(isNan)) {
+            return function() {
+                return syscall Nan(thing);
+            };
+        }
+
+        if (#usedprop(getEnumEntry) &&& property == #prop(getEnumEntry)) {
             return function() {
                 return syscall El(thing);
             };

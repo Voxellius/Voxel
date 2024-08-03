@@ -519,6 +519,7 @@ VOXEL_ERRORABLE voxel_numberToString(voxel_Context* context, voxel_Thing* thing)
 VOXEL_ERRORABLE voxel_numberToBaseString(voxel_Context* context, voxel_Thing* thing, voxel_Count base, voxel_Count minSize);
 VOXEL_ERRORABLE voxel_numberToByte(voxel_Context* context, voxel_Thing* thing);
 voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing);
+voxel_Bool voxel_isNan(voxel_Thing* thing);
 
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data);
 VOXEL_ERRORABLE voxel_destroyBuffer(voxel_Thing* thing);
@@ -869,6 +870,81 @@ void voxel_builtins_core_decrement(voxel_Executor* executor) {
     voxel_push(executor, thing);
 
     voxel_finally:
+}
+
+#endif
+
+// src/builtins/core/numbers.h
+
+#ifdef VOXEL_BUILTINS_CORE
+
+void voxel_builtins_core_numberToString(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Thing* number = voxel_popNumber(executor);
+
+    VOXEL_REQUIRE(number);
+
+    VOXEL_ERRORABLE conversionResult = voxel_numberToString(executor->context, number);
+
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(conversionResult));
+
+    voxel_push(executor, (voxel_Thing*)conversionResult.value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, number);
+}
+
+void voxel_builtins_core_numberToBaseString(voxel_Executor* executor) {
+    VOXEL_ARGC(2);
+
+    voxel_Int base = voxel_popNumberInt(executor);
+    voxel_Thing* number = voxel_popNumber(executor);
+
+    VOXEL_REQUIRE(number);
+
+    VOXEL_ERRORABLE conversionResult = voxel_numberToBaseString(executor->context, number, base, 1);
+
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(conversionResult));
+
+    voxel_push(executor, (voxel_Thing*)conversionResult.value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, number);
+}
+
+void voxel_builtins_core_numberToByte(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Thing* number = voxel_popNumber(executor);
+
+    VOXEL_REQUIRE(number);
+
+    VOXEL_ERRORABLE conversionResult = voxel_numberToByte(executor->context, number);
+
+    VOXEL_REQUIRE(!VOXEL_IS_ERROR(conversionResult));
+
+    voxel_push(executor, (voxel_Thing*)conversionResult.value);
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, number);
+}
+
+void voxel_builtins_core_isNan(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Thing* number = voxel_popNumber(executor);
+
+    VOXEL_REQUIRE(number);
+
+    voxel_push(executor, voxel_newBoolean(executor->context, voxel_isNan(number)));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, number);
 }
 
 #endif
@@ -2406,6 +2482,11 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Tt", &voxel_builtins_core_isType);
     voxel_defineBuiltin(context, ".Ti", &voxel_builtins_core_isInstance);
 
+    voxel_defineBuiltin(context, ".N2S", &voxel_builtins_core_numberToString);
+    voxel_defineBuiltin(context, ".N2Sb", &voxel_builtins_core_numberToBaseString);
+    voxel_defineBuiltin(context, ".N2b", &voxel_builtins_core_numberToByte);
+    voxel_defineBuiltin(context, ".Nan", &voxel_builtins_core_isNan);
+
     voxel_defineBuiltin(context, ".B", &voxel_builtins_core_newBuffer);
     voxel_defineBuiltin(context, ".B2S", &voxel_builtins_core_bufferToString);
     voxel_defineBuiltin(context, ".Bg", &voxel_builtins_core_getBufferByte);
@@ -3781,6 +3862,12 @@ voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing) {
     }
 }
 
+voxel_Bool voxel_isNan(voxel_Thing* thing) {
+    voxel_Float value = voxel_getNumberFloat(thing);
+
+    return value != value;
+}
+
 // src/buffers.h
 
 voxel_Thing* voxel_newBuffer(voxel_Context* context, voxel_Count size, voxel_Byte* data) {
@@ -4279,16 +4366,16 @@ VOXEL_ERRORABLE _voxel_padStringEnd(voxel_Context* context, voxel_Thing* thing, 
 
     voxel_String* string = (voxel_String*)thing->value;
     voxel_String* fillString = (voxel_String*)fill->value;
-    voxel_Count padding = minSize - string->size;
-    voxel_Count newSize = string->size + padding;
+    voxel_Int padding = minSize - string->size;
+    voxel_Int newSize = string->size + padding;
 
-    if (minSize <= 0 || fillString->size == 0) {
+    if (padding <= 0 || minSize <= 0 || fillString->size == 0) {
         return VOXEL_OK;
     }
 
     string->value = (voxel_Byte*)VOXEL_REALLOC(string->value, newSize); VOXEL_TAG_REALLOC("voxel_String->value", string->size, newSize);
 
-    for (voxel_Count i = 0; i < padding; i++) {
+    for (voxel_Int i = 0; i < padding; i++) {
         if (reversed) {
             string->value[string->size + (padding - i - 1)] = fillString->value[i % fillString->size];
         } else {

@@ -28,20 +28,42 @@ syscall io_out("Bitwise expression result: ");
 syscall io_out(bitwiseExpression);
 syscall io_out("\n");
 
+syscall io_out("Bitwise expression result (hex): ");
+syscall io_out(bitwiseExpression.toString(16));
+syscall io_out("\n");
+
+syscall io_out("Bitwise expression result (bin): ");
+syscall io_out(bitwiseExpression.toString(2));
+syscall io_out("\n");
+
 syscall io_out("Bitwise expression not: ");
-syscall io_out(~bitwiseExpression);
+syscall io_out(~bitwiseExpression.toString(2));
 syscall io_out("\n");
 
 syscall io_out("Bitwise expression << 2: ");
-syscall io_out(bitwiseExpression << 2);
+syscall io_out((bitwiseExpression << 2).toString(2));
 syscall io_out("\n");
 
 syscall io_out("Bitwise expression >> 2: ");
-syscall io_out(bitwiseExpression >> 2);
+syscall io_out((bitwiseExpression >> 2).toString(2));
 syscall io_out("\n");
 
 syscall io_out("Bitwise expression >>> 2: ");
-syscall io_out(bitwiseExpression >>> 2);
+syscall io_out((bitwiseExpression >>> 2).toString(2));
+syscall io_out("\n");
+
+var byteNumber = 65;
+
+syscall io_out("Number to byte: ");
+syscall io_out(byteNumber.toByte());
+syscall io_out("\n");
+
+syscall io_out("123 is NaN: ");
+syscall io_out((123).isNan());
+syscall io_out("\n");
+
+syscall io_out("0 / 0 is NaN: ");
+syscall io_out((0 / 0).isNan());
 syscall io_out("\n");
 
 var floatValue = -3.782e-6;

@@ -255,3 +255,9 @@ voxel_Bool voxel_numberIsTruthy(voxel_Thing* thing) {
             return number->value.asFloat != 0.0;
     }
 }
+
+voxel_Bool voxel_isNan(voxel_Thing* thing) {
+    voxel_Float value = voxel_getNumberFloat(thing);
+
+    return value != value;
+}
