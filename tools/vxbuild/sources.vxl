@@ -43,6 +43,9 @@ export class SourceError {
 
         io.println("    in " + this.sourceContainer.name + ":" + rowAndCol.row + ":" + rowAndCol.col);
 
-        // TODO: Print line preview (needs `Number.toString()` and `String.repeat()`)
+        var lineNumber = rowAndCol.row.toString().padStart(4);
+
+        io.println(lineNumber + " | " + this.sourceContainer.source.split("\n")[rowAndCol.row - 1]);
+        io.println(" ".repeat(lineNumber.length + 2 + rowAndCol.col) + "^ here");
     }
 }
