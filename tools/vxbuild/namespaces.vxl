@@ -266,7 +266,7 @@ class ForeignSymbolReference {
         this.couldBeEnum = couldBeEnum;
 
         this.symbol = null;
-        this.enumerator = null; // TODO: Allow keyword here
+        this.enumeration = null; // TODO: Allow keyword here
         this.enumIdentifier = null;
 
         this.receiverNamespace.foreignSymbolsToResolve.push(this);
@@ -282,7 +282,7 @@ class ForeignSymbolReference {
 
     generateCode(options) {
         if (this.couldBeEnum && this.symbol.namespace.enums.keys.contains(this.symbol.name)) {
-            this.enumerator = this.symbol.namespace.enums[this.symbol.name];
+            this.enumeration = this.symbol.namespace.enums[this.symbol.name];
             this.enumIdentifier = this.symbol.name;
 
             return Buffer();
