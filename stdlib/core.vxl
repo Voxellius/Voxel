@@ -324,9 +324,7 @@ function getProperty(thing, property) {
                         continue;
                     }
 
-                    syscall Sa(currentPart, syscall Sr(thing, offset, offset + 1));
-
-                    offset++;
+                    syscall Sa(currentPart, syscall Sgb(thing, offset++));
                 }
 
                 syscall Lu(currentPart, parts);

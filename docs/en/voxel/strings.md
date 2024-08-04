@@ -55,3 +55,12 @@ If the end index is not specified, then it will default to the size of the strin
 
 #### `repeat(times: Number): String`
 Return a new string that is a repetition of the string for a given number of times (`times`). If the number of times is _n_, then the returned string will be _n_ times the size of the original string.
+
+#### `startsWith(target: String): Boolean`
+Return `true` if the string starts with the target string (`target`).
+
+#### `endsWith(target: String): Boolean`
+Return `true` if the string ends with the target string (`target`).
+
+#### `split(delimeter: String): List<String>`
+Split the string into a list and return the list, separating the string by the given delimeter (`delimeter`).
