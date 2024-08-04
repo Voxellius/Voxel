@@ -1,3 +1,15 @@
 import io;
 
 io.println("Hello, world!");
+
+var file = io.getFileSize("test/stdlib-io/read.txt");
+
+io.println("File size:", file);
+
+io.println("File contents:", io.readFile("test/stdlib-io/read.txt").toString());
+
+var writtenData = "This is a test!";
+
+io.writeFile("test/stdlib-io/write.tmp", writtenData);
+
+io.println("Written file contents:", io.readFile("test/stdlib-io/write.tmp").toString());

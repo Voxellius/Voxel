@@ -574,7 +574,7 @@ export function mangleSymbols(namespaces) {
 export function propertyIsUsed(propertySymbol) {
     var usage = propertySymbolUses.find((usage) => usage.id == propertySymbol.id);
 
-    return !!(usage && usage.everRead);
+    return !!usage;
 }
 
 export async function init() {

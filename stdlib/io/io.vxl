@@ -1,6 +1,14 @@
+var MAX_BUFFER_WRITE_BLOCK = 65536;
+
 enum StreamError {
     STREAM_NOT_READABLE,
     STREAM_NOT_WRITABLE
+}
+
+enum FileError {
+    CANNOT_OPEN_FILE,
+    CANNOT_READ_FILE,
+    CANNOT_WRITE_FILE
 }
 
 class Stream {
@@ -36,4 +44,101 @@ function print(...data) {
 
 function println(...data) {
     syscall io_out(data.join(" ") + "\n");
+}
+
+function getFileSize(path) {
+    var file = syscall io_open(path, Byte("r"));
+
+    if (file == null) {
+        throw FileError.CANNOT_OPEN_FILE;
+    }
+
+    var size = syscall io_seek(file, -1, false);
+
+    syscall io_close(file);
+
+    return size;
+}
+
+function readFile(path, start, end) {
+    start ??= 0;
+    end ??= infinity;
+
+    var file = syscall io_open(path, Byte("r"));
+
+    if (file == null) {
+        throw FileError.CANNOT_OPEN_FILE;
+    }
+
+    var fileSize = syscall io_seek(file, -1, false);
+
+    if (end >= fileSize) {
+        end = fileSize - 1;
+    }
+
+    var bytesToRead = end - start;
+
+    if (bytesToRead <= 0) {
+        return Buffer();
+    }
+
+    var buffer = syscall B(bytesToRead);
+    var offset = 0;
+
+    syscall io_seek(file, start, false);
+
+    while (bytesToRead > 0) {
+        var partBuffer = syscall io_read(file, bytesToRead);
+
+        if (partBuffer == null) {
+            syscall io_close(file);
+
+            throw FileError.CANNOT_READ_FILE;
+        }
+
+        partBuffer.copy(buffer, offset);
+
+        bytesToRead -= partBuffer.size;
+        offset += partBuffer.size;
+    }
+
+    syscall io_close(file);
+
+    return buffer;
+}
+
+function writeFile(path, data, offset) {    
+    if (data is String) {
+        data = data.toBuffer();
+    }
+
+    var file = syscall io_open(path, Byte("w"));
+    var dataOffset = 0;
+
+    if (file == null) {
+        throw FileError.CANNOT_OPEN_FILE;
+    }
+
+    syscall io_seek(file, offset ?? 0, false);
+
+    while (dataOffset < data.size) {
+        var offsetEnd = dataOffset + MAX_BUFFER_WRITE_BLOCK;
+
+        if (offsetEnd > data.size) {
+            offsetEnd = data.size;
+        }
+
+        var partBuffer = data.section(dataOffset, offsetEnd);
+        var bytesWritten = syscall io_write(partBuffer, file);
+
+        if (bytesWritten < 0) {
+            syscall io_close(file);
+
+            throw FileError.CANNOT_WRITE_FILE;
+        }
+
+        dataOffset += bytesWritten;
+    }
+
+    syscall io_close(file);
 }
