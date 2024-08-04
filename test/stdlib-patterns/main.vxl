@@ -88,3 +88,27 @@ testMatch("ab cd ef gh", [
         ])
     ])
 ]);
+
+testMatch("test", [
+    patterns.string("test"),
+    patterns.lookahead([
+        patterns.ALPHANUMERIC_STRING
+    ], false),
+    patterns.repeat(0, infinity, [patterns.ANY_CHAR])
+]);
+
+testMatch("test 123", [
+    patterns.string("test"),
+    patterns.lookahead([
+        patterns.ALPHANUMERIC_STRING
+    ], false),
+    patterns.repeat(0, infinity, [patterns.ANY_CHAR])
+]);
+
+testMatch("testing", [
+    patterns.string("test"),
+    patterns.lookahead([
+        patterns.ALPHANUMERIC_STRING
+    ], false),
+    patterns.repeat(0, infinity, [patterns.ANY_CHAR])
+]);

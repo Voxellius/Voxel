@@ -36,3 +36,12 @@ Input: ab cd ef gh
 Matches: true
 Captures: {"first":["a","c","e","g"],"last":["b","d","f","h"]}
 
+Input: test
+Matches: true
+
+Input: test 123
+Matches: true
+
+Input: testing
+Matches: false
+

@@ -103,6 +103,26 @@ function maybe(selectors) {
     };
 }
 
+function lookahead(selector, positive) {
+    positive ??= true;
+
+    return function(input, index) {
+        if (!positive && index + 1 == input.size) {
+            return {matches: true, index: index};
+        }
+
+        var result = pattern(selector)(input, index);
+
+        if (!positive) {
+            result.matches = !result.matches;
+        }
+
+        result.index = index;
+
+        return result;
+    };
+}
+
 function repeat(min, max, selectors) {
     return function(input, index) {
         var result;
@@ -170,6 +190,14 @@ function match(input, selectors) {
     }
 
     return result;
+}
+
+function ANY_CHAR(input, index) {
+    if (index >= input.size) {
+        return {matches: false, index: index};
+    }
+
+    return {matches: true, index: index + 1};
 }
 
 function ALPHA_UPPER(...args) {
