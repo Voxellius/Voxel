@@ -48,6 +48,9 @@ Return `true` if a value (`value`) is in the list; otherwise, return `false`. If
 #### `remove(value: *): Boolean`
 Remove the first occurrence of a value (`value`) in the list. Return `true` if it was found and removed; otherwise, return `false`. If `equality` is `true`, then perform equality checking; otherwise, perform identity checking.
 
+#### `clear()`
+Remove all values in the list.
+
 #### `join(delimeter: String = ","): String`
 Join all list values into a string by using the delimeter (`delimeter`) to separate each item, and return it.
 

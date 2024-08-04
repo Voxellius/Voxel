@@ -29,6 +29,7 @@ List after removal: 3,2
 Removed from list by value; success: true
 List after removal: 3
 Concat lists: 3,5,7,9
+Clear list: 
 values[0] = 1
 values[1] = 2
 values[2] = 3

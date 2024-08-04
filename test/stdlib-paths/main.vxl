@@ -1,0 +1,18 @@
+import io;
+import paths;
+
+io.println("Normalise:", paths.normalise("/a/b/c//d/e/./f/../g"));
+
+io.println("Join:", paths.join("/a/b/c", "d/e/f", "../g", "./h", "/i/j/k"));
+
+io.println("Is absolute:", paths.isAbsolute("/a/b/c"));
+io.println("Is absolute:", paths.isAbsolute("a/b/c"));
+
+io.println("Resolve:", paths.resolve("/a/b/c", "d/e/f", "/g/h", "i", "/j/k/", "l/m", ".././n"));
+
+var path = "/a/b/c/d.e.f";
+
+io.println("Dir:", paths.dir(path));
+io.println("Base:", paths.base(path));
+io.println("Ext:", paths.ext(path));
+io.println("Name:", paths.name(path));

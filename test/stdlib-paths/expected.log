@@ -1,0 +1,9 @@
+Normalise: /a/b/c/d/e/g
+Join: /a/b/c/d/e/g/h/i/j/k
+Is absolute: true
+Is absolute: false
+Resolve: /j/k/l/n
+Dir: /a/b/c
+Base: d.e.f
+Ext: e.f
+Name: d

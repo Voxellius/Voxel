@@ -152,6 +152,12 @@ syscall io_out("Concat lists: ");
 syscall io_out(list.concat([5, 7, 9]));
 syscall io_out("\n");
 
+list.clear();
+
+syscall io_out("Clear list: ");
+syscall io_out(list);
+syscall io_out("\n");
+
 var empty = [];
 
 empty.pop();

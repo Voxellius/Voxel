@@ -15,7 +15,7 @@ String starts with ef: false
 String ends with ab: false
 String ends with ef: true
 String to buffer: abcdef
-Split string: a,bcd,efg,hi
+Split string: a,bcd,,efg,hi
 Numeric string to number + 1: 1235
 Multibyte string size: 13
 Multibyte string length: 10

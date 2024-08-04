@@ -320,6 +320,8 @@ function getProperty(thing, property) {
 
                         currentPart = "";
                         offset += delimeterSize;
+
+                        continue;
                     }
 
                     syscall Sa(currentPart, syscall Sr(thing, offset, offset + 1));
@@ -434,6 +436,14 @@ function getProperty(thing, property) {
                 }
 
                 return false;
+            };
+        }
+
+        if (#usedprop(clear) &&& property == #prop(clear)) {
+            return function() {
+                while (syscall Ll(thing) > 0) {
+                    syscall Lp(thing);
+                }
             };
         }
 

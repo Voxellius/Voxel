@@ -68,10 +68,10 @@ syscall io_out("String to buffer: ");
 syscall io_out(string.toBuffer());
 syscall io_out("\n");
 
-var joinedString = "a bcd efg hi";
+var joinedString = "a!_bcd!_!_efg!_hi";
 
 syscall io_out("Split string: ");
-syscall io_out(joinedString.split(" "));
+syscall io_out(joinedString.split("!_"));
 syscall io_out("\n");
 
 var numericString = "1234";

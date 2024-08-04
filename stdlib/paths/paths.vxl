@@ -1,0 +1,76 @@
+var separator = "/";
+
+function normalise(path) {
+    var parts = path.split(separator);
+    var normalisedParts = [];
+
+    parts.forEach(function(part, i) {
+        if (part == "" &&& i > 0) {
+            return;
+        }
+
+        if (part == ".") {
+            return;
+        }
+
+        if (part == "..") {
+            if (normalisedParts == [""]) {
+                return;
+            }
+
+            normalisedParts.pop();
+
+            return;
+        }
+
+        normalisedParts.push(part);
+    });
+
+    return normalisedParts.join(separator);
+}
+
+function join(...paths) {
+    return normalise(paths.join(separator));
+}
+
+function isAbsolute(path) {
+    return path.startsWith(separator);
+}
+
+function resolve(...paths) {
+    var activePaths = [];
+
+    paths.forEach(function(path) {
+        if (isAbsolute(path)) {
+            activePaths.clear();
+        }
+
+        activePaths.push(path);
+    });
+
+    return join(...activePaths);
+}
+
+function dir(path) {
+    var parts = path.split(separator);
+
+    parts.pop();
+
+    return join(...parts);
+}
+
+function base(path) {
+    return path.split(separator)[-1];
+}
+
+function ext(path) {
+    var parts = base(path).split(".");
+
+    parts.shift();
+
+    return parts.join(".");
+}
+
+function name(path) {
+    return base(path).split(".")[0];
+}
