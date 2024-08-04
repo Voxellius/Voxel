@@ -1,5 +1,7 @@
 import io;
+import paths;
 
+import "common.vxl" as common;
 import "sources.vxl" as sources;
 
 var AUTO_ENUM_VALUE_START = 1;
@@ -27,7 +29,7 @@ class Namespace {
 
         var duplicateCount = 2;
 
-        while (usedNamespaceIds.keys.includes(this.id)) {
+        while (usedNamespaceIds.contains(this.id)) {
             this.id = preferredId + "_" + duplicateCount++;
         }
 
@@ -45,7 +47,7 @@ class Namespace {
     }
 
     import(location, identifier) {
-        this.importsToResolve[identifier] = location; // TODO: Add relative locations
+        this.importsToResolve[identifier] = paths.resolve(path.dir(this.sourceContainer.location), location);
     }
 
     hasImport(namespaceIdentifier) {
@@ -474,13 +476,13 @@ function propertyIsUsed(propertySymbol) {
         return usage.id == propertySymbol.id;
     });
 
-    return !!(usage && usage.everRead);
+    return !!usage;
 }
 
 function init() {
-    var location = "stdlib/core.vxl"; // TODO: Use relative stdlib dir
-    var source = ""; // TODO: Get source
-    var sourceContainer = new sources.SourceContainer(source, location); // TODO: Resolve path
+    var location = paths.resolve(common.STDLIB_DIR, "core.vxl");
+    var source = io.readFile(location).toString();
+    var sourceContainer = new sources.SourceContainer(source, location);
 
     coreNamespace = new Namespace(sourceContainer, "#core");
 }

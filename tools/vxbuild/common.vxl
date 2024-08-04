@@ -1,0 +1,5 @@
+import paths;
+
+var VXBUILD_DIR = paths.dir("tools/vxbuild/vxbuild.vxl"); // TODO: Get from a function
+var VOXEL_DIR = paths.resolve(VXBUILD_DIR, "..", "..");
+var STDLIB_DIR = paths.resolve(VOXEL_DIR, "stdlib");

@@ -1605,6 +1605,10 @@ export class ExpressionAssignmentNode extends ast.AstNode {
         var subject = this.targetInstance.children[0];
         var target = this.targetInstance.children.at(-1);
 
+        if (target instanceof IndexAccessorNode) {
+            subject.checkSymbolUsage(scope);
+        }
+
         if (target instanceof PropertyAccessorNode) {
             scope.addSymbol(target.propertySymbol, false, true);
 

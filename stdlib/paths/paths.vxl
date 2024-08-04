@@ -41,6 +41,10 @@ function resolve(...paths) {
     var activePaths = [];
 
     paths.forEach(function(path) {
+        if (path == "") {
+            return;
+        }
+
         if (isAbsolute(path)) {
             activePaths.clear();
         }
