@@ -293,6 +293,18 @@ function getProperty(thing, property) {
                 return result;
             };
         }
+
+        if (#usedprop(startsWith) &&& property == #prop(startsWith)) {
+            return function(target) {
+                return syscall Sce(&thing, syscall Sz(target)) == target;
+            };
+        }
+
+        if (#usedprop(endsWith) &&& property == #prop(endsWith)) {
+            return function(target) {
+                return syscall Scs(&thing, syscall Sz(target)) == target;
+            };
+        }
     }
 
     if (syscall T(thing) == "L") {

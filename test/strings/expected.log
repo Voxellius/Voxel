@@ -10,6 +10,10 @@ Substring: cd
 Pad start: 1231abcdef
 Pad end: abcdef1231
 Repeat string: abcdefabcdefabcdef
+String starts with ab: true
+String starts with ef: false
+String ends with ab: false
+String ends with ef: true
 String to buffer: abcdef
 Numeric string to number + 1: 1235
 Multibyte string size: 13
