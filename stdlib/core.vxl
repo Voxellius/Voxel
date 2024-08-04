@@ -305,6 +305,33 @@ function getProperty(thing, property) {
                 return syscall Scs(&thing, syscall Sz(target)) == target;
             };
         }
+
+        if (#usedprop(split) &&& property == #prop(split)) {
+            return function(delimeter) {
+                var offset = 0;
+                var size = syscall Sz(thing);
+                var delimeterSize = syscall Sz(delimeter);
+                var parts = [];
+                var currentPart = "";
+
+                while (offset < size) {
+                    if (syscall Sr(thing, offset, offset + delimeterSize) == delimeter) {
+                        syscall Lu(currentPart, parts);
+
+                        currentPart = "";
+                        offset += delimeterSize;
+                    }
+
+                    syscall Sa(currentPart, syscall Sr(thing, offset, offset + 1));
+
+                    offset++;
+                }
+
+                syscall Lu(currentPart, parts);
+
+                return parts;
+            };
+        }
     }
 
     if (syscall T(thing) == "L") {
