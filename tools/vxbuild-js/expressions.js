@@ -979,7 +979,7 @@ export class ClassNode extends ast.AstNode {
                     }
                 }
 
-                propertyToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+                propertyToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken), new ast.TokenQuery(tokeniser.KeywordToken)]);
 
                 break;
             }
@@ -1399,7 +1399,9 @@ export class PropertyAccessorNode extends ast.AstNode {
         instance.getPropertySymbol = new namespaces.Symbol(namespaces.coreNamespace, "getProperty");
         instance.setPropertySymbol = new namespaces.Symbol(namespaces.coreNamespace, "setProperty");
 
-        instance.propertySymbol = namespaces.Symbol.generateForProperty(this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value);
+        instance.propertySymbol = namespaces.Symbol.generateForProperty(
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken), new ast.TokenQuery(tokeniser.KeywordToken)]).value
+        );
 
         return instance;
     }
