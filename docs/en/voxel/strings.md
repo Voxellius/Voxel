@@ -48,6 +48,11 @@ Return a padded version of the string where it is at least the minimum size (`mi
 
 If the fill string is not specified, then it will default to `" "`.
 
+#### `byteAt(index: Number)?: Byte`
+Get the byte at a specified index (`index`) in the string, or `null` if the index is out-of-bounds.
+
+The index refers to the byte position in the string instead of the character position.
+
 #### `substring(start: Number, end?: Number): String`
 Return a new string that is a section of the string from the start index (`start`) up to the end index (`end`). The end index will not be included.
 
