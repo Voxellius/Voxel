@@ -52,7 +52,7 @@ Examples of Voxel programs can be found in the [`examples`](examples) and [`test
 * **Loose typing of data** with type casting where necessary
 
 ## Compiling a Voxel project into VxC bytecode
-Before compiling projects, you must first have Deno installed.
+Before compiling projects, you currently must first have Deno installed. We are currently in the process of transitioning VxBuild into a self-hosting compiler.
 
 To compile Voxel source code (.vxl files) into VxC bytecode (.vxc files), run:
 
