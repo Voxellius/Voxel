@@ -3,6 +3,7 @@ import paths;
 
 import "common.vxl" as common;
 import "sources.vxl" as sources;
+import "tokeniser.vxl" as tokeniser;
 
 var AUTO_ENUM_VALUE_START = 1;
 
@@ -63,10 +64,15 @@ class Namespace {
     }
 
     resolveImports() {} // TODO: Implement this
-    generateAst() {} // TODO: Implement this
+
+    generateAst() {
+        var tokens = tokeniser.tokenise(this.sourceContainer);
+
+        // return parser.parse(tokens, this); // TODO: Implement parsing
+    }
 
     getImportedNamespaces() {
-        return this.imports.values;
+        return this.imports.values; // TODO: Add unique filtering method for lists
     }
 
     analyseSymbols() {} // TODO: Implement this

@@ -1,0 +1,60 @@
+import "sources.vxl" as sources;
+
+class Token {
+    HUMAN_READABLE_NAME = "token";
+
+    constructor(source) {
+        this.value = source;
+
+        this.sourceContainer = null;
+        this.location = null;
+    }
+
+    matches(token, targetValue) {
+        if (!(token inherits this)) {
+            return false;
+        }
+
+        if (targetValue != null && token.value != targetValue) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
+class KeywordToken extends Token {HUMAN_READABLE_NAME = "keyword";}
+class AtomToken extends Token {HUMAN_READABLE_NAME = "atom";}
+class TypeNameToken extends Token {HUMAN_READABLE_NAME = "type name";}
+class StaticMacroToken extends Token {HUMAN_READABLE_NAME = "static function name";}
+class BracketToken extends Token {HUMAN_READABLE_NAME = "bracket";}
+class DelimeterToken extends Token {HUMAN_READABLE_NAME = "delimeter (,)";}
+class StatementDelimeterToken extends Token {HUMAN_READABLE_NAME = "statement delimeter (;)";}
+class PropertyAccessorToken extends Token {HUMAN_READABLE_NAME = "property accessor (.)";}
+class PropertyDefinerToken extends Token {HUMAN_READABLE_NAME = "property definer (:)";}
+class OperatorToken extends Token {HUMAN_READABLE_NAME = "operator";}
+class AssignmentOperatorToken extends OperatorToken {HUMAN_READABLE_NAME = "assignment operator";}
+class IncrementationOperatorToken extends OperatorToken {}
+class IdentifierToken extends Token {HUMAN_READABLE_NAME = "identifier";}
+
+class StringToken extends Token {
+    HUMAN_READABLE_NAME = "string literal";
+
+    constructor(value) {
+        super(null);
+
+        this.value = value;
+    }
+}
+
+class NumberToken extends Token {
+    HUMAN_READABLE_NAME = "number literal";
+
+    constructor(value) {
+        super(null);
+
+        this.value = value;
+    }
+}
+
+export function tokenise(sourceContainer) {} // TODO: Implement tokenisation
