@@ -86,4 +86,4 @@ To test all features of Voxel, run:
 ./test.sh
 ```
 
-This will perform all tests listed in the `test` directory against their expected outputs and for memory leaks (the latter runs a test's program in an infinite loop and measures the difference in memory consumption).
+This will perform all tests listed in the `test` directory against their expected outputs and for memory leaks (the latter runs a test's program in an infinite loop and measures the difference in memory consumption). Tests are automatically performed for new commits on pull requests and must all pass before a pull request can be merged.
