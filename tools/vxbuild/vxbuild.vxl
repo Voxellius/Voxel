@@ -1,9 +1,30 @@
 import io;
 
+import "sources.vxl" as sources;
 import "namespaces.vxl" as namespaces;
 
 io.println("Hello, world!");
 
-namespaces.init();
+var args = &(syscall process_args());
+
+try {
+    namespaces.init();
+
+    var source = io.readFile(args[1]).toString();
+    var sourceContainer = new sources.SourceContainer(source, args[1]);
+    var namespace = new namespaces.Namespace(sourceContainer);
+
+    io.println("Resolving imports...");
+
+    namespace.resolveImports();
+
+    namespace.build();
+} catch (error) {
+    if (error is sources.SourceError) {
+        error.log();
+    } else {
+        throw error;
+    }
+}
 
 io.println("All working so far!");

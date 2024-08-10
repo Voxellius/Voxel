@@ -1,3 +1,5 @@
+import patterns;
+
 import "sources.vxl" as sources;
 
 class Token {
@@ -57,4 +59,158 @@ class NumberToken extends Token {
     }
 }
 
-export function tokenise(sourceContainer) {} // TODO: Implement tokenisation
+export function tokenise(sourceContainer) {
+    var tokens = [];
+    var stringLiteralOpener = null;
+    var currentString = null;
+    var blockCommentDepth = 0;
+
+    var mutables = {
+        match: null,
+        source: sourceContainer.source,
+        previousPosition: 0,
+        currentPosition: 0
+    };
+
+    function matchToken(pattern) {
+        if (pattern is String) {
+            pattern = [patterns.string(pattern)];
+        }
+
+        var match = mutables.match = patterns.match(mutables.source, pattern, {matchRest: true});
+
+        if (match.matches) {
+            mutables.source = mutables.source.substring(match.index);
+            mutables.previousPosition = mutables.currentPosition;
+            mutables.currentPosition += match.index;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    function addToken(tokenClass, value) {
+        value ??= mutables.source.substring(0, mutables.match.index);
+
+        var token = new tokenClass(value);
+
+        token.sourceContainer = sourceContainer;
+        token.location = mutables.previousPosition;
+
+        tokens.push(token);
+    }
+
+    while (mutables.source.size > 0) {
+        if (stringLiteralOpener != null) {
+            if (matchToken(stringLiteralOpener)) {
+                addToken(StringToken, currentString);
+
+                stringLiteralOpener = null;
+                currentString = null;
+
+                continue;
+            }
+
+            if (matchToken("\\\\")) {
+                currentString += "\\";
+
+                continue;
+            }
+
+            if (matchToken("\\r")) {
+                currentString += "\r";
+
+                continue;
+            }
+
+            if (matchToken("\\n")) {
+                currentString += "\n";
+
+                continue;
+            }
+
+            if (matchToken("\\\"")) {
+                currentString += "\"";
+
+                continue;
+            }
+
+            if (matchToken("\\'")) {
+                currentString += "'";
+
+                continue;
+            }
+
+            if (matchToken("\\`")) {
+                currentString += "`";
+
+                continue;
+            }
+
+            currentString += mutables.source[0];
+            mutables.currentPosition++;
+            mutables.source = mutables.source.substring(1);
+
+            continue;
+        }
+
+        if (matchToken("\*")) {
+            blockCommentDepth++;
+
+            continue;
+        }
+
+        if (blockCommentDepth > 0) {
+            if (matchToken("*/")) {
+                blockCommentDepth--;
+
+                continue;
+            }
+
+            matchToken([
+                any([
+                    patterns.repeat(1, infinity, [
+                        patterns.anyCharExcept("*/")
+                    ]),
+                    patterns.anyChar("*/")
+                ])
+            ]);
+
+            continue;
+        }
+
+        if (matchToken([
+            patterns.string("//"),
+            patterns.repeat(0, infinity, [
+                patterns.anyCharExcept("\n")
+            ]),
+            patterns.any([
+                patterns.string("\n"),
+                patterns.END
+            ])
+        ])) {
+            continue;
+        }
+
+        if (matchToken([patterns.anyChar("\"'`")])) {
+            stringLiteralOpener = sourceContainer.source.substring(mutables.previousPosition, mutables.currentPosition);
+
+            continue;
+        }
+
+        if (matchToken[patterns.string("test")]) {
+            continue;
+        }
+
+        // TODO: Add all other syntax features
+
+        if (matchToken([patterns.WHITESPACE_STRING])) {
+            continue;
+        }
+
+        throw new sources.SourceError("Invalid syntax", sourceContainer, mutables.currentPosition);
+    }
+
+    return tokens;
+}

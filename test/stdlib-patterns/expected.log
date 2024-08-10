@@ -4,6 +4,18 @@ Matches: true
 Input: test 2
 Matches: true
 
+Input: test 3
+Matches: false
+
+Input: test 6
+Matches: true
+
+Input: test
+Matches: true
+
+Input: test.
+Matches: false
+
 Input: hello bob, how are you
 Matches: true
 

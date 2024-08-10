@@ -75,6 +75,20 @@ function anyChar(chars) {
     };
 }
 
+function anyCharExcept(chars) {
+    return function(input, index) {
+        for (var i = 0; i < chars.length; i++) {
+            var result = string(chars[i])(input, index);
+
+            if (result.matches) {
+                return {matches: false, index: index};
+            }
+        }
+
+        return {matches: true, index: index + 1};
+    };
+}
+
 function anyString(strings) {
     return any(strings.map(function(value) {
         return string(value);
@@ -170,26 +184,35 @@ function capture(name, selectors) {
     };
 }
 
-function match(input, selectors) {
+function match(input, selectors, options) {
     var inputWasString = input is String;
 
     input = _stringToBuffer(input);
 
     var result = pattern(selectors)(input, 0);
+    var indexIsExpected = result.index == input.size ||| options.matchRest;
 
-    if (!result.matches ||| result.index != input.size) {
+    if (!(result.matches &&& indexIsExpected)) {
         return null;
     }
 
-    if (result.captures &&& inputWasString) {
-        result.captures.forEach(function(captureList, name) {
-            result.captures[name] = captureList.map(function(value) {
-                return value.toString();
+    if (inputWasString) {
+        if (result.captures) {
+            result.captures.forEach(function(captureList, name) {
+                result.captures[name] = captureList.map(function(value) {
+                    return value.toString();
+                });
             });
-        });
+        }
+
+        result.index = input.section(0, result.index).toString().length;
     }
 
     return result;
+}
+
+function END(input, index) {
+    return {matches: index >= input.size, index: index};
 }
 
 function ANY_CHAR(input, index) {
@@ -226,4 +249,12 @@ function ALPHANUMERIC(...args) {
 
 function ALPHANUMERIC_STRING(...args) {
     return repeat(1, infinity, [ALPHANUMERIC])(...args);
+}
+
+function WHITESPACE(...args) {
+    return anyChar(" \n")(...args);
+}
+
+function WHITESPACE_STRING(...args) {
+    return repeat(1, infinity, [WHITESPACE])(...args);
 }

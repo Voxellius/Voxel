@@ -117,6 +117,8 @@ class Namespace {
             mangleSymbols(processedNamespaces);
         }
 
+        return Buffer(); // TODO: Implement all other features
+
         for (var i = 0; i < processedNamespaces.length; i++) {
             var namespace = processedNamespaces[i];
             var ast = asts[i];
@@ -487,7 +489,7 @@ function propertyIsUsed(propertySymbol) {
 
 function init() {
     var location = paths.resolve(common.STDLIB_DIR, "core.vxl");
-    var source = io.readFile(location).toString();
+    var source = "'test'"; // io.readFile(location).toString();
     var sourceContainer = new sources.SourceContainer(source, location);
 
     coreNamespace = new Namespace(sourceContainer, "#core");

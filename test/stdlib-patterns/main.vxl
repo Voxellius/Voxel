@@ -23,6 +23,26 @@ testMatch("test 2", [
     patterns.anyChar("12345")
 ]);
 
+testMatch("test 3", [
+    patterns.string("test "),
+    patterns.anyCharExcept("12345")
+]);
+
+testMatch("test 6", [
+    patterns.string("test "),
+    patterns.anyCharExcept("12345")
+]);
+
+testMatch("test", [
+    patterns.string("test"),
+    patterns.END
+]);
+
+testMatch("test.", [
+    patterns.string("test"),
+    patterns.END
+]);
+
 testMatch("hello bob, how are you", [
     patterns.string("hello "),
     patterns.anyString(["alice", "bob", "charlie"]),
