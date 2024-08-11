@@ -114,37 +114,31 @@ export function tokenise(sourceContainer) {
 
             if (matchToken("\\\\")) {
                 currentString += "\\";
-
                 continue;
             }
 
             if (matchToken("\\r")) {
                 currentString += "\r";
-
                 continue;
             }
 
             if (matchToken("\\n")) {
                 currentString += "\n";
-
                 continue;
             }
 
             if (matchToken("\\\"")) {
                 currentString += "\"";
-
                 continue;
             }
 
             if (matchToken("\\'")) {
                 currentString += "'";
-
                 continue;
             }
 
             if (matchToken("\\`")) {
                 currentString += "`";
-
                 continue;
             }
 
@@ -157,14 +151,12 @@ export function tokenise(sourceContainer) {
 
         if (matchToken("\*")) {
             blockCommentDepth++;
-
             continue;
         }
 
         if (blockCommentDepth > 0) {
             if (matchToken("*/")) {
                 blockCommentDepth--;
-
                 continue;
             }
 
@@ -195,11 +187,152 @@ export function tokenise(sourceContainer) {
 
         if (matchToken([patterns.anyChar("\"'`")])) {
             stringLiteralOpener = sourceContainer.source.substring(mutables.previousPosition, mutables.currentPosition);
-
             continue;
         }
 
-        if (matchToken[patterns.string("test")]) {
+        if (matchToken([
+            patterns.anyString([
+                "syscall",
+                "as",
+                "return",
+                "function",
+                "class",
+                "extends",
+                "get",
+                "set",
+                "this",
+                "super",
+                "new",
+                "var",
+                "if",
+                "else",
+                "while",
+                "for",
+                "retain",
+                "throw",
+                "try",
+                "catch",
+                "enum",
+                "break",
+                "continue",
+                "delete"
+            ]),
+            patterns.lookahead(patterns.ALPHANUMERIC, false)
+        ])) {
+            addToken(KeywordToken);
+            continue;
+        }
+
+        if (matchToken([
+            patterns.anyString([
+                "null",
+                "true",
+                "false",
+                "infinity",
+                "nan"
+            ]),
+            patterns.lookahead(patterns.ALPHANUMERIC, false)
+        ])) {
+            addToken(AtomToken);
+            continue;
+        }
+
+        if (matchToken([
+            patterns.anyString([
+                "Boolean",
+                "Byte",
+                "Function",
+                "ClosureFunction",
+                "Number",
+                "Buffer",
+                "String",
+                "Object",
+                "List",
+                "WeakReference"
+            ]),
+            patterns.lookahead(patterns.ALPHANUMERIC, false)
+        ])) {
+            addToken(TypeNameToken);
+            continue;
+        }
+
+        if (matchToken([
+            patterns.anyString([
+                "#symbol",
+                "#usedprop",
+                "#prop",
+                "#used"
+            ]),
+            patterns.lookahead(patterns.ALPHANUMERIC, false)
+        ])) {
+            addToken(StaticMacroToken);
+            continue;
+        }
+
+        if (matchToken([patterns.anyChar("({[)}]")])) {
+            addToken(BracketToken);
+            continue;
+        }
+
+        if (matchToken([patterns.string(",")])) {
+            addToken(DelimeterToken);
+            continue;
+        }
+
+        if (matchToken([patterns.string(";")])) {
+            addToken(StatementDelimeterToken);
+            continue;
+        }
+
+        if (matchToken([patterns.string("...")])) {
+            addToken(OperatorToken);
+            continue;
+        }
+
+        if (matchToken([patterns.string(".")])) {
+            addToken(PropertyAccessorToken);
+            continue;
+        }
+
+        if (matchToken([patterns.string(":")])) {
+            addToken(PropertyDefinerToken);
+            continue;
+        }
+
+        if (matchToken([patterns.anyString(["++", "--"])])) {
+            addToken(IncrementationOperatorToken);
+            continue;
+        }
+
+        if (matchToken([
+            patterns.anyString([
+                "*=", "/=", "%=", "+=", "-=",
+                "<<=", ">>>=", ">>=",
+                "&&&=", "|||=", "&&=", "||=", "??=",
+                "&=", "^=", "|="
+            ])
+        ])) {
+            addToken(OperatorToken);
+            continue;
+        }
+
+        if (matchToken([
+            patterns.any([
+                patterns.anyString([
+                    "<<", ">>>", ">>",
+                    "<=", ">=", "!==", "!=", "===", "==",
+                    "&&&", "|||", "&&", "||", "??",
+                    "is", "inherits"
+                ]),
+                patterns.anyChar("+-*/%<>!~&^|?")
+            ])
+        ])) {
+            addToken(OperatorToken);
+            continue;
+        }
+
+        if (matchToken("=")) {
+            addToken(AssignmentOperatorToken);
             continue;
         }
 
