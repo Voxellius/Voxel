@@ -67,6 +67,7 @@ export function tokenise(sourceContainer) {
 
     var mutables = {
         match: null,
+        matchedString: null,
         source: sourceContainer.source,
         previousPosition: 0,
         currentPosition: 0
@@ -80,6 +81,7 @@ export function tokenise(sourceContainer) {
         var match = mutables.match = patterns.match(mutables.source, pattern, {matchRest: true});
 
         if (match.matches) {
+            mutables.matchedString = mutables.source.substring(0, match.index);
             mutables.source = mutables.source.substring(match.index);
             mutables.previousPosition = mutables.currentPosition;
             mutables.currentPosition += match.index;
@@ -91,7 +93,7 @@ export function tokenise(sourceContainer) {
     }
 
     function addToken(tokenClass, value) {
-        value ??= mutables.source.substring(0, mutables.match.index);
+        value ??= mutables.matchedString;
 
         var token = new tokenClass(value);
 
@@ -149,7 +151,7 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken("\*")) {
+        if (matchToken("/*")) {
             blockCommentDepth++;
             continue;
         }
@@ -161,7 +163,7 @@ export function tokenise(sourceContainer) {
             }
 
             matchToken([
-                any([
+                patterns.any([
                     patterns.repeat(1, infinity, [
                         patterns.anyCharExcept("*/")
                     ]),
@@ -336,7 +338,44 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        // TODO: Add all other syntax features
+        if (matchToken([
+            patterns.any([patterns.ALPHA, patterns.anyChar("$_")]),
+            patterns.repeat(0, infinity, [
+                patterns.any([patterns.ALPHANUMERIC, patterns.anyChar("$_")])
+            ])
+        ])) {
+            addToken(IdentifierToken);
+            continue;
+        }
+
+        if (matchToken([
+            patterns.any([
+                patterns.pattern([
+                    patterns.repeat(1, infinity, [patterns.DIGIT]),
+                    patterns.maybe([
+                        patterns.string("."),
+                        patterns.repeat(0, infinity, [patterns.DIGIT])
+                    ])
+                ]),
+                patterns.pattern([
+                    patterns.repeat(0, infinity, [patterns.DIGIT]),
+                    patterns.string("."),
+                    patterns.maybe([
+                        patterns.repeat(1, infinity, [patterns.DIGIT])
+                    ])
+                ])
+            ]),
+            patterns.maybe([
+                patterns.anyChar("eE"),
+                patterns.maybe([patterns.anyChar("+-")]),
+                patterns.repeat(1, infinity, [patterns.DIGIT])
+            ])
+        ])) {
+            addToken(NumberToken, mutables.matchedString.toNumber());
+            continue;
+        }
+
+        // TODO: Allow base conversions in Voxel to parse binary, octal and hexadecimal numbers
 
         if (matchToken([patterns.WHITESPACE_STRING])) {
             continue;

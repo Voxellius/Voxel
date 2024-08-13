@@ -73,7 +73,7 @@ function readFile(path, start, end) {
     var fileSize = syscall io_seek(file, -1, false);
 
     if (end >= fileSize) {
-        end = fileSize - 1;
+        end = fileSize;
     }
 
     var bytesToRead = end - start;
