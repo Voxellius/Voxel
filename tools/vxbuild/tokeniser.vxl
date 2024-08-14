@@ -59,6 +59,157 @@ class NumberToken extends Token {
     }
 }
 
+var STRING_CONTENTS_PATTERN = [
+    patterns.repeat(1, infinity, [patterns.anyCharExcept("\"'`\\")])
+];
+
+var UP_TO_COMMENT_CLOSE_PATTERN = [
+    patterns.any([
+        patterns.repeat(1, infinity, [
+            patterns.anyCharExcept("*/")
+        ]),
+        patterns.anyChar("*/")
+    ])
+];
+
+var LINE_COMMENT_PATTERN = [
+    patterns.string("//"),
+    patterns.repeat(0, infinity, [
+        patterns.anyCharExcept("\n")
+    ]),
+    patterns.any([
+        patterns.string("\n"),
+        patterns.END
+    ])
+];
+
+var BRACKET_PATTERN = [patterns.anyChar("({[)}]")];
+
+var KEYWORD_PATTERN = [
+    patterns.lookahead(patterns.ALPHA_LOWER),
+    patterns.anyString([
+        "syscall",
+        "as",
+        "return",
+        "function",
+        "class",
+        "extends",
+        "get",
+        "set",
+        "this",
+        "super",
+        "new",
+        "var",
+        "if",
+        "else",
+        "while",
+        "for",
+        "retain",
+        "throw",
+        "try",
+        "catch",
+        "enum",
+        "break",
+        "continue",
+        "delete"
+    ]),
+    patterns.lookahead(patterns.ALPHANUMERIC, false)
+];
+
+var ATOM_PATTERN = [
+    patterns.lookahead(patterns.ALPHA_LOWER),
+    patterns.anyString([
+        "null",
+        "true",
+        "false",
+        "infinity",
+        "nan"
+    ]),
+    patterns.lookahead(patterns.ALPHANUMERIC, false)
+];
+
+var TYPE_NAME_PATTERN = [
+    patterns.lookahead(patterns.ALPHA_UPPER),
+    patterns.anyString([
+        "Boolean",
+        "Byte",
+        "Function",
+        "ClosureFunction",
+        "Number",
+        "Buffer",
+        "String",
+        "Object",
+        "List",
+        "WeakReference"
+    ]),
+    patterns.lookahead(patterns.ALPHANUMERIC, false)
+];
+
+var STATIC_MACRO_TOKEN = [
+    patterns.string("#"),
+    patterns.anyString([
+        "symbol",
+        "usedprop",
+        "prop",
+        "used"
+    ]),
+    patterns.lookahead(patterns.ALPHANUMERIC, false)
+];
+
+var INCREMENTATION_OPERATOR_PATTERN = [patterns.anyString(["++", "--"])];
+
+var ASSIGNMENT_OPERATOR_PATTERN = [
+    patterns.anyString([
+        "*=", "/=", "%=", "+=", "-=",
+        "<<=", ">>>=", ">>=",
+        "&&&=", "|||=", "&&=", "||=", "??=",
+        "&=", "^=", "|="
+    ])
+];
+
+var OPERATOR_PATTERN = [
+    patterns.any([
+        patterns.anyString([
+            "<<", ">>>", ">>",
+            "<=", ">=", "!==", "!=", "===", "==",
+            "&&&", "|||", "&&", "||", "??",
+            "is", "inherits"
+        ]),
+        patterns.anyChar("+-*/%<>!~&^|?")
+    ])
+];
+
+var IDENTIFIER_PATTERN = [
+    patterns.any([patterns.ALPHA, patterns.anyChar("$_")]),
+    patterns.repeat(0, infinity, [
+        patterns.any([patterns.ALPHANUMERIC, patterns.anyChar("$_")])
+    ])
+];
+
+var NUMBER_PATTERN = [
+    patterns.any([
+        patterns.pattern([
+            patterns.repeat(1, infinity, [patterns.DIGIT]),
+            patterns.maybe([
+                patterns.string("."),
+                patterns.repeat(0, infinity, [patterns.DIGIT])
+            ])
+        ]),
+        patterns.pattern([
+            patterns.repeat(0, infinity, [patterns.DIGIT]),
+            patterns.string("."),
+            patterns.maybe([
+                patterns.repeat(1, infinity, [patterns.DIGIT])
+            ])
+        ])
+    ]),
+    patterns.maybe([
+        patterns.anyChar("eE"),
+        patterns.maybe([patterns.anyChar("+-")]),
+        patterns.repeat(1, infinity, [patterns.DIGIT])
+    ])
+];
+
 export function tokenise(sourceContainer) {
     var tokens = [];
     var stringLiteralOpener = null;
@@ -66,7 +217,6 @@ export function tokenise(sourceContainer) {
     var blockCommentDepth = 0;
 
     var mutables = {
-        match: null,
         matchedString: null,
         source: sourceContainer.source,
         previousPosition: 0,
@@ -75,16 +225,19 @@ export function tokenise(sourceContainer) {
 
     function matchToken(pattern) {
         if (pattern is String) {
+            if (sourceContainer.source[mutables.currentPosition] != pattern[0]) {
+                return false;
+            }
+
             pattern = [patterns.string(pattern)];
         }
 
-        var match = mutables.match = patterns.match(mutables.source, pattern, {matchRest: true});
+        var match = patterns.match(sourceContainer.source, pattern, {matchRest: true, index: mutables.currentPosition});
 
         if (match.matches) {
-            mutables.matchedString = mutables.source.substring(0, match.index);
-            mutables.source = mutables.source.substring(match.index);
+            mutables.matchedString = sourceContainer.source.substring(mutables.currentPosition, match.index);
             mutables.previousPosition = mutables.currentPosition;
-            mutables.currentPosition += match.index;
+            mutables.currentPosition = match.index;
 
             return true;
         }
@@ -103,8 +256,13 @@ export function tokenise(sourceContainer) {
         tokens.push(token);
     }
 
-    while (mutables.source.size > 0) {
+    while (mutables.currentPosition < sourceContainer.source.size) {
         if (stringLiteralOpener != null) {
+            if (matchToken(STRING_CONTENTS_PATTERN)) {
+                currentString += mutables.matchedString;
+                continue;
+            }
+
             if (matchToken(stringLiteralOpener)) {
                 addToken(StringToken, currentString);
 
@@ -144,15 +302,8 @@ export function tokenise(sourceContainer) {
                 continue;
             }
 
-            currentString += mutables.source[0];
-            mutables.currentPosition++;
-            mutables.source = mutables.source.substring(1);
+            currentString += sourceContainer.source[mutables.currentPosition++];
 
-            continue;
-        }
-
-        if (matchToken("/*")) {
-            blockCommentDepth++;
             continue;
         }
 
@@ -162,174 +313,37 @@ export function tokenise(sourceContainer) {
                 continue;
             }
 
-            matchToken([
-                patterns.any([
-                    patterns.repeat(1, infinity, [
-                        patterns.anyCharExcept("*/")
-                    ]),
-                    patterns.anyChar("*/")
-                ])
-            ]);
+            matchToken(UP_TO_COMMENT_CLOSE_PATTERN);
 
             continue;
         }
 
-        if (matchToken([
-            patterns.string("//"),
-            patterns.repeat(0, infinity, [
-                patterns.anyCharExcept("\n")
-            ]),
-            patterns.any([
-                patterns.string("\n"),
-                patterns.END
-            ])
-        ])) {
-            continue;
-        }
-
-        if (matchToken([patterns.anyChar("\"'`")])) {
-            stringLiteralOpener = sourceContainer.source.substring(mutables.previousPosition, mutables.currentPosition);
-            continue;
-        }
-
-        if (matchToken([
-            patterns.anyString([
-                "syscall",
-                "as",
-                "return",
-                "function",
-                "class",
-                "extends",
-                "get",
-                "set",
-                "this",
-                "super",
-                "new",
-                "var",
-                "if",
-                "else",
-                "while",
-                "for",
-                "retain",
-                "throw",
-                "try",
-                "catch",
-                "enum",
-                "break",
-                "continue",
-                "delete"
-            ]),
-            patterns.lookahead(patterns.ALPHANUMERIC, false)
-        ])) {
-            addToken(KeywordToken);
-            continue;
-        }
-
-        if (matchToken([
-            patterns.anyString([
-                "null",
-                "true",
-                "false",
-                "infinity",
-                "nan"
-            ]),
-            patterns.lookahead(patterns.ALPHANUMERIC, false)
-        ])) {
-            addToken(AtomToken);
-            continue;
-        }
-
-        if (matchToken([
-            patterns.anyString([
-                "Boolean",
-                "Byte",
-                "Function",
-                "ClosureFunction",
-                "Number",
-                "Buffer",
-                "String",
-                "Object",
-                "List",
-                "WeakReference"
-            ]),
-            patterns.lookahead(patterns.ALPHANUMERIC, false)
-        ])) {
-            addToken(TypeNameToken);
-            continue;
-        }
-
-        if (matchToken([
-            patterns.anyString([
-                "#symbol",
-                "#usedprop",
-                "#prop",
-                "#used"
-            ]),
-            patterns.lookahead(patterns.ALPHANUMERIC, false)
-        ])) {
-            addToken(StaticMacroToken);
-            continue;
-        }
-
-        if (matchToken([patterns.anyChar("({[)}]")])) {
-            addToken(BracketToken);
-            continue;
-        }
-
-        if (matchToken([patterns.string(",")])) {
-            addToken(DelimeterToken);
-            continue;
-        }
-
-        if (matchToken([patterns.string(";")])) {
+        if (matchToken(";")) {
             addToken(StatementDelimeterToken);
             continue;
         }
 
-        if (matchToken([patterns.string("...")])) {
+        if (matchToken("...")) {
             addToken(OperatorToken);
             continue;
         }
 
-        if (matchToken([patterns.string(".")])) {
+        if (matchToken(".")) {
             addToken(PropertyAccessorToken);
             continue;
         }
 
-        if (matchToken([patterns.string(":")])) {
+        if (matchToken(",")) {
+            addToken(DelimeterToken);
+            continue;
+        }
+
+        if (matchToken([patterns.WHITESPACE_STRING])) {
+            continue;
+        }
+
+        if (matchToken(":")) {
             addToken(PropertyDefinerToken);
-            continue;
-        }
-
-        if (matchToken([patterns.anyString(["++", "--"])])) {
-            addToken(IncrementationOperatorToken);
-            continue;
-        }
-
-        if (matchToken([
-            patterns.anyString([
-                "*=", "/=", "%=", "+=", "-=",
-                "<<=", ">>>=", ">>=",
-                "&&&=", "|||=", "&&=", "||=", "??=",
-                "&=", "^=", "|="
-            ])
-        ])) {
-            addToken(OperatorToken);
-            continue;
-        }
-
-        if (matchToken([
-            patterns.any([
-                patterns.anyString([
-                    "<<", ">>>", ">>",
-                    "<=", ">=", "!==", "!=", "===", "==",
-                    "&&&", "|||", "&&", "||", "??",
-                    "is", "inherits"
-                ]),
-                patterns.anyChar("+-*/%<>!~&^|?")
-            ])
-        ])) {
-            addToken(OperatorToken);
             continue;
         }
 
@@ -338,48 +352,71 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken([
-            patterns.any([patterns.ALPHA, patterns.anyChar("$_")]),
-            patterns.repeat(0, infinity, [
-                patterns.any([patterns.ALPHANUMERIC, patterns.anyChar("$_")])
-            ])
-        ])) {
+        if (matchToken(BRACKET_PATTERN)) {
+            addToken(BracketToken);
+            continue;
+        }
+
+        if (matchToken("/*")) {
+            blockCommentDepth++;
+            continue;
+        }
+
+        if (matchToken(LINE_COMMENT_PATTERN)) {
+            continue;
+        }
+
+        if (matchToken(INCREMENTATION_OPERATOR_PATTERN)) {
+            addToken(IncrementationOperatorToken);
+            continue;
+        }
+
+        if (matchToken(ASSIGNMENT_OPERATOR_PATTERN)) {
+            addToken(OperatorToken);
+            continue;
+        }
+
+        if (matchToken(OPERATOR_PATTERN)) {
+            addToken(OperatorToken);
+            continue;
+        }
+
+        if (matchToken(KEYWORD_PATTERN)) {
+            addToken(KeywordToken);
+            continue;
+        }
+
+        if (matchToken(ATOM_PATTERN)) {
+            addToken(AtomToken);
+            continue;
+        }
+
+        if (matchToken(TYPE_NAME_PATTERN)) {
+            addToken(TypeNameToken);
+            continue;
+        }
+
+        if (matchToken(IDENTIFIER_PATTERN)) {
             addToken(IdentifierToken);
             continue;
         }
 
-        if (matchToken([
-            patterns.any([
-                patterns.pattern([
-                    patterns.repeat(1, infinity, [patterns.DIGIT]),
-                    patterns.maybe([
-                        patterns.string("."),
-                        patterns.repeat(0, infinity, [patterns.DIGIT])
-                    ])
-                ]),
-                patterns.pattern([
-                    patterns.repeat(0, infinity, [patterns.DIGIT]),
-                    patterns.string("."),
-                    patterns.maybe([
-                        patterns.repeat(1, infinity, [patterns.DIGIT])
-                    ])
-                ])
-            ]),
-            patterns.maybe([
-                patterns.anyChar("eE"),
-                patterns.maybe([patterns.anyChar("+-")]),
-                patterns.repeat(1, infinity, [patterns.DIGIT])
-            ])
-        ])) {
+        if (matchToken(STATIC_MACRO_TOKEN)) {
+            addToken(StaticMacroToken);
+            continue;
+        }
+
+        if (matchToken([patterns.anyChar("\"'`")])) {
+            stringLiteralOpener = sourceContainer.source.substring(mutables.previousPosition, mutables.currentPosition);
+            continue;
+        }
+
+        if (matchToken(NUMBER_PATTERN)) {
             addToken(NumberToken, mutables.matchedString.toNumber());
             continue;
         }
 
         // TODO: Allow base conversions in Voxel to parse binary, octal and hexadecimal numbers
-
-        if (matchToken([patterns.WHITESPACE_STRING])) {
-            continue;
-        }
 
         throw new sources.SourceError("Invalid syntax", sourceContainer, mutables.currentPosition);
     }

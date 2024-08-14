@@ -90,9 +90,31 @@ function anyCharExcept(chars) {
 }
 
 function anyString(strings) {
-    return any(strings.map(function(value) {
-        return string(value);
-    }));
+    strings = strings.map(function(string) {
+        return _stringToBuffer(string);
+    });
+
+    return function(input, index) {
+        for (var i = 0; i < strings.length; i++) {
+            var value = strings[i];
+            var stringMatches = null;
+
+            stringMatches = true;
+
+            for (var j = 0; j < value.size; j++) {
+                if (value[j] != input[index + j]) {
+                    stringMatches = false;
+                    break;
+                }
+            }
+
+            if (stringMatches == true) { // FIXME: DCE causes this to always be `false`
+                return {matches: true, index: index + value.size};
+            }
+        }
+
+        return {matches: false, index: index};
+    };
 }
 
 function byteRangeBetween(start, end) {
@@ -189,7 +211,7 @@ function match(input, selectors, options) {
 
     input = _stringToBuffer(input);
 
-    var result = pattern(selectors)(input, 0);
+    var result = pattern(selectors)(input, options.index ?? 0);
     var indexIsExpected = result.index == input.size ||| options.matchRest;
 
     if (!(result.matches &&& indexIsExpected)) {
