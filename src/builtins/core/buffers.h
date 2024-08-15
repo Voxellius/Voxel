@@ -48,7 +48,7 @@ void voxel_builtins_core_getBufferByte(voxel_Executor* executor) {
         index = buffer->size + index;
     }
 
-    if (index < 0 && index >= buffer->size) {
+    if (index < 0 || index >= buffer->size) {
         voxel_pushNull(executor);
 
         goto voxel_finally;
