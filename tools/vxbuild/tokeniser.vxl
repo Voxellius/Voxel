@@ -59,6 +59,56 @@ class NumberToken extends Token {
     }
 }
 
+var KEYWORDS = [
+    "syscall",
+    "as",
+    "return",
+    "function",
+    "class",
+    "extends",
+    "get",
+    "set",
+    "this",
+    "super",
+    "new",
+    "var",
+    "if",
+    "else",
+    "while",
+    "for",
+    "retain",
+    "throw",
+    "try",
+    "catch",
+    "enum",
+    "break",
+    "continue",
+    "delete"
+];
+
+var ATOMS = [
+    "null",
+    "true",
+    "false",
+    "infinity",
+    "nan"
+];
+
+var TYPE_NAMES = [
+    "Boolean",
+    "Byte",
+    "Function",
+    "ClosureFunction",
+    "Number",
+    "Buffer",
+    "String",
+    "Object",
+    "List",
+    "WeakReference"
+];
+
+var NAMED_OPERATORS = ["is", "inherits"];
+
 var STRING_CONTENTS_PATTERN = [
     patterns.repeat(1, infinity, [patterns.anyCharExcept("\"'`\\")])
 ];
@@ -72,8 +122,7 @@ var UP_TO_COMMENT_CLOSE_PATTERN = [
     ])
 ];
 
-var LINE_COMMENT_PATTERN = [
-    patterns.string("//"),
+var UP_TO_LINE_COMMEND_END_PATTERN = [
     patterns.repeat(0, infinity, [
         patterns.anyCharExcept("\n")
     ]),
@@ -84,66 +133,6 @@ var LINE_COMMENT_PATTERN = [
 ];
 
 var BRACKET_PATTERN = [patterns.anyChar("({[)}]")];
-
-var KEYWORD_PATTERN = [
-    patterns.lookahead(patterns.ALPHA_LOWER),
-    patterns.anyString([
-        "syscall",
-        "as",
-        "return",
-        "function",
-        "class",
-        "extends",
-        "get",
-        "set",
-        "this",
-        "super",
-        "new",
-        "var",
-        "if",
-        "else",
-        "while",
-        "for",
-        "retain",
-        "throw",
-        "try",
-        "catch",
-        "enum",
-        "break",
-        "continue",
-        "delete"
-    ]),
-    patterns.lookahead(patterns.ALPHANUMERIC, false)
-];
-
-var ATOM_PATTERN = [
-    patterns.lookahead(patterns.ALPHA_LOWER),
-    patterns.anyString([
-        "null",
-        "true",
-        "false",
-        "infinity",
-        "nan"
-    ]),
-    patterns.lookahead(patterns.ALPHANUMERIC, false)
-];
-
-var TYPE_NAME_PATTERN = [
-    patterns.lookahead(patterns.ALPHA_UPPER),
-    patterns.anyString([
-        "Boolean",
-        "Byte",
-        "Function",
-        "ClosureFunction",
-        "Number",
-        "Buffer",
-        "String",
-        "Object",
-        "List",
-        "WeakReference"
-    ]),
-    patterns.lookahead(patterns.ALPHANUMERIC, false)
-];
 
 var STATIC_MACRO_TOKEN = [
     patterns.string("#"),
@@ -172,8 +161,7 @@ var OPERATOR_PATTERN = [
         patterns.anyString([
             "<<", ">>>", ">>",
             "<=", ">=", "!==", "!=", "===", "==",
-            "&&&", "|||", "&&", "||", "??",
-            "is", "inherits"
+            "&&&", "|||", "&&", "||", "??"
         ]),
         patterns.anyChar("+-*/%<>!~&^|?")
     ])
@@ -215,28 +203,37 @@ export function tokenise(sourceContainer) {
     var stringLiteralOpener = null;
     var currentString = null;
     var blockCommentDepth = 0;
+    var source = sourceContainer.source;
+    var sourceBuffer = source.toBuffer();
 
     var mutables = {
         matchedString: null,
-        source: sourceContainer.source,
         previousPosition: 0,
         currentPosition: 0
     };
 
     function matchToken(pattern) {
-        if (pattern is String) {
-            if (sourceContainer.source[mutables.currentPosition] != pattern[0]) {
-                return false;
-            }
+        var position = mutables.currentPosition;
 
-            pattern = [patterns.string(pattern)];
+        if (pattern is String) {
+            var matchCandidate = source.substring(position, position + pattern.size);
+
+            if (matchCandidate == pattern) {
+                mutables.matchedString = matchCandidate;
+                mutables.previousPosition = position;
+                mutables.currentPosition += pattern.size;
+
+                return true;
+            }
+            
+            return false;
         }
 
-        var match = patterns.match(sourceContainer.source, pattern, {matchRest: true, index: mutables.currentPosition});
+        var match = patterns.match(sourceBuffer, pattern, {matchRest: true, index: position});
 
         if (match.matches) {
-            mutables.matchedString = sourceContainer.source.substring(mutables.currentPosition, match.index);
-            mutables.previousPosition = mutables.currentPosition;
+            mutables.matchedString = source.substring(position, match.index);
+            mutables.previousPosition = position;
             mutables.currentPosition = match.index;
 
             return true;
@@ -256,7 +253,7 @@ export function tokenise(sourceContainer) {
         tokens.push(token);
     }
 
-    while (mutables.currentPosition < sourceContainer.source.size) {
+    while (mutables.currentPosition < source.size) {
         if (stringLiteralOpener != null) {
             if (matchToken(STRING_CONTENTS_PATTERN)) {
                 currentString += mutables.matchedString;
@@ -302,7 +299,7 @@ export function tokenise(sourceContainer) {
                 continue;
             }
 
-            currentString += sourceContainer.source[mutables.currentPosition++];
+            currentString += source[mutables.currentPosition++];
 
             continue;
         }
@@ -315,6 +312,31 @@ export function tokenise(sourceContainer) {
 
             matchToken(UP_TO_COMMENT_CLOSE_PATTERN);
 
+            continue;
+        }
+
+        if (matchToken(IDENTIFIER_PATTERN)) {
+            if (KEYWORDS.contains(matchedString)) {
+                addToken(KeywordToken);
+                continue;
+            }
+
+            if (ATOMS.contains(matchedString)) {
+                addToken(AtomToken);
+                continue;
+            }
+
+            if (TYPE_NAMES.contains(matchedString)) {
+                addToken(TypeNameToken);
+                continue;
+            }
+
+            if (NAMED_OPERATORS.contains(matchedString)) {
+                addToken(OperatorToken);
+                continue;
+            }
+
+            addToken(IdentifierToken);
             continue;
         }
 
@@ -362,11 +384,12 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(LINE_COMMENT_PATTERN)) {
+        if (matchToken("//")) {
+            matchToken(UP_TO_LINE_COMMEND_END_PATTERN);
             continue;
         }
 
-        if (matchToken(INCREMENTATION_OPERATOR_PATTERN)) {
+        if (matchToken("++") || matchToken("--")) {
             addToken(IncrementationOperatorToken);
             continue;
         }
@@ -378,26 +401,6 @@ export function tokenise(sourceContainer) {
 
         if (matchToken(OPERATOR_PATTERN)) {
             addToken(OperatorToken);
-            continue;
-        }
-
-        if (matchToken(KEYWORD_PATTERN)) {
-            addToken(KeywordToken);
-            continue;
-        }
-
-        if (matchToken(ATOM_PATTERN)) {
-            addToken(AtomToken);
-            continue;
-        }
-
-        if (matchToken(TYPE_NAME_PATTERN)) {
-            addToken(TypeNameToken);
-            continue;
-        }
-
-        if (matchToken(IDENTIFIER_PATTERN)) {
-            addToken(IdentifierToken);
             continue;
         }
 
