@@ -1621,7 +1621,13 @@ export class ExpressionAssignmentNode extends ast.AstNode {
             var usage = scope.getSymbolById(subject.value.id, this.isLocal);
 
             usage.everDefined = true;
-            usage.truthiness = this.estimateTruthiness();
+
+            if (!usage.truthinessAssigned) {
+                usage.truthiness = this.estimateTruthiness();
+                usage.truthinessAssigned = true;
+            } else {
+                usage.truthiness = null;
+            }
         }
     }
 

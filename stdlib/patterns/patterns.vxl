@@ -108,7 +108,7 @@ function anyString(strings) {
                 }
             }
 
-            if (stringMatches == true) { // FIXME: DCE causes this to always be `false`
+            if (stringMatches) {
                 return {matches: true, index: index + value.size};
             }
         }

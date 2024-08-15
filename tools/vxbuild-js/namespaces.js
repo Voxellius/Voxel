@@ -387,6 +387,7 @@ export class SymbolUsage {
         this.everDefined = false;
         this.readBy = [];
         this.truthiness = null;
+        this.truthinessAssigned = false;
     }
 
     get everRead() {
