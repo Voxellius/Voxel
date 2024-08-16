@@ -590,6 +590,7 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
 VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destination, voxel_Thing* source);
+voxel_Int voxel_findListItemIndex(voxel_Thing* thing, voxel_Thing* item, voxel_Bool equality);
 
 voxel_Thing* voxel_newWeakRef(voxel_Context* context, voxel_Thing* target);
 VOXEL_ERRORABLE voxel_destroyWeakRef(voxel_Context* context, voxel_Thing* thing);
@@ -2041,6 +2042,26 @@ void voxel_builtins_core_concatList(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, source);
 }
 
+void voxel_builtins_core_findListItemIndex(voxel_Executor* executor) {
+    VOXEL_ARGC(3);
+
+    voxel_Bool equality = voxel_popBoolean(executor);
+    voxel_Thing* item = voxel_pop(executor);
+    voxel_Thing* list = voxel_pop(executor);
+
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST));
+
+    voxel_push(executor, voxel_newNumberInt(
+        executor->context,
+        voxel_findListItemIndex(list, item, equality)
+    ));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, item);
+    voxel_unreferenceThing(executor->context, list);
+}
+
 #endif
 
 // src/builtins/core/weak.h
@@ -2533,6 +2554,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
     voxel_defineBuiltin(context, ".Lc", &voxel_builtins_core_concatList);
+    voxel_defineBuiltin(context, ".Lf", &voxel_builtins_core_findListItemIndex);
 
     voxel_defineBuiltin(context, ".W", &voxel_builtins_core_newWeakRef);
     voxel_defineBuiltin(context, ".Wd", &voxel_builtins_core_dereferenceWeakRef);
@@ -5181,6 +5203,27 @@ VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destinatio
     }
 
     return VOXEL_OK_RET(destination);
+}
+
+voxel_Int voxel_findListItemIndex(voxel_Thing* thing, voxel_Thing* item, voxel_Bool equality) {
+    voxel_List* list = (voxel_List*)thing->value;
+    voxel_ListItem* currentItem = (voxel_ListItem*)list->firstItem;
+    voxel_Count index = 0;
+
+    while (currentItem) {
+        if (currentItem->value == item) {
+            return index;
+        }
+
+        if (equality && voxel_compareThings(currentItem->value, item)) {
+            return index;
+        }
+
+        currentItem = currentItem->nextItem;
+        index++;
+    }
+
+    return -1;
 }
 
 // src/weak.h

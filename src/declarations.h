@@ -366,6 +366,7 @@ VOXEL_ERRORABLE voxel_insertIntoList(voxel_Context* context, voxel_Thing* thing,
 voxel_Count voxel_getListLength(voxel_Thing* thing);
 VOXEL_ERRORABLE voxel_joinList(voxel_Context* context, voxel_Thing* thing, voxel_Thing* delimeter);
 VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destination, voxel_Thing* source);
+voxel_Int voxel_findListItemIndex(voxel_Thing* thing, voxel_Thing* item, voxel_Bool equality);
 
 voxel_Thing* voxel_newWeakRef(voxel_Context* context, voxel_Thing* target);
 VOXEL_ERRORABLE voxel_destroyWeakRef(voxel_Context* context, voxel_Thing* thing);

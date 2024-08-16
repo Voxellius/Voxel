@@ -346,3 +346,24 @@ VOXEL_ERRORABLE voxel_concatList(voxel_Context* context, voxel_Thing* destinatio
 
     return VOXEL_OK_RET(destination);
 }
+
+voxel_Int voxel_findListItemIndex(voxel_Thing* thing, voxel_Thing* item, voxel_Bool equality) {
+    voxel_List* list = (voxel_List*)thing->value;
+    voxel_ListItem* currentItem = (voxel_ListItem*)list->firstItem;
+    voxel_Count index = 0;
+
+    while (currentItem) {
+        if (currentItem->value == item) {
+            return index;
+        }
+
+        if (equality && voxel_compareThings(currentItem->value, item)) {
+            return index;
+        }
+
+        currentItem = currentItem->nextItem;
+        index++;
+    }
+
+    return -1;
+}

@@ -452,6 +452,7 @@ void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".Ll", &voxel_builtins_core_getListLength);
     voxel_defineBuiltin(context, ".Lj", &voxel_builtins_core_joinList);
     voxel_defineBuiltin(context, ".Lc", &voxel_builtins_core_concatList);
+    voxel_defineBuiltin(context, ".Lf", &voxel_builtins_core_findListItemIndex);
 
     voxel_defineBuiltin(context, ".W", &voxel_builtins_core_newWeakRef);
     voxel_defineBuiltin(context, ".Wd", &voxel_builtins_core_dereferenceWeakRef);

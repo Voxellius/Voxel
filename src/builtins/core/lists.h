@@ -283,4 +283,24 @@ void voxel_builtins_core_concatList(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, source);
 }
 
+void voxel_builtins_core_findListItemIndex(voxel_Executor* executor) {
+    VOXEL_ARGC(3);
+
+    voxel_Bool equality = voxel_popBoolean(executor);
+    voxel_Thing* item = voxel_pop(executor);
+    voxel_Thing* list = voxel_pop(executor);
+
+    VOXEL_REQUIRE(VOXEL_ARG(list, VOXEL_TYPE_LIST));
+
+    voxel_push(executor, voxel_newNumberInt(
+        executor->context,
+        voxel_findListItemIndex(list, item, equality)
+    ));
+
+    voxel_finally:
+
+    voxel_unreferenceThing(executor->context, item);
+    voxel_unreferenceThing(executor->context, list);
+}
+
 #endif
