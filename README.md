@@ -19,6 +19,7 @@ Examples of Voxel programs can be found in the [`examples`](examples) and [`test
 * [**Expressions**](docs/en/voxel/expressions.md) that follow a defined operator precedence
     * **Short-circuit evaluation** of logical operators using `&&` and `||` (evaluation of subsequent operands is aborted if result's value is guaranteed to be `true` or `false`)
     * **Eager evaluation** of logical operators using `&&&` and `|||` (all operands are evaluated — this produces simpler bytecode but may perform unnecessary computations at runtime)
+    * **Assignment operators** that allow variables, list items and properties to be updated based on their previous value
 * [**Lists**](docs/en/voxel/lists.md) and their common operations (such as access through index accessors and `push` and `pop` methods)
 * [**Objects**](docs/en/voxel/objects.md)
     * **Object-oriented programming** features including classes and prototype-based multiple inheritance
