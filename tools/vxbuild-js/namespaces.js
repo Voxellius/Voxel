@@ -5,6 +5,7 @@ import * as sources from "./sources.js";
 import * as tokeniser from "./tokeniser.js";
 import * as parser from "./parser.js";
 import * as codeGen from "./codegen.js";
+import * as coreParts from "./coreparts.js";
 
 const AUTO_ENUM_VALUE_START = 1;
 
@@ -45,7 +46,9 @@ export class Namespace {
         this.foreignSymbolsToResolve = [];
         this.scope = null;
 
-        existingNamespaces[this.sourceContainer.location] = this;
+        if (this.sourceContainer) {
+            existingNamespaces[this.sourceContainer.location] = this;
+        }
     }
 
     import(location, identifier) {
@@ -148,6 +151,8 @@ export class Namespace {
             processedNamespaces.push(namespace);
             asts.push(ast);
         }
+
+        await addCoreParts();
 
         await processNamespace(coreNamespace);
         await processNamespace(this);
@@ -293,7 +298,9 @@ export class Symbol {
         this.code = codeGen.string(this.id);
 
         if (namespace != null) {
-            namespace.symbols[name] ??= [];
+            if (!Array.isArray(namespace.symbols[name])) {
+                namespace.symbols[name] = [];
+            }
 
             namespace.symbols[name].push(this);
         } else {
@@ -578,10 +585,37 @@ export function propertyIsUsed(propertySymbol) {
     return !!usage;
 }
 
-export async function init() {
-    var location = path.resolve(common.STDLIB_DIR, "core.vxl");
-    var source = await Deno.readTextFile(path.resolve(location));
-    var sourceContainer = new sources.SourceContainer(source, path.resolve(location));
+export function init() {
+    coreNamespace = new Namespace(null, "#core");
+}
 
-    coreNamespace = new Namespace(sourceContainer, "#core");
+export async function addCoreParts() {
+    var location = path.resolve(common.STDLIB_DIR, "core.vxl");
+    var sourceParts = [await Deno.readTextFile(path.resolve(location))];
+
+    Object.keys(coreParts.builtinProps).forEach(function(type) {
+        var builtinsForType = coreParts.builtinProps[type];
+        var typeRegistered = false;
+
+        Object.keys(builtinsForType).forEach(function(property) {
+            // TODO: Perform property usage checking when building
+
+            if (!typeRegistered) {
+                sourceParts.push(`builtinProps[\`${type}\`] = {};`);
+
+                typeRegistered = true;
+            }
+
+            sourceParts.push(`
+            if (#usedprop(${property})) {
+                    "PROP ${property}";
+                    builtinProps[\`${type}\`][#prop(${property})] = function(thing) {
+                        ${builtinsForType[property]}
+                    };
+                }
+            `);
+        });
+    });
+
+    coreNamespace.sourceContainer = new sources.SourceContainer(sourceParts.join(""), path.resolve(location));
 }

@@ -16,7 +16,7 @@ try {
 
     flags["input"] ??= flags["_"].shift();
 
-    await namespaces.init();
+    namespaces.init();
 
     var source = await Deno.readTextFile(flags["input"]);
     var sourceContainer = new sources.SourceContainer(source, path.resolve(flags["input"]));

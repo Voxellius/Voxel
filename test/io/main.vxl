@@ -28,7 +28,7 @@ syscall io_close(writeFile);
 var writtenFile = syscall io_open(writeLocation, Byte("r"));
 
 syscall io_out("Written file contents: ");
-syscall io_out(syscall io_read(writtenFile, writtenData.size));
+syscall io_out(syscall io_read(writtenFile, syscall Bz(writtenData)));
 syscall io_out("\n");
 
 syscall io_close(writtenFile);
