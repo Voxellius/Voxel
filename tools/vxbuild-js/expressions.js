@@ -7,6 +7,7 @@ import * as dce from "./dce.js";
 import * as parser from "./parser.js";
 import * as statements from "./statements.js";
 import * as staticMacros from "./staticmacros.js";
+import * as coreParts from "./coreparts.js";
 
 export const ALL_BINARY_OPERATOR_CODE = {
     "*": codeGen.join(
@@ -987,6 +988,10 @@ export class ClassNode extends ast.AstNode {
             instance.propertySymbols.push(namespaces.Symbol.generateForProperty(propertyToken.value, retain));
             instance.propertyDescriptorTypes.push(descriptorType);
 
+            if (descriptorType != null) {
+                namespaces.descriptorPropertyNames.push(propertyToken.value);
+            }
+
             if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.AssignmentOperatorToken, "=")])) {
                 instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
             } else {
@@ -1429,6 +1434,21 @@ export class PropertyAccessorNode extends ast.AstNode {
             previousSibling.value.symbol.namespace.markEnumAsUsed(previousSibling.value.enumIdentifier, this.propertySymbol.name);
 
             return enumValue != null ? codeGen.number(enumValue) : codeGen.bytes(codeGen.vxcTokens.NULL);
+        }
+
+        if (
+            !namespaces.descriptorPropertyNames.includes(this.propertySymbol.name) &&
+            !coreParts.builtinPropNames.includes(this.propertySymbol.name)
+        ) {
+            return codeGen.join(
+                codeGen.bytes(codeGen.vxcTokens.DUPE),
+                codeGen.number(1),
+                codeGen.systemCall("Ms"),
+                codeGen.bytes(codeGen.vxcTokens.POP),
+                this.propertySymbol.generateCode(options),
+                codeGen.number(2),
+                codeGen.systemCall("Og")
+            );
         }
 
         return codeGen.join(

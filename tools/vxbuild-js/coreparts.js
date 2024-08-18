@@ -606,3 +606,9 @@ builtinProps["W"]["deref"] = `
         return syscall Wd(thing);
     };
 `;
+
+export var builtinPropNames = ["weak"];
+
+Object.keys(builtinProps).forEach(function(type) {
+    Object.keys(builtinProps[type]).forEach((property) => builtinPropNames.push(property));
+});

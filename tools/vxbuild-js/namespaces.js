@@ -19,6 +19,7 @@ export var coreNamespace = null;
 export var propertySymbols = {};
 export var propertySymbolRetainedNames = {};
 export var propertySymbolUses = [];
+export var descriptorPropertyNames = [];
 
 export class Namespace {
     constructor(sourceContainer = null, preferredId = null) {

@@ -14,10 +14,13 @@ void voxel_builtins_core_getObjectItem(voxel_Executor* executor) {
     voxel_Thing* key = voxel_pop(executor);
     voxel_Thing* object = voxel_pop(executor);
 
-    VOXEL_REQUIRE(
-        key &&
-        VOXEL_ARG(object, VOXEL_TYPE_OBJECT)
-    );
+    if (object->type != VOXEL_TYPE_OBJECT) {
+        voxel_pushNull(executor);
+
+        goto voxel_finally;
+    }
+
+    VOXEL_REQUIRE(key);
 
     voxel_ObjectItem* objectItem = voxel_getObjectItem(object, key);
 
