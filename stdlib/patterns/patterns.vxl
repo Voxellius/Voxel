@@ -20,13 +20,15 @@ function pattern(selectors) {
 
             currentIndex = result.index;
 
-            (result.captures ?? {}).forEach(function(captureList, name) {
-                captures[name] ??= [];
+            if (result.captures) {
+                result.captures.forEach(function(captureList, name) {
+                    captures[name] ??= [];
 
-                captureList.forEach(function(value) {
-                    captures[name].push(value);
+                    captureList.forEach(function(value) {
+                        captures[name].push(value);
+                    });
                 });
-            });
+            }
         }
 
         return {matches: true, index: currentIndex, captures: captures};
@@ -62,17 +64,13 @@ function any(selectors) {
 }
 
 function anyChar(chars) {
-    return function(input, index) {
-        for (var i = 0; i < chars.length; i++) {
-            var result = string(chars[i])(input, index);
+    var selectors = [];
 
-            if (result.matches) {
-                return result;
-            }
-        }
+    for (var i = 0; i < chars.length; i++) {
+        selectors.push(string(chars[i]));
+    }
 
-        return {matches: false, index: index};
-    };
+    return any(selectors);
 }
 
 function anyCharExcept(chars) {

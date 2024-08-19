@@ -205,6 +205,7 @@ export function tokenise(sourceContainer) {
     var blockCommentDepth = 0;
     var source = sourceContainer.source;
     var sourceBuffer = source.toBuffer();
+    var sourceSize = source.size;
 
     var mutables = {
         matchedString: null,
@@ -213,15 +214,16 @@ export function tokenise(sourceContainer) {
     };
 
     function matchToken(pattern) {
-        var position = mutables.currentPosition;
+        var position = mutables[#prop(currentPosition)];
 
         if (pattern is String) {
-            var matchCandidate = source.substring(position, position + pattern.size);
+            var patternSize = syscall Sz(pattern);
+            var matchCandidate = syscall Sr(source, position, position + patternSize);
 
             if (matchCandidate == pattern) {
-                mutables.matchedString = matchCandidate;
-                mutables.previousPosition = position;
-                mutables.currentPosition += pattern.size;
+                mutables[#prop(matchedString)] = matchCandidate;
+                mutables[#prop(previousPosition)] = position;
+                mutables[#prop(currentPosition)] += patternSize;
 
                 return true;
             }
@@ -232,9 +234,9 @@ export function tokenise(sourceContainer) {
         var match = patterns.match(sourceBuffer, pattern, {matchRest: true, index: position});
 
         if (match.matches) {
-            mutables.matchedString = source.substring(position, match.index);
-            mutables.previousPosition = position;
-            mutables.currentPosition = match.index;
+            mutables[#prop(matchedString)] = source.substring(position, match.index);
+            mutables[#prop(previousPosition)] = position;
+            mutables[#prop(currentPosition)] = match.index;
 
             return true;
         }
@@ -253,7 +255,7 @@ export function tokenise(sourceContainer) {
         tokens.push(token);
     }
 
-    while (mutables.currentPosition < source.size) {
+    while (mutables.currentPosition < sourceSize) {
         if (stringLiteralOpener != null) {
             if (matchToken(STRING_CONTENTS_PATTERN)) {
                 currentString += mutables.matchedString;
@@ -315,6 +317,36 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
+        if (matchToken(";")) {
+            addToken(StatementDelimeterToken);
+            continue;
+        }
+
+        if (matchToken("...")) {
+            addToken(OperatorToken);
+            continue;
+        }
+
+        if (matchToken(".")) {
+            addToken(PropertyAccessorToken);
+            continue;
+        }
+
+        if (matchToken(",")) {
+            addToken(DelimeterToken);
+            continue;
+        }
+
+        if (matchToken(":")) {
+            addToken(PropertyDefinerToken);
+            continue;
+        }
+
+        if (matchToken("=")) {
+            addToken(AssignmentOperatorToken);
+            continue;
+        }
+
         if (matchToken(IDENTIFIER_PATTERN)) {
             if (KEYWORDS.contains(matchedString)) {
                 addToken(KeywordToken);
@@ -340,57 +372,12 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(";")) {
-            addToken(StatementDelimeterToken);
-            continue;
-        }
-
-        if (matchToken("...")) {
-            addToken(OperatorToken);
-            continue;
-        }
-
-        if (matchToken(".")) {
-            addToken(PropertyAccessorToken);
-            continue;
-        }
-
-        if (matchToken(",")) {
-            addToken(DelimeterToken);
-            continue;
-        }
-
         if (matchToken([patterns.WHITESPACE_STRING])) {
-            continue;
-        }
-
-        if (matchToken(":")) {
-            addToken(PropertyDefinerToken);
-            continue;
-        }
-
-        if (matchToken("=")) {
-            addToken(AssignmentOperatorToken);
             continue;
         }
 
         if (matchToken(BRACKET_PATTERN)) {
             addToken(BracketToken);
-            continue;
-        }
-
-        if (matchToken("/*")) {
-            blockCommentDepth++;
-            continue;
-        }
-
-        if (matchToken("//")) {
-            matchToken(UP_TO_LINE_COMMEND_END_PATTERN);
-            continue;
-        }
-
-        if (matchToken("++") || matchToken("--")) {
-            addToken(IncrementationOperatorToken);
             continue;
         }
 
