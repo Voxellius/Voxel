@@ -113,6 +113,8 @@ var STRING_CONTENTS_PATTERN = [
     patterns.repeat(1, infinity, [patterns.anyCharExcept("\"'`\\")])
 ];
 
+var STRING_OPENERS = [Byte("\""), Byte("'"), Byte("`")];
+
 var UP_TO_COMMENT_CLOSE_PATTERN = [
     patterns.any([
         patterns.repeat(1, infinity, [
@@ -132,7 +134,7 @@ var UP_TO_LINE_COMMEND_END_PATTERN = [
     ])
 ];
 
-var BRACKET_PATTERN = [patterns.anyChar("({[)}]")];
+var BRACKETS = [Byte("("), Byte("{"), Byte("["), Byte(")"), Byte("}"), Byte("]")];
 
 var STATIC_MACRO_TOKEN = [
     patterns.string("#"),
@@ -256,17 +258,20 @@ export function tokenise(sourceContainer) {
     }
 
     while (mutables.currentPosition < sourceSize) {
+        var currentByte = sourceBuffer[mutables.currentPosition];
+
         if (stringLiteralOpener != null) {
             if (matchToken(STRING_CONTENTS_PATTERN)) {
                 currentString += mutables.matchedString;
                 continue;
             }
 
-            if (matchToken(stringLiteralOpener)) {
+            if (currentByte == stringLiteralOpener) {
                 addToken(StringToken, currentString);
 
                 stringLiteralOpener = null;
                 currentString = null;
+                mutables.currentPosition++;
 
                 continue;
             }
@@ -317,37 +322,71 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken(";")) {
+        if (currentByte == Byte(" ") ||| currentByte == Byte("\n")) {
+            mutables.currentPosition++;
+            continue;
+        }
+
+        if (currentByte == Byte(";")) {
             addToken(StatementDelimeterToken);
+            mutables.currentPosition++;
             continue;
         }
 
-        if (matchToken("...")) {
-            addToken(OperatorToken);
-            continue;
-        }
+        if (currentByte == Byte(".")) {
+            if (matchToken("...")) {
+                addToken(OperatorToken);
+                continue;
+            }
 
-        if (matchToken(".")) {
             addToken(PropertyAccessorToken);
+            mutables.currentPosition++;
             continue;
         }
 
-        if (matchToken(",")) {
+        if (currentByte == Byte(",")) {
             addToken(DelimeterToken);
+            mutables.currentPosition++;
             continue;
         }
 
-        if (matchToken(":")) {
+        if (currentByte == Byte(":")) {
             addToken(PropertyDefinerToken);
+            mutables.currentPosition++;
             continue;
         }
 
-        if (matchToken("=")) {
+        if (currentByte == Byte("=")) {
             addToken(AssignmentOperatorToken);
+            mutables.currentPosition++;
             continue;
         }
 
-        if (matchToken(IDENTIFIER_PATTERN)) {
+        if (BRACKETS.contains(currentByte, true)) {
+            addToken(BracketToken);
+            mutables.currentPosition++;
+            continue;
+        }
+
+        if (currentByte == Byte("#") && matchToken(STATIC_MACRO_TOKEN)) {
+            addToken(StaticMacroToken);
+            continue;
+        }
+
+        if (STRING_OPENERS.contains(currentByte, true)) {
+            stringLiteralOpener = currentByte;
+            mutables.currentPosition++;
+            continue;
+        }
+
+        if (
+            (
+                (currentByte >= Byte("a") && currentByte <= Byte("z")) ||
+                (currentByte >= Byte("A") && currentByte <= Byte("Z")) ||
+                (currentByte >= Byte("0") && currentByte <= Byte("9")) ||
+                currentByte == Byte("_") || currentByte == Byte("$")
+            ) && matchToken(IDENTIFIER_PATTERN)
+        ) {
             if (KEYWORDS.contains(matchedString)) {
                 addToken(KeywordToken);
                 continue;
@@ -372,15 +411,6 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
-        if (matchToken([patterns.WHITESPACE_STRING])) {
-            continue;
-        }
-
-        if (matchToken(BRACKET_PATTERN)) {
-            addToken(BracketToken);
-            continue;
-        }
-
         if (matchToken(ASSIGNMENT_OPERATOR_PATTERN)) {
             addToken(OperatorToken);
             continue;
@@ -388,16 +418,6 @@ export function tokenise(sourceContainer) {
 
         if (matchToken(OPERATOR_PATTERN)) {
             addToken(OperatorToken);
-            continue;
-        }
-
-        if (matchToken(STATIC_MACRO_TOKEN)) {
-            addToken(StaticMacroToken);
-            continue;
-        }
-
-        if (matchToken([patterns.anyChar("\"'`")])) {
-            stringLiteralOpener = sourceContainer.source.substring(mutables.previousPosition, mutables.currentPosition);
             continue;
         }
 

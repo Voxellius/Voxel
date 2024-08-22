@@ -259,6 +259,7 @@ typedef struct voxel_Context {
     struct voxel_Handle* firstHandle;
     struct voxel_Handle* lastHandle;
     voxel_Count nextHandleId;
+    voxel_Count stepCount;
 } voxel_Context;
 
 typedef enum {
@@ -424,6 +425,7 @@ typedef struct voxel_Executor {
     voxel_Thing* thisStack;
     voxel_Thing* nextThis;
     voxel_Thing* superStack;
+    voxel_Count stepCount;
     struct voxel_Executor* previousExecutor;
     struct voxel_Executor* nextExecutor;
 } voxel_Executor;
@@ -2466,12 +2468,21 @@ void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, value);
 }
 
+void voxel_builtins_core_getStepCount(voxel_Executor* executor) {
+    VOXEL_ARGC(0);
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, executor->stepCount));
+
+    voxel_finally:
+}
+
 void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
     voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
     voxel_defineBuiltin(context, ".Au", &voxel_builtins_core_pushArgs);
     voxel_defineBuiltin(context, ".El", &voxel_builtins_core_getEnumEntry);
+    voxel_defineBuiltin(context, "._S", &voxel_builtins_core_getStepCount);
 
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);
@@ -2961,6 +2972,18 @@ void voxel_builtins_threads_getThreadReturnValue(voxel_Executor* executor) {
     voxel_finally:
 }
 
+void voxel_builtins_threads_getThreadStepCount(voxel_Executor* executor) {
+    VOXEL_ARGC(1);
+
+    voxel_Count executorId = voxel_popNumberInt(executor);
+
+    voxel_Executor* targetExecutor = voxel_getExecutorById(executor->context, executorId);
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, targetExecutor->stepCount));
+
+    voxel_finally:
+}
+
 void voxel_builtins_threads(voxel_Context* context) {
     voxel_defineBuiltin(context, ".threads_new", &voxel_builtins_threads_newThread);
     voxel_defineBuiltin(context, ".threads_destroy", &voxel_builtins_threads_destroyThread);
@@ -2969,6 +2992,7 @@ void voxel_builtins_threads(voxel_Context* context) {
     voxel_defineBuiltin(context, ".threads_setIsRunning", &voxel_builtins_threads_setThreadIsRunning);
     voxel_defineBuiltin(context, ".threads_hasFinished", &voxel_builtins_threads_threadHasFinished);
     voxel_defineBuiltin(context, ".threads_retVal", &voxel_builtins_threads_getThreadReturnValue);
+    voxel_defineBuiltin(context, ".threads_stepCount", &voxel_builtins_threads_getThreadStepCount);
 }
 
 #else
@@ -3054,6 +3078,7 @@ voxel_Context* voxel_newContext() {
     context->firstHandle = VOXEL_NULL;
     context->lastHandle = VOXEL_NULL;
     context->nextHandleId = 0;
+    context->stepCount = 0;
 
     voxel_newExecutor(context);
 
@@ -5741,6 +5766,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->thisStack = voxel_newList(context);
     executor->nextThis = voxel_newNull(context);
     executor->superStack = voxel_newList(context);
+    executor->stepCount = 0;
     executor->previousExecutor = context->lastExecutor;
     executor->nextExecutor = VOXEL_NULL;
 
@@ -5776,6 +5802,7 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
     newExecutor->thisStack = voxel_copyThing(context, executor->thisStack);
     newExecutor->nextThis = executor->nextThis;
     newExecutor->superStack = voxel_copyThing(context, executor->superStack);
+    newExecutor->stepCount = 0;
     newExecutor->previousExecutor = context->lastExecutor;
     newExecutor->nextExecutor = VOXEL_NULL;
 
@@ -6260,6 +6287,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
     #endif
 
     VOXEL_FREE(token); VOXEL_TAG_FREE(voxel_Token);
+
+    executor->stepCount++;
+    executor->context->stepCount++;
 
     return VOXEL_OK;
 }

@@ -16,6 +16,7 @@ voxel_Executor* voxel_newExecutor(voxel_Context* context) {
     executor->thisStack = voxel_newList(context);
     executor->nextThis = voxel_newNull(context);
     executor->superStack = voxel_newList(context);
+    executor->stepCount = 0;
     executor->previousExecutor = context->lastExecutor;
     executor->nextExecutor = VOXEL_NULL;
 
@@ -51,6 +52,7 @@ voxel_Executor* voxel_cloneExecutor(voxel_Executor* executor, voxel_Bool copyVal
     newExecutor->thisStack = voxel_copyThing(context, executor->thisStack);
     newExecutor->nextThis = executor->nextThis;
     newExecutor->superStack = voxel_copyThing(context, executor->superStack);
+    newExecutor->stepCount = 0;
     newExecutor->previousExecutor = context->lastExecutor;
     newExecutor->nextExecutor = VOXEL_NULL;
 
@@ -535,6 +537,9 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
     #endif
 
     VOXEL_FREE(token); VOXEL_TAG_FREE(voxel_Token);
+
+    executor->stepCount++;
+    executor->context->stepCount++;
 
     return VOXEL_OK;
 }

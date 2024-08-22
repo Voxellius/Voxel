@@ -35,6 +35,7 @@ typedef struct voxel_Context {
     struct voxel_Handle* firstHandle;
     struct voxel_Handle* lastHandle;
     voxel_Count nextHandleId;
+    voxel_Count stepCount;
 } voxel_Context;
 
 typedef enum {
@@ -200,6 +201,7 @@ typedef struct voxel_Executor {
     voxel_Thing* thisStack;
     voxel_Thing* nextThis;
     voxel_Thing* superStack;
+    voxel_Count stepCount;
     struct voxel_Executor* previousExecutor;
     struct voxel_Executor* nextExecutor;
 } voxel_Executor;

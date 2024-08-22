@@ -361,12 +361,21 @@ void voxel_builtins_core_getEnumEntry(voxel_Executor* executor) {
     voxel_unreferenceThing(executor->context, value);
 }
 
+void voxel_builtins_core_getStepCount(voxel_Executor* executor) {
+    VOXEL_ARGC(0);
+
+    voxel_push(executor, voxel_newNumberInt(executor->context, executor->stepCount));
+
+    voxel_finally:
+}
+
 void voxel_builtins_core(voxel_Context* context) {
     voxel_defineBuiltin(context, ".P", &voxel_builtins_core_params);
     voxel_defineBuiltin(context, ".T", &voxel_builtins_core_getType);
     voxel_defineBuiltin(context, ".C", &voxel_builtins_core_toClosure);
     voxel_defineBuiltin(context, ".Au", &voxel_builtins_core_pushArgs);
     voxel_defineBuiltin(context, ".El", &voxel_builtins_core_getEnumEntry);
+    voxel_defineBuiltin(context, "._S", &voxel_builtins_core_getStepCount);
 
     voxel_defineBuiltin(context, ".+", &voxel_builtins_core_add);
     voxel_defineBuiltin(context, ".-", &voxel_builtins_core_subtract);

@@ -18,6 +18,7 @@ voxel_Context* voxel_newContext() {
     context->firstHandle = VOXEL_NULL;
     context->lastHandle = VOXEL_NULL;
     context->nextHandleId = 0;
+    context->stepCount = 0;
 
     voxel_newExecutor(context);
 
