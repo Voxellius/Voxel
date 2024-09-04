@@ -36,7 +36,7 @@ class PropertyAccessorToken extends Token {HUMAN_READABLE_NAME = "property acces
 class PropertyDefinerToken extends Token {HUMAN_READABLE_NAME = "property definer (:)";}
 class OperatorToken extends Token {HUMAN_READABLE_NAME = "operator";}
 class AssignmentOperatorToken extends OperatorToken {HUMAN_READABLE_NAME = "assignment operator";}
-class IncrementationOperatorToken extends OperatorToken {}
+class IncrementationOperatorToken extends OperatorToken {HUMAN_READABLE_NAME = "incrementation operator";}
 class IdentifierToken extends Token {HUMAN_READABLE_NAME = "identifier";}
 
 class StringToken extends Token {
@@ -115,7 +115,7 @@ var STRING_CONTENTS_PATTERN = [
 
 var STRING_OPENERS = [Byte("\""), Byte("'"), Byte("`")];
 
-var UP_TO_COMMENT_CLOSE_PATTERN = [
+var UP_TO_BLOCK_COMMENT_CLOSE_PATTERN = [
     patterns.any([
         patterns.repeat(1, infinity, [
             patterns.anyCharExcept("*/")
@@ -124,7 +124,7 @@ var UP_TO_COMMENT_CLOSE_PATTERN = [
     ])
 ];
 
-var UP_TO_LINE_COMMEND_END_PATTERN = [
+var UP_TO_LINE_COMMENT_END_PATTERN = [
     patterns.repeat(0, infinity, [
         patterns.anyCharExcept("\n")
     ]),
@@ -136,7 +136,7 @@ var UP_TO_LINE_COMMEND_END_PATTERN = [
 
 var BRACKETS = [Byte("("), Byte("{"), Byte("["), Byte(")"), Byte("}"), Byte("]")];
 
-var STATIC_MACRO_TOKEN = [
+var STATIC_MACROS = [
     patterns.string("#"),
     patterns.anyString([
         "symbol",
@@ -147,7 +147,7 @@ var STATIC_MACRO_TOKEN = [
     patterns.lookahead(patterns.ALPHANUMERIC, false)
 ];
 
-var INCREMENTATION_OPERATOR_PATTERN = [patterns.anyString(["++", "--"])];
+var INCREMENTATION_OPERATORS = [patterns.anyString(["++", "--"])];
 
 var ASSIGNMENT_OPERATOR_PATTERN = [
     patterns.anyString([
@@ -166,13 +166,6 @@ var OPERATOR_PATTERN = [
             "&&&", "|||", "&&", "||", "??"
         ]),
         patterns.anyChar("+-*/%<>!~&^|?")
-    ])
-];
-
-var IDENTIFIER_PATTERN = [
-    patterns.any([patterns.ALPHA, patterns.anyChar("$_")]),
-    patterns.repeat(0, infinity, [
-        patterns.any([patterns.ALPHANUMERIC, patterns.anyChar("$_")])
     ])
 ];
 
@@ -246,6 +239,33 @@ export function tokenise(sourceContainer) {
         return false;
     }
 
+    function matchIdentifier() {
+        var position = mutables.currentPosition;
+        var oldPosition = &position;
+        var currentByte = sourceBuffer[position];
+        var matches = false;
+
+        while (
+            (currentByte >= Byte("a") && currentByte <= Byte("z")) ||
+            (currentByte >= Byte("A") && currentByte <= Byte("Z")) ||
+            (matches && currentByte >= Byte("0") && currentByte <= Byte("9")) ||
+            currentByte == Byte("_") || currentByte == Byte("$")
+        ) {
+            matches = true;
+            currentByte = sourceBuffer[++position];
+        }
+
+        if (!matches) {
+            return false;
+        }
+
+        mutables[#prop(matchedString)] = source.substring(oldPosition, position);
+        mutables[#prop(previousPosition)] = oldPosition;
+        mutables[#prop(currentPosition)] = position;
+
+        return true;
+    }
+
     function addToken(tokenClass, value) {
         value ??= mutables.matchedString;
 
@@ -311,13 +331,23 @@ export function tokenise(sourceContainer) {
             continue;
         }
 
+        if (matchToken("//")) {
+            matchToken(UP_TO_LINE_COMMENT_END_PATTERN);
+            continue;
+        }
+
+        if (matchToken("/*")) {
+            blockCommentDepth++;
+            continue;
+        }
+
         if (blockCommentDepth > 0) {
             if (matchToken("*/")) {
                 blockCommentDepth--;
                 continue;
             }
 
-            matchToken(UP_TO_COMMENT_CLOSE_PATTERN);
+            matchToken(UP_TO_BLOCK_COMMENT_CLOSE_PATTERN);
 
             continue;
         }
@@ -381,11 +411,10 @@ export function tokenise(sourceContainer) {
 
         if (
             (
-                (currentByte >= Byte("a") && currentByte <= Byte("z")) ||
-                (currentByte >= Byte("A") && currentByte <= Byte("Z")) ||
-                (currentByte >= Byte("0") && currentByte <= Byte("9")) ||
+                (currentByte >= Byte("a") &&& currentByte <= Byte("z")) |||
+                (currentByte >= Byte("A") &&& currentByte <= Byte("Z")) |||
                 currentByte == Byte("_") || currentByte == Byte("$")
-            ) && matchToken(IDENTIFIER_PATTERN)
+            ) && matchIdentifier()
         ) {
             if (KEYWORDS.contains(matchedString)) {
                 addToken(KeywordToken);
@@ -408,6 +437,11 @@ export function tokenise(sourceContainer) {
             }
 
             addToken(IdentifierToken);
+            continue;
+        }
+
+        if (matchToken(INCREMENTATION_OPERATORS)) {
+            addToken(IncrementationOperatorToken);
             continue;
         }
 
