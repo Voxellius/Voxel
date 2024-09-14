@@ -248,30 +248,21 @@ export class IfStatementNode extends ast.AstNode {
         ) : codeGen.bytes();
 
         var skipFalseCode = this.skipFalseSymbol ? codeGen.join(
-            this.skipFalseSymbol.generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP)
+            codeGen.bytes(codeGen.vxcTokens.NULL, codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(isFalseCode.length + 1),
+            codeGen.bytes(codeGen.vxcTokens.JUMP)
+
         ) : codeGen.bytes(); // Not necessary if we do not need to skip true statement
 
         var skipTrueCode = codeGen.join(
-            this.skipTrueSymbol.generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.GET, codeGen.vxcTokens.JUMP_IF_TRUTHY)
-        );
-
-        var skipFalseDefinitionCode = this.skipFalseSymbol ? codeGen.join(
-            this.skipFalseSymbol.generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
-            codeGen.int32(notConditionCode.length + skipTrueCode.length + isTrueCode.length + skipFalseCode.length + isFalseCode.length)
-        ) : codeGen.bytes();
-
-        var skipTrueDefinitionCode = codeGen.join(
-            this.skipTrueSymbol.generateCode(options),
-            codeGen.bytes(codeGen.vxcTokens.POS_REF_FORWARD),
-            codeGen.int32(skipFalseDefinitionCode.length + notConditionCode.length + skipTrueCode.length + isTrueCode.length + skipFalseCode.length)
+            codeGen.bytes(codeGen.vxcTokens.NULL, codeGen.vxcTokens.POS_REF_FORWARD),
+            codeGen.int32(isTrueCode.length + skipFalseCode.length + isFalseCode.length + 1),
+            codeGen.bytes(codeGen.vxcTokens.JUMP_IF_TRUTHY)
         );
 
         return codeGen.join(
-            skipTrueDefinitionCode,
-            skipFalseDefinitionCode,
+            // skipTrueDefinitionCode,
+            // skipFalseDefinitionCode,
             notConditionCode,
             skipTrueCode,
             isTrueCode,

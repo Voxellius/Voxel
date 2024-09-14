@@ -413,7 +413,7 @@ export function tokenise(sourceContainer) {
             (
                 (currentByte >= Byte("a") &&& currentByte <= Byte("z")) |||
                 (currentByte >= Byte("A") &&& currentByte <= Byte("Z")) |||
-                currentByte == Byte("_") || currentByte == Byte("$")
+                currentByte == Byte("_") ||| currentByte == Byte("$")
             ) && matchIdentifier()
         ) {
             if (KEYWORDS.contains(matchedString)) {

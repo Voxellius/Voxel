@@ -404,9 +404,16 @@ VOXEL_ERRORABLE voxel_stepExecutor(voxel_Executor* executor) {
 
             voxel_Thing* function = voxel_newFunctionPosRef(executor->context, referencedPosition);
 
-            VOXEL_MUST(voxel_setScopeItem(executor->scope, (voxel_Thing*)posRefKey.value, function));
+            voxel_Thing* posRefKeyValue = (voxel_Thing*)posRefKey.value;
+
+            if (posRefKeyValue->type != VOXEL_TYPE_NULL) {
+                VOXEL_MUST(voxel_setScopeItem(executor->scope, (voxel_Thing*)posRefKey.value, function));
+                VOXEL_MUST(voxel_unreferenceThing(executor->context, function));
+            } else {
+                VOXEL_MUST(voxel_pushOntoList(executor->context, executor->valueStack, function));
+            }
+
             VOXEL_MUST(voxel_unreferenceThing(executor->context, (voxel_Thing*)posRefKey.value));
-            VOXEL_MUST(voxel_unreferenceThing(executor->context, function));
 
             break;
         }
