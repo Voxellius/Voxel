@@ -1,0 +1,289 @@
+import "sources.vxl" as sources;
+
+var nextAstId = 0;
+
+enum AstError {
+    AT_LEAST_ONE_TOKEN_TYPE_EXPECTED,
+    NOT_IMPLEMENTED
+}
+
+class TokenQuery {
+    constructor(tokenType, targetValue, humanReadableName) {
+        this.tokenType = tokenType;
+        this.targetValue = targetValue;
+        this._humanReadableName = humanReadableName;
+    }
+
+    get humanReadableName() {
+        if (this._humanReadableName != null) {
+            return this._humanReadableName;
+        }
+
+        if (this.targetValue == null) {
+            return this.tokenType.HUMAN_READABLE_NAME;
+        }
+
+        return "`" + this.targetValue + "`";
+    }
+
+    test(token) {
+        return this.tokenType.matches(token, this.targetValue);
+    }
+
+    want(token, queries) {
+        return queries.find(function(query) {
+            return query.test(token);
+        }) != null;
+    }
+
+    expect(token, queries) {
+        if (this.want(token, queries)) {
+            return true;
+        }
+
+        var humanReadableNames = queries.map(function(query) {
+            return query.humanReadableName;
+        });
+
+        if (humanReadableNames.length == 0) {
+            throw AstError.AT_LEAST_ONE_TOKEN_TYPE_EXPECTED;
+        }
+
+        var tokenHumanReadableName = token ? token.HUMAN_READABLE_NAME : "nothing";
+
+        throw new sources.SourceError(
+            "Expected " + humanReadableNames.join(" or ") + " but got " + tokenHumanReadableName + " instead",
+            token.sourceContainer,
+            token.location
+        );
+    }
+}
+
+class AstNode {
+    HUMAN_READABLE_NAME = "AST node";
+    MATCH_QUERIES = [];
+
+    constructor() {
+        this.id = nextAstId++;
+        this.parent = null;
+        this.children = [];
+        this.scope = null;
+    }
+
+    matches(tokens) {
+        return TokenQuery.want(tokens[0], this.MATCH_QUERIES);
+    }
+
+    matchChild(tokens, nodeTypes, namespace) {
+        var nodeType = nodeTypes.find(function(nodeType) {
+            return nodeType.matches(tokens);
+        });
+
+        if (nodeType == null) {
+            return null;
+        }
+
+        return nodeType.create(tokens, namespace);
+    }
+
+    want(tokens, queries) {
+        queries ??= this.MATCH_QUERIES;
+
+        return TokenQuery.want(tokens[0], queries);
+    }
+
+    eat(tokens, queries) {
+        queries ??= this.MATCH_QUERIES;
+
+        if (queries != []) {
+            TokenQuery.expect(tokens[0], queries);
+        }
+
+        return tokens.shift();
+    }
+
+    maybeEat(tokens, queries) {
+        queries ??= this.MATCH_QUERIES;
+
+        if (this.want(tokens, queries)) {
+            return this.eat(tokens, []);
+        }
+
+        return null;
+    }
+
+    create(tokens, namespace) {
+        throw AstError.NOT_IMPLEMENTED;
+    }
+
+    addChildByMatching(tokens, nodeTypes, namespace) {
+        var match = this.matchChild(tokens, nodeTypes, namespace);
+
+        if (match) {
+            this.children.push(match);
+
+            match.parent = this.weak();
+
+            return match;
+        }
+
+        return null;
+    }
+
+    expectChildByMatching(tokens, nodeTypes, namespace) {
+        var addedChild = this.addChildByMatching(tokens, nodeTypes, namespace);
+
+        if (!addedChild) {
+            var tokenHumanReadableName = tokens[0] ? tokens[0].HUMAN_READABLE_NAME : "nothing";
+
+            throw new sources.SourceError(
+                "Expected " + nodeTypes.map(function(nodeType) {
+                    return nodeType.HUMAN_READABLE_NAME;
+                }).join(" or ") + " but got " + tokenHumanReadableName + " instead",
+                tokens[0].sourceContainer,
+                tokens[0].location
+            );
+        }
+    }
+
+    findAncestorOfTypes(nodeTypes, exact, stopAtNodeTypes) {
+        exact ??= false;
+        stopAtNodeTypes ??= [];
+
+        var currentNode = this;
+
+        while (true) {
+            currentNode = currentNode.parent ? currentNode.parent.deref() : null;
+
+            if (currentNode == null) {
+                return null;
+            }
+
+            if (stopAtNodeTypes.find(function(nodeType) {
+                return currentNode inherits nodeType;
+            })) {
+                return currentNode;
+            }
+
+            if (nodeTypes.find(function(nodeType) {
+                if (!exact && currentNode inherits nodeType) {
+                    return true;
+                }
+
+                if (currentNode is nodeType) {
+                    return true;
+                }
+
+                return false;
+            })) {
+                return currentNode;
+            }
+        }
+    }
+
+    findDescendentsOfTypes(nodeTypes, notParentOf) {
+        notParentOf ??= [];
+
+        var matchingChildren = this.children.filter(function(child) {
+            return nodeTypes.find(function(nodeType) {
+                return child inherits nodeType;
+            });
+        });
+
+        for (var i = 0; i < this.children.length; i++) {
+            var child = this.children[i];
+
+            if (notParentOf.find(function(parentType) {
+                return child inherits parentType;
+            })) {
+                continue;
+            }
+
+            child.findDescendentsOfTypes(nodeTypes, notParentOf).forEach(matchingChildren.push);
+        }
+
+        return matchingChildren;
+    }
+
+    checkSymbolUsage(scope, createChildScope) {
+        createChildScope ??= false;
+
+        if (createChildScope) {
+            scope = scope.createChildScope();
+        }
+
+        this.children.forEach(function(child) {
+            child.checkSymbolUsage(scope);
+        });
+    }
+
+    pruneSymbolUsage() {
+        return this.children.map(function(child) {
+            return child.pruneSymbolUsage();
+        }).contains(true, true);
+    }
+
+    estimateTruthiness() {
+        return null;
+    }
+
+    generateCode(options) {
+        throw AstError.NOT_IMPLEMENTED;
+    }
+
+    describe() {
+        var estimatedTruthiness = this.estimateTruthiness();
+
+        if (estimatedTruthiness == true) {
+            return ["truthy"];
+        }
+
+        if (estimatedTruthiness == false) {
+            return ["falsy"];
+        }
+
+        return [];
+    }
+
+    analyse() {
+        var description = this.describe();
+
+        var nodeInfo = this.HUMAN_READABLE_NAME + (
+            description != [] ? " (" + description.join("; ") + ")" : ""
+        );
+
+        if (this.children == []) {
+            return this.id + " " + nodeInfo + ";";
+        }
+
+        return (
+            this.id + " " + nodeInfo + ":\n" +
+            this.children.map(function(child) {
+                return child.analyse()
+                    .split("\n")
+                    .map(function(line) {
+                        return "    " + line;
+                    })
+                    .join("\n")
+            }).join("\n")
+        );
+    }
+
+    generateContextPath() {
+        if (this.parent == null) {
+            return "";
+        }
+
+        var derefParent = this.parent.deref();
+
+        return derefParent != null ? derefParent.generateContextPath() : "";
+    }
+}
+
+class NullNode extends AstNode {
+    HUMAN_READABLE_NAME = "null node";
+
+    generateCode(options) {
+        return Buffer();
+    }
+}

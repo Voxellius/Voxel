@@ -4,6 +4,7 @@ import paths;
 import "common.vxl" as common;
 import "sources.vxl" as sources;
 import "tokeniser.vxl" as tokeniser;
+import "parser.vxl" as parser;
 
 var AUTO_ENUM_VALUE_START = 1;
 
@@ -68,7 +69,7 @@ class Namespace {
     generateAst() {
         var tokens = tokeniser.tokenise(this.sourceContainer);
 
-        // return parser.parse(tokens, this); // TODO: Implement parsing
+        return parser.parse(tokens, this);
     }
 
     getImportedNamespaces() {
@@ -93,7 +94,7 @@ class Namespace {
             } else {
                 io.println("Parsing `" + namespace.sourceContainer.name + "`...");
             }
-            
+
             var ast = namespace.generateAst();
 
             allDiscoveredNamespaces.push(namespace);
@@ -116,8 +117,6 @@ class Namespace {
         if (options.mangle) {
             mangleSymbols(processedNamespaces);
         }
-
-        return Buffer(); // TODO: Implement all other features
 
         for (var i = 0; i < processedNamespaces.length; i++) {
             var namespace = processedNamespaces[i];

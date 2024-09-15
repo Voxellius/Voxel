@@ -1,0 +1,52 @@
+import "tokeniser.vxl" as tokeniser;
+import "namespaces.vxl" as namespaces;
+// import "statements.vxl" as statements; // TODO: Implement this
+import "ast.vxl" as ast;
+
+class ModuleNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "module";
+
+    matches(tokens) {
+        return true;
+    }
+
+    create(tokens, namespace) {
+        var instance = new ModuleNode();
+
+        while (true) {
+            if (tokens == []) {
+                break;
+            }
+
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)])) {
+                continue;
+            }
+
+            tokens.shift();
+
+            // instance.expectChildByMatching(tokens, [statements.StatementNode], namespace); // TODO: Implement this
+        }
+
+        return instance;
+    }
+
+    checkSymbolUsage() {
+        this.scope = new namespaces.Scope();
+
+        super.checkSymbolUsage(this.scope);
+    }
+
+    generateCode(options) {
+        return Buffer(); // TODO: Implement code generation
+    }
+
+    generateContextPath() {
+        return "[module]";
+    }
+}
+
+function parse(tokens, namespace) {
+    namespace ??= new namespaces.Namespace();
+
+    return ModuleNode.create(tokens, namespace);
+}

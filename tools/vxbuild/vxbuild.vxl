@@ -18,7 +18,9 @@ try {
 
     namespace.resolveImports();
 
-    namespace.build();
+    namespace.build({
+        analyseAst: true
+    });
 } catch (error) {
     if (error is sources.SourceError) {
         error.log();
