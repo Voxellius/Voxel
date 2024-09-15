@@ -256,7 +256,7 @@ export class IfStatementNode extends ast.AstNode {
 
         var skipTrueCode = codeGen.join(
             codeGen.bytes(codeGen.vxcTokens.NULL, codeGen.vxcTokens.POS_REF_FORWARD),
-            codeGen.int32(isTrueCode.length + skipFalseCode.length + isFalseCode.length + 1),
+            codeGen.int32(isTrueCode.length + skipFalseCode.length + 1),
             codeGen.bytes(codeGen.vxcTokens.JUMP_IF_TRUTHY)
         );
 

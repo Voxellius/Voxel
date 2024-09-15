@@ -120,7 +120,7 @@ class ExpressionLeafNode extends ExpressionNode {
             assigningToLocalVariable = true;
         }
 
-        if (false) { // FIXME: Fix issue with `else` and match opening bracket
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "(")])) {
             instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
 
             this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
