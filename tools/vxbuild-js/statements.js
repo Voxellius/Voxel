@@ -76,7 +76,7 @@ export class StatementBlockNode extends ast.AstNode {
                     continue;
                 }
 
-                throw new sources.SourceError("Expected statement or \`}\`", tokens[0]?.sourceContainer, tokens[0]?.location);
+                throw new sources.SourceError("Expected statement or `}`", tokens[0]?.sourceContainer, tokens[0]?.location);
             }
         } else {
             instance.expectChildByMatching(tokens, [StatementNode], namespace);
@@ -261,8 +261,6 @@ export class IfStatementNode extends ast.AstNode {
         );
 
         return codeGen.join(
-            // skipTrueDefinitionCode,
-            // skipFalseDefinitionCode,
             notConditionCode,
             skipTrueCode,
             isTrueCode,

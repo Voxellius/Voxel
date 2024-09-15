@@ -1,6 +1,6 @@
 import "tokeniser.vxl" as tokeniser;
 import "namespaces.vxl" as namespaces;
-// import "statements.vxl" as statements; // TODO: Implement this
+import "statements.vxl" as statements;
 import "ast.vxl" as ast;
 
 class ModuleNode extends ast.AstNode {
@@ -14,7 +14,7 @@ class ModuleNode extends ast.AstNode {
         var instance = new ModuleNode();
 
         while (true) {
-            if (tokens == []) {
+            if (tokens.length == 0) {
                 break;
             }
 
@@ -22,9 +22,7 @@ class ModuleNode extends ast.AstNode {
                 continue;
             }
 
-            tokens.shift();
-
-            // instance.expectChildByMatching(tokens, [statements.StatementNode], namespace); // TODO: Implement this
+            instance.expectChildByMatching(tokens, [statements.StatementNode], namespace);
         }
 
         return instance;

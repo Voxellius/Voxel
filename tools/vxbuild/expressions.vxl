@@ -1,0 +1,163 @@
+import "sources.vxl" as sources;
+import "namespaces.vxl" as namespaces;
+import "tokeniser.vxl" as tokeniser;
+import "ast.vxl" as ast;
+import "parser.vxl" as parser;
+import "statements.vxl" as statements;
+
+enum ExpressionError {
+    NOT_IMPLEMENTED
+}
+
+class ThisNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "`this`";
+
+    MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "this")
+    ];
+
+    create(tokens, namespace) {
+        var instance = new ThisNode();
+
+        this.eat(tokens);
+        
+        return instance;
+    }
+}
+
+class ThingNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "thing expression";
+
+    MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.AtomToken),
+        new ast.TokenQuery(tokeniser.TypeNameToken),
+        new ast.TokenQuery(tokeniser.IdentifierToken),
+        new ast.TokenQuery(tokeniser.StringToken),
+        new ast.TokenQuery(tokeniser.NumberToken)
+    ];
+
+    value = null;
+    containedValueTokens = [];
+    containerType = null;
+    memoisedContainedTypeValue = null;
+    bufferLength = null;
+    enumIdentifier = null;
+    enumEntryIdentifier = null;
+    enumNamespace = null;
+
+    create(tokens, namespace) {
+        var instance = new ThingNode();
+
+        var token = this.eat(tokens);
+
+        if (token is tokeniser.AtomToken) {
+            instance.value = {
+                "true": true,
+                "false": false,
+                "null": null,
+                "infinity": infinity,
+                "nan": nan
+            }[token.value];
+        } else if (token is StringToken || token is NumberToken) {
+            instance.value = token.value;
+        } else {
+            // TODO: Implement all others
+            throw ExpressionError.NOT_IMPLEMENTED;
+        }
+
+        return instance;
+    }
+
+    createByValue(value) {
+        var instance = new ThingNode();
+
+        instance.value = value;
+
+        return instance;
+    }
+}
+
+class ExpressionNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "expression";
+
+    MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "var")
+    ]
+        .concat(ThisNode.MATCH_QUERIES)
+        .concat(ThingNode.MATCH_QUERIES)
+    ;
+
+    create(tokens, namespace) {
+        var instance = new ExpressionNode();
+
+        instance.expectChildByMatching(tokens, [ExpressionLeafNode], namespace); // TODO: Expect ternary operator instead
+
+        return instance;
+    }
+
+    estimateTruthiness() {
+        if (this.children == []) {
+            return null;
+        }
+
+        return this.children[0].estimateTruthiness();
+    }
+}
+
+class ExpressionLeafNode extends ExpressionNode {
+    matches(options) {
+        return true; // TODO: Remove (temporary for testing)
+    }
+
+    create(tokens, namespace) {
+        var instance = new ExpressionLeafNode();
+        var assigningToLocalVariable = false;
+
+        // TODO: Check unary operators here
+        // TODO: Check system call node here
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "var")])) {
+            assigningToLocalVariable = true;
+        }
+
+        if (false) { // FIXME: Fix issue with `else` and match opening bracket
+            instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+            this.eat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")]);
+
+            // TODO: Add accessors here
+        } else {
+            instance.expectChildByMatching(tokens, [ExpressionThingNode], namespace);
+
+            instance.children = instance.children[0].children;
+        }
+
+        // TODO: Check for assignment here
+
+        return instance;
+    }
+
+    estimateTruthiness() {
+        return this.children[-1].estimateTruthiness();
+    }
+}
+
+class ExpressionThingNode extends ExpressionLeafNode {
+    MATCH_QUERIES = []
+        .concat(ThisNode.MATCH_QUERIES)
+        .concat(ThingNode.MATCH_QUERIES)
+    ;
+
+    create(tokens, namespace) {
+        var instance = new ExpressionThingNode();
+
+        instance.expectChildByMatching(tokens, [
+            ThisNode,
+            ThingNode
+        ], namespace);
+
+        // TODO: Add accessors here
+
+        return instance;
+    }
+}

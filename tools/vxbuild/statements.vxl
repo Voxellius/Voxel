@@ -1,0 +1,60 @@
+import paths;
+
+import "common.vxl" as common;
+import "sources.vxl" as sources;
+import "tokeniser.vxl" as tokeniser;
+import "namespaces.vxl" as namespaces;
+import "ast.vxl" as ast;
+import "expressions.vxl" as expressions;
+
+class StatementNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "statement";
+
+    matches(options) {
+        return true;
+    }
+
+    create(tokens, namespace) {
+        var instance = new StatementNode();
+
+        instance.expectChildByMatching(tokens, [
+            expressions.ExpressionNode
+        ], namespace);
+
+        return instance;
+    }
+}
+
+class StatementBlockNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "statement block";
+
+    matches(options) {
+        return true;
+    }
+
+    create(tokens, namespace) {
+        var instance = new StatementBlockNode();
+
+        if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "{")])) {
+            while (true) {
+                if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "}")])) {
+                    break;
+                }
+
+                if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.StatementDelimeterToken)])) {
+                    continue;
+                }
+
+                if (instance.addChildByMatching(tokens, [StatementNode], namespace)) {
+                    continue;
+                }
+
+                throw new sources.SourceError("Exepcted statement or `}`", tokens[0].sourceContainer, tokens[0].location);
+            }
+        } else {
+            instance.expectChildByMatching(tokens, [StatementNode], namespace);
+        }
+
+        return instance;
+    }
+}

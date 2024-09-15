@@ -109,7 +109,7 @@ export class ThisNode extends ast.AstNode {
     generateCode(options) {
         return codeGen.bytes(codeGen.vxcTokens.THIS);
     }
-};
+}
 
 export class SuperNode extends ast.AstNode {
     static HUMAN_READABLE_NAME = "`super`";

@@ -488,7 +488,7 @@ function propertyIsUsed(propertySymbol) {
 
 function init() {
     var location = paths.resolve(common.STDLIB_DIR, "core.vxl");
-    var source = "'test'"; // io.readFile(location).toString();
+    var source = "true"; // io.readFile(location).toString();
     var sourceContainer = new sources.SourceContainer(source, location);
 
     coreNamespace = new Namespace(sourceContainer, "#core");
