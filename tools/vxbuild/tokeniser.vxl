@@ -61,6 +61,7 @@ class NumberToken extends Token {
 
 var KEYWORDS = [
     "syscall",
+    "import",
     "as",
     "return",
     "function",
@@ -416,22 +417,22 @@ export function tokenise(sourceContainer) {
                 currentByte == Byte("_") ||| currentByte == Byte("$")
             ) && matchIdentifier()
         ) {
-            if (KEYWORDS.contains(matchedString)) {
+            if (KEYWORDS.contains(mutables.matchedString, true)) {
                 addToken(KeywordToken);
                 continue;
             }
 
-            if (ATOMS.contains(matchedString)) {
+            if (ATOMS.contains(mutables.matchedString, true)) {
                 addToken(AtomToken);
                 continue;
             }
 
-            if (TYPE_NAMES.contains(matchedString)) {
+            if (TYPE_NAMES.contains(mutables.matchedString, true)) {
                 addToken(TypeNameToken);
                 continue;
             }
 
-            if (NAMED_OPERATORS.contains(matchedString)) {
+            if (NAMED_OPERATORS.contains(mutables.matchedString, true)) {
                 addToken(OperatorToken);
                 continue;
             }
