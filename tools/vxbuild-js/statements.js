@@ -610,8 +610,8 @@ export class EnumStatementNode extends ast.AstNode {
 
             if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.AssignmentOperatorToken, "=")])) {
                 var negate = !!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "-")]);
-                var entryValueToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.NumberToken)]);
-                var entryValue = entryValueToken.value * (negate ? -1 : 1);
+                var entryValue = this.eat(tokens, [new ast.TokenQuery(tokeniser.NumberToken), new ast.TokenQuery(tokeniser.StringToken)]).value;
+                var entryValue = typeof(entryValue) == "number" ? entryValue * (negate ? -1 : 1) : (entryValue.length > 0 ? entryValue.charCodeAt(0) : 0);
     
                 enumObject[entryIdentifier.value] = entryValue;
 

@@ -18,7 +18,7 @@ enum ModeOfTransport {
 Here, the entry `ModeOfTransport.WALKING` is explicitly assigned the value `0`. All other values will automatically be assigned an implicit, unique value when compiled.
 
 > [!NOTE]
-> Explicitly assigned values must be number literals.
+> Explicitly assigned values must be number literals or string literals (for the latter, the code of the first character of the string literal will be the value).
 
 Enumerated values can then be stored in variables:
 

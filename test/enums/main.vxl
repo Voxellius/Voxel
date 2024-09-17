@@ -4,7 +4,9 @@ enum TestEnum {
     VALUE_A,
     VALUE_B = 2,
     VALUE_C,
-    VALUE_D = -1
+    VALUE_D = -1,
+    VALUE_E = "",
+    VALUE_F = "A"
 }
 
 syscall io_out("TestEnum.VALUE_A = ");
@@ -23,6 +25,14 @@ syscall io_out("TestEnum.VALUE_D = ");
 syscall io_out(TestEnum.VALUE_D);
 syscall io_out("\n");
 
+syscall io_out("TestEnum.VALUE_E = ");
+syscall io_out(TestEnum.VALUE_E);
+syscall io_out("\n");
+
+syscall io_out("TestEnum.VALUE_F = ");
+syscall io_out(TestEnum.VALUE_F);
+syscall io_out("\n");
+
 syscall io_out("imported.ImportedEnum.IMPORTED_VALUE_A = ");
 syscall io_out(imported.ImportedEnum.IMPORTED_VALUE_A);
 syscall io_out("\n");
@@ -37,6 +47,14 @@ syscall io_out("\n");
 
 syscall io_out("imported.ImportedEnum.IMPORTED_VALUE_D = ");
 syscall io_out(imported.ImportedEnum.IMPORTED_VALUE_D);
+syscall io_out("\n");
+
+syscall io_out("imported.ImportedEnum.IMPORTED_VALUE_E = ");
+syscall io_out(imported.ImportedEnum.IMPORTED_VALUE_E);
+syscall io_out("\n");
+
+syscall io_out("imported.ImportedEnum.IMPORTED_VALUE_F = ");
+syscall io_out(imported.ImportedEnum.IMPORTED_VALUE_F);
 syscall io_out("\n");
 
 var testValueA = TestEnum.VALUE_A;
