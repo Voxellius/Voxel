@@ -12,6 +12,10 @@ class TestClass {
         this.b = b;
     }
 
+    clone() {
+        return new (this.class)(this.a, this.b);
+    }
+
     get added() {
         return this.a + this.b;
     }
@@ -40,6 +44,9 @@ class ClassWithoutConstructor {
 
 var instance1 = new TestClass(2, 3);
 var instance2 = new TestClass(3, 4);
+
+syscall io_out("Clone instance1:\n");
+instance1.clone();
 
 syscall io_out("instance1 multiply result: ");
 syscall io_out(instance1.multiply());

@@ -15,7 +15,7 @@ class StatementNode extends ast.AstNode {
     }
 
     create(tokens, namespace) {
-        var instance = new StatementNode();
+        var instance = new (this)();
 
         instance.expectChildByMatching(tokens, [
             expressions.ExpressionNode
@@ -33,7 +33,7 @@ class StatementBlockNode extends ast.AstNode {
     }
 
     create(tokens, namespace) {
-        var instance = new StatementBlockNode();
+        var instance = new (this)();
 
         if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, "{")])) {
             while (true) {

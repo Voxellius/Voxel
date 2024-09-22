@@ -6,6 +6,8 @@ import "sources.vxl" as sources;
 import "tokeniser.vxl" as tokeniser;
 import "parser.vxl" as parser;
 
+import "ast.vxl" as astProvider; // TODO: Remove
+
 var AUTO_ENUM_VALUE_START = 1;
 
 var generatedSymbolIndex = 0;
@@ -135,7 +137,7 @@ class Namespace {
 
         io.println("Performing static code analysis for core namespace...");
 
-        var coreAst = asts[processedNamespaces.indexOf(coreNamespace)];
+        var coreAst = asts[processedNamespaces.indexOf(coreNamespace, true)];
 
         coreAst.checkSymbolUsage();
 
@@ -265,7 +267,9 @@ class Symbol {
     generateCode(options) {} // TODO: Implement code generation
 }
 
-class SystemCall extends Symbol {} // TODO: Implement class
+class SystemCall extends Symbol {
+    constructor() {}
+} // TODO: Implement class
 
 class ForeignSymbolReference {
     constructor(receiverNamespace, subjectNamespaceIdentifier, symbolName, couldBeEnum) {

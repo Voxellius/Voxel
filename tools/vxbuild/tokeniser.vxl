@@ -273,7 +273,7 @@ export function tokenise(sourceContainer) {
         var token = new tokenClass(value);
 
         token.sourceContainer = sourceContainer;
-        token.location = mutables.previousPosition;
+        token.location = &(mutables.currentPosition);
 
         tokens.push(token);
     }
@@ -394,8 +394,12 @@ export function tokenise(sourceContainer) {
         }
 
         if (BRACKETS.contains(currentByte, true)) {
+            mutables.matchedString = "" + currentByte; // TODO: Add `toString` method for bytes
+
             addToken(BracketToken);
+
             mutables.currentPosition++;
+
             continue;
         }
 

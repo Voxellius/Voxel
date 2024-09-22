@@ -45,6 +45,9 @@ A list of objects containing keys (each `key`) and values (each `value`) in this
 #### `prototypes: List<Object<*, *>>`
 A mutable list of prototypes that the object inherits. When a key is accessed on the object and the object does not have an entry with the same key, each inherited object in the object's prototypes list will be looked up to find the key, starting from the last prototype in the list.
 
+#### `class: Object<*, *>`
+The class of the instance this property belongs to. This is effectively the first prototype in the prototypes list. If an instance wants to create a new instance of its class, it can call `new (this.class)(...)`.
+
 #### `keyOf(value: *): Number`
 Find the key of the first occurrence of a value (`value`) in the object and return it.
 

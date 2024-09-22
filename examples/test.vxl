@@ -1,1 +1,2 @@
-true
+syscall io_out("Hello, world!\n");
+syscall io_out(-5 + 12 * (-3 + 2) * -(5 - 4));

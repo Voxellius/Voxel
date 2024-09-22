@@ -17,7 +17,7 @@ class ThisNode extends ast.AstNode {
     ];
 
     create(tokens, namespace) {
-        var instance = new ThisNode();
+        var instance = new (this)();
 
         this.eat(tokens);
         
@@ -46,7 +46,7 @@ class ThingNode extends ast.AstNode {
     enumNamespace = null;
 
     create(tokens, namespace) {
-        var instance = new ThingNode();
+        var instance = new (this)();
 
         var token = this.eat(tokens);
 
@@ -58,10 +58,35 @@ class ThingNode extends ast.AstNode {
                 "infinity": infinity,
                 "nan": nan
             }[token.value];
-        } else if (token is StringToken || token is NumberToken) {
+        } else if (token is tokeniser.TypeNameToken) {
+            // TODO: Implement this type of token
+        } else if (token is tokeniser.IdentifierToken) {
+            if (namespace.hasImport(token.value)) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.PropertyAccessorToken)]);
+
+                var foreignSymbolToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+                instance.value = new namespaces.ForeignSymbolReference(
+                    namespace,
+                    token.value,
+                    foreignSymbolToken.value,
+                    !!this.want(tokens, [new ast.TokenQuery(tokeniser.PropertyAccessorToken)])
+                );
+            } else if (namespace.enums.keys.contains(token.value)) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.PropertyAccessorToken)]);
+
+                var entryToken = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+                instance.value = namespace.getEnumValue(token.value, entryToken.value);
+                instance.enumIdentifier = token.value;
+                instance.enumEntryIdentifier = entryToken.value;
+                instance.enumNamespace = namespace;
+            } else {
+                instance.value = new namespaces.Symbol(namespace, token.value);
+            }
+        } else if (token is tokeniser.StringToken || token is tokeniser.NumberToken) {
             instance.value = token.value;
         } else {
-            // TODO: Implement all others
             throw ExpressionError.NOT_IMPLEMENTED;
         }
 
@@ -75,22 +100,124 @@ class ThingNode extends ast.AstNode {
 
         return instance;
     }
+
+    getContainerTypeValue() {
+        // TODO: Implement this
+        throw ExpressionError.NOT_IMPLEMENTED;
+    }
+
+    checkSymbolUsage(scope) {
+        scope.addSymbol(this.value, true, false, this);
+
+        if (this.value is namespaces.ForeignSymbolReference) {
+            var usage = new namespaces.ForeignSymbolUsage(this.value.symbolName, this.value.subjectNamespaceIdentifier);
+
+            usage.readBy.push(this);
+
+            scope.foreignSymbolUses.push(usage);
+        }
+
+        super.checkSymbolUsage(scope);
+    }
+
+    estimateTruthiness() {
+        if (this.containerType == "byte") {
+            return this.getContainerTypeValue() != 0;
+        }
+
+        if (this.containerType == "buffer") {
+            return this.bufferLength > 0;
+        }
+
+        if (
+            this.value is namespaces.Symbol ||
+            this.value is namespaces.ForeignSymbolReference
+        ) {
+            return this.scope != null ? this.scope.getSymbolTruthiness(this.value) : null;
+        }
+
+        if (this.value == null) {
+            return false;
+        }
+
+        if (this.value is Boolean) {
+            return this.value;
+        }
+
+        if (this.value is String) {
+            return this.value.length > 0;
+        }
+
+        if (this.value is Number) {
+            return this.value != 0;
+        }
+
+        return null;
+    }
+}
+
+class FunctionArgumentsNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "argument list";
+
+    MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.BracketToken, "(")
+    ];
+
+    arguments = [];
+    spreading = [];
+
+    create(tokens, namespace) {
+        var instance = new (this)();
+
+        this.eat(tokens);
+
+        var addedFirstArgument = false;
+
+        while (true) {
+            if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.BracketToken, ")")])) {
+                break;
+            }
+
+            if (addedFirstArgument) {
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.DelimeterToken)]);
+            }
+
+            instance.spreading.push(!!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "...")]));
+
+            instance.arguments.push(
+                instance.expectChildByMatching(tokens, [ExpressionNode], namespace)
+            );
+
+            addedFirstArgument = true;
+        }
+
+        return instance;
+    }
 }
 
 class ExpressionNode extends ast.AstNode {
     HUMAN_READABLE_NAME = "expression";
 
     MATCH_QUERIES = [
-        new ast.TokenQuery(tokeniser.KeywordToken, "var")
+        new ast.TokenQuery(tokeniser.KeywordToken, "syscall"),
+        new ast.TokenQuery(tokeniser.KeywordToken, "var"),
+        new ast.TokenQuery(tokeniser.BracketToken, "(")
     ]
         .concat(ThisNode.MATCH_QUERIES)
         .concat(ThingNode.MATCH_QUERIES)
+        .concat([
+            new ast.TokenQuery(tokeniser.IncrementationOperatorToken),
+            new ast.TokenQuery(tokeniser.OperatorToken, "-"),
+            new ast.TokenQuery(tokeniser.OperatorToken, "~"),
+            new ast.TokenQuery(tokeniser.OperatorToken, "!"),
+            new ast.TokenQuery(tokeniser.OperatorToken, "&")
+        ])
     ;
 
     create(tokens, namespace) {
-        var instance = new ExpressionNode();
+        var instance = new (this)();
 
-        instance.expectChildByMatching(tokens, [ExpressionLeafNode], namespace); // TODO: Expect ternary operator instead
+        instance.expectChildByMatching(tokens, [TernaryOperatorExpressionNode], namespace);
 
         return instance;
     }
@@ -104,17 +231,127 @@ class ExpressionNode extends ast.AstNode {
     }
 }
 
+class ExpressionAssignmentNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "assignment expression";
+
+    OPERATOR_ASSIGNMENT_MAP = {
+        "*=": "*",
+        "/=": "/",
+        "%=": "%",
+        "+=": "+",
+        "-=": "-",
+        "&&&=": "&&&",
+        "|||=": "|||",
+        "&&=": "&&",
+        "||=": "||",
+        "??=": "??"
+    };
+
+    operatorAssignment = null;
+    skipSymbol = null;
+
+    constructor(targetInstance, isLocal) {
+        super();
+
+        this.targetInstance = targetInstance;
+        this.isLocal = isLocal;
+    }
+
+    create(tokens, namespace, targetInstance, isLocal) {
+        var instance = new (this)(targetInstance, isLocal ?? false);
+
+        var operator = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.AssignmentOperatorToken)]);
+
+        if (!operator) {
+            return instance;
+        }
+
+        instance.operatorAssignment = this.OPERATOR_ASSIGNMENT_MAP[operator.value] || null;
+
+        if (instance.operatorAssignment) {
+            instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("assign_skip"));
+        }
+
+        instance.addChildByMatching(tokens, [ExpressionNode], namespace);
+
+        return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        var subject = this.targetInstance.children[0];
+        var target = this.targetInstance.children[-1];
+
+        if (target is IndexAccessorNode) {
+            subject.checkSymbolUsage(scope);
+        }
+
+        if (target is PropertyAccessorNode) {
+            scope.addSymbol(target.propertySymbol, false, true);
+
+            subject.checkSymbolUsage(scope);
+        }
+
+        super.checkSymbolUsage(scope);
+
+        if (subject.value is namespaces.Symbol) {
+            var usage = scope.getSymbolById(subject.value.id, this.isLocal);
+
+            usage.everDefined = true;
+
+            if (!usage.truthinessAssigned) {
+                usage.truthiness = this.estimateTruthiness();
+                usage.truthinessAssigned = true;
+            } else {
+                usage.truthiness = null;
+            }
+        }
+    }
+
+    pruneSymbolUsage() {
+        var usage = this.scope.symbolUses.find(function(usage) {
+            return usage.id == this.targetInstance.children[-1].value.id;
+        });
+
+        var anyMarkedUnread = false;
+
+        if (this.children.length > 0 && usage && !usage.everRead && false) { // TODO: Check if DCE has effect
+            anyMarkedUnread ||= dce.markChildSymbolsAsUnread(this.children[0]);
+        }
+
+        return super.pruneSymbolUsage() || anyMarkedUnread;
+    }
+
+    estimateTruthiness() {
+        if (this.operatorAssignment == null && this.children.length > 0) {
+            return this.children[0].estimateTruthiness();
+        }
+
+        return null;
+    }
+}
+
 class ExpressionLeafNode extends ExpressionNode {
     matches(options) {
         return true; // TODO: Remove (temporary for testing)
     }
 
     create(tokens, namespace) {
-        var instance = new ExpressionLeafNode();
+        var instance = new (this)();
         var assigningToLocalVariable = false;
 
-        // TODO: Check unary operators here
-        // TODO: Check system call node here
+        if (instance.addChildByMatching(tokens, [
+            UnaryPrefixIncrementationOperatorExpressionNode,
+            UnaryNegativeOperatorExpressionNode,
+            UnaryBitwiseNotOperatorExpressionNode,
+            UnaryNotOperatorExpressionNode,
+            CopyOperatorExpressionNode
+        ], namespace)) {
+            return instance;
+        }
+
+        if (this.want(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "syscall")])) {
+            return SystemCallNode.create(tokens, namespace);
+        }
 
         if (this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.KeywordToken, "var")])) {
             assigningToLocalVariable = true;
@@ -149,7 +386,7 @@ class ExpressionThingNode extends ExpressionLeafNode {
     ;
 
     create(tokens, namespace) {
-        var instance = new ExpressionThingNode();
+        var instance = new (this)();
 
         instance.expectChildByMatching(tokens, [
             ThisNode,
@@ -157,6 +394,531 @@ class ExpressionThingNode extends ExpressionLeafNode {
         ], namespace);
 
         // TODO: Add accessors here
+
+        return instance;
+    }
+}
+
+export class UnaryPrefixOperatorExpressionNode extends ExpressionNode {
+    MATCH_QUERIES = [];
+    OPERATOR_CODE = null;
+
+    operatorToken = null;
+
+    create(tokens, namespace) {
+        var instance = new (this)();
+
+        instance.operatorToken = this.eat(tokens);
+
+        instance.expectChildByMatching(tokens, [ExpressionLeafNode], namespace);
+
+        return instance;
+    }
+}
+
+class UnaryPrefixIncrementationOperatorExpressionNode extends UnaryPrefixOperatorExpressionNode {
+    MATCH_QUERIES = [new ast.TokenQuery(tokeniser.IncrementationOperatorToken)];
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class UnaryNegativeOperatorExpressionNode extends UnaryPrefixOperatorExpressionNode {
+    MATCH_QUERIES = [new ast.TokenQuery(tokeniser.OperatorToken, "-")];
+
+    estimateTruthiness() {
+        return this.children[0].estimateTruthiness();
+    }
+}
+
+class UnaryBitwiseNotOperatorExpressionNode extends UnaryPrefixOperatorExpressionNode {
+    MATCH_QUERIES = [new ast.TokenQuery(tokeniser.OperatorToken, "~")];
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class UnaryNotOperatorExpressionNode extends UnaryPrefixOperatorExpressionNode {
+    MATCH_QUERIES = [new ast.TokenQuery(tokeniser.OperatorToken, "!")];
+
+    estimateTruthiness() {
+        var valueTruthiness = this.children[0].estimateTruthiness();
+
+        if (valueTruthiness == null) {
+            return null;
+        }
+
+        return !valueTruthiness;
+    }
+}
+
+class CopyOperatorExpressionNode extends UnaryPrefixOperatorExpressionNode {
+    MATCH_QUERIES = [new ast.TokenQuery(tokeniser.OperatorToken, "&")];
+
+    estimateTruthiness() {
+        return this.children[0].estimateTruthiness();
+    }
+}
+
+class UnarySuffixOperatorExpressionNode extends ExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [];
+    OPERATOR_CODE = null;
+    CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+
+    operatorToken = null;
+
+    create(tokens, namespace) {
+        var instance = new (this)();
+
+        instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+
+        instance.operatorToken = this.maybeEat(tokens, this.OPERATOR_TOKEN_QUERIES);
+
+        if (!instance.operatorToken) {
+            return instance.children[0];
+        }
+
+        return instance;
+    }
+}
+
+class UnarySuffixIncrementationOperatorExpressionNode extends UnarySuffixOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [new ast.TokenQuery(tokeniser.IncrementationOperatorToken)];
+    CHILD_EXPRESSION_NODE_CLASS = ExpressionLeafNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class BinaryOperatorExpressionNode extends ExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [];
+    // OPERATOR_CODE = ALL_BINARY_OPERATOR_CODE;
+    CHILD_EXPRESSION_NODE_CLASS = UnarySuffixOperatorExpressionNode;
+
+    operatorTokens = [];
+
+    create(tokens, namespace) {
+        var instance = new (this)();
+
+        while (true) {
+            instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+
+            var operatorToken = this.maybeEat(tokens, this.OPERATOR_TOKEN_QUERIES);
+
+            if (!operatorToken) {
+                break;
+            }
+
+            instance.operatorTokens.push(operatorToken);
+        }
+
+        if (instance.children.length == 1) {
+            return instance.children[0];
+        }
+
+        return instance;
+    }
+}
+
+class MultiplicationDivisionOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "*"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "/"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "%")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = UnarySuffixIncrementationOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class AdditionSubtractionOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "+"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "-")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = MultiplicationDivisionOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class BitwiseShiftOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "<<"),
+        new ast.TokenQuery(tokeniser.OperatorToken, ">>"),
+        new ast.TokenQuery(tokeniser.OperatorToken, ">>>")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = AdditionSubtractionOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class EqualityOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "<="),
+        new ast.TokenQuery(tokeniser.OperatorToken, "<"),
+        new ast.TokenQuery(tokeniser.OperatorToken, ">="),
+        new ast.TokenQuery(tokeniser.OperatorToken, ">"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "!=="),
+        new ast.TokenQuery(tokeniser.OperatorToken, "!="),
+        new ast.TokenQuery(tokeniser.OperatorToken, "==="),
+        new ast.TokenQuery(tokeniser.OperatorToken, "==")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = BitwiseShiftOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class InstanceOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "is"),
+        new ast.TokenQuery(tokeniser.OperatorToken, "inherits")
+    ];
+
+    // OPERATOR_CODE = ALL_BINARY_OPERATOR_CODE;
+    CHILD_EXPRESSION_NODE_CLASS = EqualityOperatorExpressionNode;
+
+    TYPE_NAMES_TO_BYTES = {
+        "Boolean": "t",
+        "Byte": "b",
+        "Function": "@",
+        "ClosureFunction": "C",
+        "Number": "%",
+        "Buffer": "B",
+        "String": "\"",
+        "Object": "O",
+        "List": "L",
+        "WeakReference": "W"
+    };
+
+    operatorToken = null;
+    typeByteUsed = null;
+
+    create(tokens, namespace) {
+        var instance = new (this)();
+
+        instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+
+        instance.operatorToken = this.maybeEat(tokens, this.OPERATOR_TOKEN_QUERIES);
+
+        if (!instance.operatorToken) {
+            return instance.children[0];
+        }
+
+        var typeNameToken = this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.TypeNameToken)]);
+
+        if (instance.operatorToken.value == "is" && typeNameToken) {
+            instance.typeByteUsed = this.TYPE_NAMES_TO_BYTES[typeNameToken.value];
+        } else {
+            instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+        }
+
+        return instance;
+    }
+}
+
+class BitwiseAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "&")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = InstanceOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class BitwiseXorOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "^")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = BitwiseAndOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class BitwiseOrOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "|")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = BitwiseXorOperatorExpressionNode;
+
+    estimateTruthiness() {
+        return null;
+    }
+}
+
+class LogicalEagerAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "&&&")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = BitwiseOrOperatorExpressionNode;
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var i = 0; i < this.children.length; i++) {
+            var child = this.children[i];
+
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == false) {
+                return false;
+            }
+        }
+
+        return anyUnknown ? null : true;
+    }
+}
+
+class LogicalEagerOrOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "|||")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = LogicalEagerAndOperatorExpressionNode;
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var i = 0; i < this.children.length; i++) {
+            var child = this.children[i];
+
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == true) {
+                return true;
+            }
+        }
+
+        return anyUnknown ? null : false;
+    }
+}
+
+class LogicalShortCircuitingAndOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "&&")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = LogicalEagerOrOperatorExpressionNode;
+
+    create(tokens, namespace) {
+        var instance = super.create(tokens, namespace);
+
+        instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("and_skip"));
+
+        return instance;
+    }
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var i = 0; i < this.children.length; i++) {
+            var child = this.children[i];
+
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == false) {
+                return false;
+            }
+        }
+
+        return anyUnknown ? null : true;
+    }
+}
+
+class LogicalShortCircuitingOrOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "||")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = LogicalShortCircuitingAndOperatorExpressionNode;
+
+    create(tokens, namespace) {
+        var instance = super.create(tokens, namespace);
+
+        instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("or_skip"));
+
+        return instance;
+    }
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var i = 0; i < this.children.length; i++) {
+            var child = this.children[i];
+
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == true) {
+                return true;
+            }
+        }
+
+        return anyUnknown ? null : false;
+    }
+}
+
+class NullishCoalescingOperatorExpressionNode extends BinaryOperatorExpressionNode {
+    OPERATOR_TOKEN_QUERIES = [
+        new ast.TokenQuery(tokeniser.OperatorToken, "??")
+    ];
+
+    CHILD_EXPRESSION_NODE_CLASS = LogicalShortCircuitingOrOperatorExpressionNode;
+
+    create(tokens, namespace) {
+        var instance = super.create(tokens, namespace);
+
+        instance.skipSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("nullish_skip"));
+
+        return instance;
+    }
+
+    estimateTruthiness() {
+        var anyUnknown = false;
+
+        for (var i = 0; i < this.children.length; i++) {
+            var child = this.children[i];
+
+            var truthiness = child.estimateTruthiness();
+
+            if (truthiness == null) {
+                anyUnknown = true;
+            }
+
+            if (truthiness == true) {
+                return true;
+            }
+        }
+
+        return anyUnknown ? null : false;
+    }
+}
+
+class TernaryOperatorExpressionNode extends ExpressionNode {
+    CHILD_EXPRESSION_NODE_CLASS = NullishCoalescingOperatorExpressionNode;
+
+    skipTrueSymbol = null;
+    skipFalseSymbol = null;
+    conditionTruthiness = null;
+
+    create(tokens, namespace) {
+        var instance = new (this)();
+
+        instance.expectChildByMatching(tokens, [this.CHILD_EXPRESSION_NODE_CLASS], namespace);
+        
+        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.OperatorToken, "?")])) {
+            return instance.children[0];
+        }
+
+        instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+        if (!this.maybeEat(tokens, [new ast.TokenQuery(tokeniser.PropertyDefinerToken)])) {
+            var token = tokens[0];
+
+            var tokenHumanReadableName = token ? token.constructor.HUMAN_READABLE_NAME : "nothing";
+
+            throw new sources.SourceError("Expected ternary result delimeter (:) but got " + tokenHumanReadableName + " instead", token.sourceContainer, token.location);
+        }
+
+        instance.expectChildByMatching(tokens, [ExpressionNode], namespace);
+
+        instance.skipTrueSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("ternary_true"));
+        instance.skipFalseSymbol = new namespaces.Symbol(namespace, namespaces.generateSymbolName("ternary_false"));
+
+        return instance;
+    }
+
+    checkSymbolUsage(scope) {
+        this.scope = scope;
+
+        this.children[0].checkSymbolUsage(scope);
+
+        if (this.conditionTruthiness == null) {
+            this.conditionTruthiness = this.children[0].estimateTruthiness();
+        }
+
+        if (this.conditionTruthiness == true) {
+            this.children[1].checkSymbolUsage(scope);
+
+            return;
+        }
+
+        if (this.conditionTruthiness == false) {
+            this.children[2].checkSymbolUsage(scope);
+
+            return;
+        }
+    }
+
+    estimateTruthiness() {
+        if (this.conditionTruthiness == true) {
+            return this.children[1].estimateTruthiness();
+        }
+
+        if (this.conditionTruthiness == false) {
+            return this.children[2].estimateTruthiness();
+        }
+
+        return null;
+    }
+}
+
+class SystemCallNode extends ast.AstNode {
+    HUMAN_READABLE_NAME = "system call";
+
+    MATCH_QUERIES = [
+        new ast.TokenQuery(tokeniser.KeywordToken, "syscall")
+    ];
+
+    value = null;
+
+    create(tokens, namespace) {
+        var instance = new (this)();
+
+        this.eat(tokens);
+
+        var identifier = this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]);
+
+        instance.value = new namespaces.SystemCall(namespace, identifier.value);
+
+        instance.expectChildByMatching(tokens, [FunctionArgumentsNode], namespace);
 
         return instance;
     }

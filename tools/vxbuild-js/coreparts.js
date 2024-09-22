@@ -456,6 +456,10 @@ builtinProps["O"]["prototypes"] = `
     return syscall Op(thing);
 `;
 
+builtinProps["O"]["class"] = `
+    return (syscall Op(thing))[0];
+`;
+
 builtinProps["O"]["keyOf"] = `
     return function(value) {
         var keys = syscall Ok(thing);

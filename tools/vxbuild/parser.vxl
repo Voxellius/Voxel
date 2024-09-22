@@ -11,7 +11,7 @@ class ModuleNode extends ast.AstNode {
     }
 
     create(tokens, namespace) {
-        var instance = new ModuleNode();
+        var instance = new (this)();
 
         while (true) {
             if (tokens.length == 0) {

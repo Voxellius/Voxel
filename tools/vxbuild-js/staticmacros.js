@@ -142,7 +142,7 @@ export class StaticMacroNode extends ast.AstNode {
             }
 
             instance.arguments.push(
-                this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken)]).value
+                this.eat(tokens, [new ast.TokenQuery(tokeniser.IdentifierToken), new ast.TokenQuery(tokeniser.KeywordToken)]).value
             );
 
             addedFirstArgument = true;

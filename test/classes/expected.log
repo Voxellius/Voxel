@@ -1,5 +1,7 @@
 TestClass constructor called with args: 2, 3
 TestClass constructor called with args: 3, 4
+Clone instance1:
+TestClass constructor called with args: 2, 3
 instance1 multiply result: 6
 instance1 added result: 5
 instance1 multiply after accumulate result: 18
